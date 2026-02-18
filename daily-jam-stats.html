@@ -36,8 +36,20 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 56px; }
 .summary-card { background: var(--surface); padding: 24px 20px; }
 .summary-card .num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); line-height: 1; }
-.summary-card .label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
-.summary-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+/* UPDATED ACCESSIBILITY */
+.summary-card .label { 
+  font-size: 10px; 
+  letter-spacing: 2px; 
+  text-transform: uppercase; 
+  color: var(--text);    /* Brighter text */
+  opacity: 0.7;          
+  margin-top: 6px; 
+}
+.summary-card .sub { 
+  font-size: 12px;       /* Larger size */
+  color: #cccccc;        /* High contrast gray */
+  margin-top: 4px; 
+}
 
 /* YEAR FILTER */
 .year-filter { display: flex; gap: 0; margin-bottom: 24px; flex-wrap: wrap; }
@@ -88,8 +100,21 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .split-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
 .split-card { background: var(--surface); padding: 28px 24px; }
 .split-card .big { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; line-height: 1; }
-.split-card .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
-.split-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.7; }
+/* UPDATED ACCESSIBILITY */
+.split-card .lbl { 
+  font-size: 10px; 
+  letter-spacing: 2px; 
+  text-transform: uppercase; 
+  color: var(--text);    /* Brighter text */
+  opacity: 0.7;
+  margin-top: 6px; 
+}
+.split-card .desc { 
+  font-size: 13px;       /* Larger size */
+  color: #cccccc;        /* High contrast gray */
+  margin-top: 8px; 
+  line-height: 1.6; 
+}
 .split-bar { margin-top: 16px; height: 4px; background: var(--border); }
 .split-bar-fill { height: 100%; }
 
@@ -103,7 +128,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .decade-count { font-size: 11px; color: var(--text-dim); width: 36px; text-align: right; flex-shrink: 0; }
 .decade-pct { font-size: 10px; color: var(--text-muted); width: 38px; text-align: right; flex-shrink: 0; }
 .dby-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.dby-label { font-size: 11px; font-weight: 700; width: 48px; flex-shrink: 0; }
+.dby-label { font-size: 11px; font-weight: 700; width: 80px; flex-shrink: 0; }
 .dby-bar { flex: 1; height: 26px; display: flex; overflow: hidden; }
 .dby-seg { height: 100%; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
 .decade-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
@@ -160,20 +185,19 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 
   <div class="summary-grid" id="summary-grid"></div>
 
-  <!-- TOP ARTISTS -->
   <div class="section">
     <div class="section-title">Most Added <span>Artists</span></div>
     <div class="section-sub">Ranked by total appearances — lead + featured</div>
     <div class="year-filter" id="artist-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
     </div>
     <div class="chart-legend">
       <div class="legend-item"><div class="legend-swatch lead" id="legend-lead-swatch"></div><span id="legend-lead-text">Lead artist</span></div>
@@ -182,34 +206,31 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
     <div class="artist-bars" id="artist-bars"></div>
   </div>
 
-  <!-- TOP PER YEAR -->
   <div class="section">
     <div class="section-title">Top Artists <span>Per Year</span></div>
     <div class="section-sub">Top 5 per Daily Jam playlist — solid = lead, faded = featured</div>
     <div class="per-year-grid" id="per-year-grid"></div>
   </div>
 
-  <!-- ARTIST DEPTH -->
   <div class="section">
     <div class="section-title">Artist <span>Depth</span></div>
     <div class="section-sub">One-time adds vs. artists you kept coming back to</div>
     <div class="split-stats" id="split-stats"></div>
   </div>
 
-  <!-- DECADE -->
   <div class="section">
     <div class="section-title">Decade <span>Breakdown</span></div>
     <div class="section-sub">When were the songs you added originally released?</div>
     <div class="year-filter" id="decade-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
     </div>
     <div class="decade-section">
       <div><div class="decade-bars" id="decade-bars"></div></div>
@@ -222,20 +243,19 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   </div>
 
 
-  <!-- GENRE WHEEL -->
   <div class="section">
     <div class="section-title">Genre <span>Wheel</span></div>
     <div class="section-sub">Based on Spotify genre tags — songs with no genre data excluded</div>
     <div class="year-filter" id="genre-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
     </div>
     <div class="genre-section">
       <div class="pie-wrap">
@@ -338,7 +358,7 @@ document.getElementById('per-year-grid').innerHTML = Object.entries(STATS.topPer
   const color = YEAR_COLORS[parseInt(yr)];
   const maxTotal = top5[0] ? top5[0][1] + top5[0][2] : 1;
   return `<div class="per-year-card">
-    <h3 style="color:${color}">DJ ${yr} · ${YEAR_LABELS[parseInt(yr)]}</h3>
+    <h3 style="color:${color}">Daily Jam ${yr} · ${YEAR_LABELS[parseInt(yr)]}</h3>
     ${top5.map(([name, lead, feat], i) => {
       const total = lead + feat;
       const leadPct = (lead/maxTotal*100).toFixed(0);
@@ -411,7 +431,7 @@ document.getElementById('decade-by-year').innerHTML = Object.entries(STATS.decad
     const w = total ? (count/total*100).toFixed(1) : 0;
     return `<div class="dby-seg" style="width:${w}%;background:${DECADE_COLORS[i]}" title="${d}: ${count} songs (${w}%)"></div>`;
   }).join('');
-  return `<div class="dby-row"><div class="dby-label" style="color:${color}">DJ ${yr}</div><div class="dby-bar">${segs}</div></div>`;
+  return `<div class="dby-row"><div class="dby-label" style="color:${color}">Daily Jam ${yr}</div><div class="dby-bar">${segs}</div></div>`;
 }).join('');
 
 document.getElementById('decade-legend').innerHTML = DECADE_ORDER.map((d, i) =>
