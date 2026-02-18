@@ -103,19 +103,13 @@
   .modal { background: var(--surface); border: 1px solid var(--border); max-width: 540px; width: 100%; position: relative; animation: modalIn 0.18s ease-out; }
   @keyframes modalIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   .modal-header { padding: 28px 28px 18px; border-bottom: 1px solid var(--border); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 5px; color: #f0e8d8; }
   .modal-artist { font-size: 13px; color: var(--amber); margin-bottom: 3px; }
-  .modal-album { font-size: 12px; color: var(--text-muted); }
+  .modal-album { font-size: 12px; color: #7a7060; }
   .modal-body { padding: 20px 28px 26px; }
   .modal-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   .modal-meta-item label { display: block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-  .modal-meta-item span { font-size: 14px; color: var(--text); font-weight: 700; }
-  .audio-features h3 { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
-  .feature-row { display: flex; align-items: center; gap: 12px; margin-bottom: 9px; }
-  .feature-label { font-size: 11px; color: var(--text-dim); width: 90px; flex-shrink: 0; }
-  .feature-bar { flex: 1; height: 5px; background: var(--border); position: relative; overflow: hidden; }
-  .feature-bar-fill { height: 100%; position: absolute; left: 0; top: 0; background: var(--amber); transition: width 0.35s ease-out; }
-  .feature-val { font-size: 12px; font-weight: 700; color: var(--text); width: 32px; text-align: right; }
+  .modal-meta-item span { font-size: 14px; color: #e8e0d0; font-weight: 700; }
   .modal-actions { margin-top: 18px; }
   .btn-spotify { display: inline-flex; align-items: center; gap: 8px; background: #1DB954; color: #000; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 10px 18px; text-decoration: none; letter-spacing: 1px; transition: opacity 0.15s; }
   .btn-spotify:hover { opacity: 0.85; }
@@ -135,7 +129,10 @@
     <div class="title-block">
       <h1>Daily <span>Jam</span></h1>
       <p>One song · Every day · No repeats · Sept 24, 2018 →</p>
-      <div style="margin-top:16px;display:flex;gap:16px"><a href="daily-jam-stats.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;transition:color 0.15s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-dim)'">Stats & Insights →</a></div>
+      <div style="margin-top:16px;display:flex;gap:16px">
+        <a href="daily-jam-stats.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;transition:color 0.15s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-dim)'">Stats & Insights →</a>
+        <a href="daily-jam-calendar.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;transition:color 0.15s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-dim)'">Calendar →</a>
+      </div>
     </div>
     <div class="stats-strip">
       <div class="stat">
@@ -212,15 +209,6 @@
         <div class="modal-meta-item"><label>Day Number</label><span id="m-daynum">—</span></div>
         <div class="modal-meta-item"><label>Playlist Year</label><span id="m-year">—</span></div>
         <div class="modal-meta-item"><label>Release Year</label><span id="m-release">—</span></div>
-        <div class="modal-meta-item"><label>Popularity</label><span id="m-popularity">—</span></div>
-        <div class="modal-meta-item"><label>Tempo</label><span id="m-tempo">—</span></div>
-      </div>
-      <div class="audio-features">
-        <h3>Audio Features</h3>
-        <div class="feature-row"><div class="feature-label">Danceability</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-dance"></div></div><div class="feature-val" id="fv-dance">—</div></div>
-        <div class="feature-row"><div class="feature-label">Energy</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-energy"></div></div><div class="feature-val" id="fv-energy">—</div></div>
-        <div class="feature-row"><div class="feature-label">Positivity</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-valence"></div></div><div class="feature-val" id="fv-valence">—</div></div>
-        <div class="feature-row"><div class="feature-label">Acousticness</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-acoustic"></div></div><div class="feature-val" id="fv-acoustic">—</div></div>
       </div>
       <div class="modal-actions">
         <a class="btn-spotify" id="m-spotify-link" href="#" target="_blank">▶ Open in Spotify</a>
@@ -326,12 +314,6 @@ function openModal(id) {
   document.getElementById('m-daynum').textContent = `Day ${s[0].toLocaleString()} of ${SONGS.length.toLocaleString()}`;
   document.getElementById('m-year').textContent = `Year ${s[6]} (${YEAR_LABELS[s[6]]})`;
   document.getElementById('m-release').textContent = s[14] || '—';
-  document.getElementById('m-popularity').textContent = s[8] + ' / 100';
-  document.getElementById('m-tempo').textContent = s[12] + ' BPM';
-  [['dance',s[9]],['energy',s[10]],['valence',s[11]],['acoustic',s[13]]].forEach(([k,v]) => {
-    document.getElementById(`fb-${k}`).style.width = (v*100)+'%';
-    document.getElementById(`fv-${k}`).textContent = Math.round(v*100);
-  });
   document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/${s[1]}`;
   document.getElementById('modal-overlay').classList.add('open');
 }
