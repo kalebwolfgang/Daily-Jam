@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.15);
+    --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
+  body::after  { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  .header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); }
+  .header-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; gap: 20px; flex-wrap: wrap; }
+  .title-block h1 { font-family: 'Playfair Display', serif; font-size: clamp(42px, 6vw, 80px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
+  .title-block h1 span { color: var(--amber); }
+  .title-block p { margin-top: 12px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+  .nav-links { margin-top: 16px; display: flex; gap: 16px; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
+  .nav-link:hover { color: var(--amber); border-color: var(--amber); }
+
+  .year-legend { display: flex; gap: 0; flex-wrap: wrap; padding-top: 2px; }
+  .yl-btn { padding: 12px 18px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.15s; position: relative; top: 1px; white-space: nowrap; }
+  .yl-btn:hover { color: var(--text); }
+  .yl-btn.active { border-bottom-color: currentColor; }
+  .yl-btn.y1 { color: var(--y1); }
+  .yl-btn.y2 { color: var(--y2); }
+  .yl-btn.y3 { color: var(--y3); }
+  .yl-btn.y4 { color: var(--y4); }
+  .yl-btn.y5 { color: var(--y5); }
+  .yl-btn.y6 { color: var(--y6); }
+  .yl-btn.y7 { color: var(--y7); }
+  .yl-btn.y8 { color: var(--y8); }
+  .yl-btn.all { color: var(--amber); }
+
+  .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .month-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .month-title span { color: var(--amber); font-style: italic; }
+  .nav-arrows { display: flex; gap: 8px; align-items: center; }
+  .arrow-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 13px; padding: 8px 16px; cursor: pointer; transition: all 0.15s; }
+  .arrow-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .arrow-btn:disabled { opacity: 0.25; cursor: default; }
+  .month-counter { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+  .calendar-wrap { padding: 24px 40px 40px; max-width: 1400px; margin: 0 auto; }
+  .day-headers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
+  .day-header { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 8px 0; text-align: center; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); }
+  .cal-cell { background: var(--surface); min-height: 110px; padding: 10px; position: relative; transition: background 0.12s; overflow: hidden; }
+  .cal-cell.empty { background: var(--bg); cursor: default; }
+  .cal-cell.has-song { cursor: pointer; }
+  .cal-cell.has-song:hover { background: var(--surface2); }
+  .cal-cell.has-song:hover .song-name { color: var(--amber); }
+  .cell-date { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+  .day-bar { height: 3px; width: 100%; margin-bottom: 8px; }
+  .song-name { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .song-artist { font-size: 10px; color: var(--text-dim); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .song-day { position: absolute; bottom: 8px; right: 10px; font-size: 9px; color: var(--text-muted); letter-spacing: 1px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.87); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); max-width: 540px; width: 100%; position: relative; animation: modalIn 0.18s ease-out; }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .modal-top-bar { height: 4px; width: 100%; }
+  .modal-header { padding: 24px 28px 16px; border-bottom: 1px solid var(--border); }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
+  .modal-artist { font-size: 13px; color: var(--amber); margin-bottom: 3px; }
+  .modal-album { font-size: 12px; color: var(--text-muted); }
+  .modal-body { padding: 20px 28px 26px; }
+  .modal-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .modal-meta-item label { display: block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+  .modal-meta-item span { font-size: 14px; color: var(--text); font-weight: 700; }
+  .feature-row { display: flex; align-items: center; gap: 12px; margin-bottom: 9px; }
+  .feature-label { font-size: 11px; color: var(--text-dim); width: 90px; flex-shrink: 0; }
+  .feature-bar { flex: 1; height: 5px; background: var(--border); position: relative; overflow: hidden; }
+  .feature-bar-fill { height: 100%; position: absolute; left: 0; top: 0; background: var(--amber); transition: width 0.35s ease-out; }
+  .feature-val { font-size: 12px; font-weight: 700; color: var(--text); width: 32px; text-align: right; }
+  .btn-spotify { display: inline-flex; align-items: center; gap: 8px; background: #1DB954; color: #000; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 10px 18px; text-decoration: none; letter-spacing: 1px; }
+  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; }
+
+  @media (max-width: 900px) {
+    .calendar-wrap, .month-nav, .header { padding-left: 16px; padding-right: 16px; }
+    .cal-cell { min-height: 80px; padding: 6px; }
+    .song-artist, .song-day { display: none; }
+  }
+
+  /* NAV */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
+  @media (max-width: 700px) { .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; } }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link active" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+  </div>
+</nav>
+
+
+<div class="header">
+  <div class="header-top">
+    <div class="title-block">
+      <h1>Daily <span>Jam</span></h1>
+      <p>One song · Every day · No repeats · Sept 24, 2018 →</p>
+      
+    </div>
+  </div>
+  <div class="year-legend">
+    <button class="yl-btn all active" data-year="0">All Years</button>
+    <button class="yl-btn y1" data-year="1">DJ 1</button>
+    <button class="yl-btn y2" data-year="2">DJ 2</button>
+    <button class="yl-btn y3" data-year="3">DJ 3</button>
+    <button class="yl-btn y4" data-year="4">DJ 4</button>
+    <button class="yl-btn y5" data-year="5">DJ 5</button>
+    <button class="yl-btn y6" data-year="6">DJ 6</button>
+    <button class="yl-btn y7" data-year="7">DJ 7</button>
+    <button class="yl-btn y8" data-year="8">DJ 8</button>
+  </div>
+</div>
+
+<div class="month-nav">
+  <div class="nav-arrows">
+    <button class="arrow-btn" id="prev-month">← Prev</button>
+    <button class="arrow-btn" id="next-month">Next →</button>
+  </div>
+  <div class="month-title" id="month-title">—</div>
+  <div class="month-counter" id="month-counter">—</div>
+</div>
+
+<div class="calendar-wrap">
+  <div class="day-headers">
+    <div class="day-header">Sun</div>
+    <div class="day-header">Mon</div>
+    <div class="day-header">Tue</div>
+    <div class="day-header">Wed</div>
+    <div class="day-header">Thu</div>
+    <div class="day-header">Fri</div>
+    <div class="day-header">Sat</div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-top-bar" id="modal-top-bar"></div>
+    <button class="modal-close" id="modal-close">×</button>
+    <div class="modal-header">
+      <h2 id="m-name">—</h2>
+      <div class="modal-artist" id="m-artist">—</div>
+      <div class="modal-album" id="m-album">—</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta">
+        <div class="modal-meta-item"><label>Jam Date</label><span id="m-added">—</span></div>
+        <div class="modal-meta-item"><label>Day Number</label><span id="m-daynum">—</span></div>
+        <div class="modal-meta-item"><label>Playlist Year</label><span id="m-year">—</span></div>
+        <div class="modal-meta-item"><label>Release Year</label><span id="m-release">—</span></div>
+        <div class="modal-meta-item"><label>Popularity</label><span id="m-popularity">—</span></div>
+        <div class="modal-meta-item"><label>Tempo</label><span id="m-tempo">—</span></div>
+      </div>
+      <div class="audio-features">
+        <div class="feature-row"><div class="feature-label">Danceability</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-dance"></div></div><div class="feature-val" id="fv-dance">—</div></div>
+        <div class="feature-row"><div class="feature-label">Energy</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-energy"></div></div><div class="feature-val" id="fv-energy">—</div></div>
+        <div class="feature-row"><div class="feature-label">Positivity</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-valence"></div></div><div class="feature-val" id="fv-valence">—</div></div>
+        <div class="feature-row"><div class="feature-label">Acousticness</div><div class="feature-bar"><div class="feature-bar-fill" id="fb-acoustic"></div></div><div class="feature-val" id="fv-acoustic">—</div></div>
+      </div>
+      <div class="modal-actions">
+        <a class="btn-spotify" id="m-spotify-link" href="#" target="_blank">▶ Open in Spotify</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getDailyJamYear(dayNum) {
+  // Logic: 366 days for Years 2 and 6, 365 for the others.
+  const daysInYears = [365, 366, 365, 365, 365, 366, 365, 365];
+  let total = 0;
+  for (let i = 0; i < daysInYears.length; i++) {
+    total += daysInYears[i];
+    if (dayNum <= total) return i + 1;
+  }
+  return 8;
+}
+
+let dateMap = {};
+let allMonths = [];
+let yearMonths = {};
+let currentMonthIdx = 0;
+let filterYear = 0;
+
+function getActiveMonths() { return filterYear === 0 ? allMonths : (yearMonths[filterYear] || []); }
+const YEAR_COLORS = ['','#5d8fe8','#5dba7f','#e85d8f','#e8a45d','#a45de8','#5de8e8','#e8e85d','#FF6B6B'];
+const YEAR_LABELS = ['','2018–19','2019–20','2020–21','2021–22','2022–23','2023–24','2024–25','2025–26'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+
+function renderCalendar() {
+  const active = getActiveMonths();
+  if (!active.length) return;
+  if (currentMonthIdx >= active.length) currentMonthIdx = active.length - 1;
+  if (currentMonthIdx < 0) currentMonthIdx = 0;
+
+  const ym = active[currentMonthIdx];
+  const [year, month] = ym.split('-').map(Number);
+
+  document.getElementById('month-title').innerHTML = `${MONTHS[month-1]} <span>${year}</span>`;
+  document.getElementById('month-counter').textContent = `${currentMonthIdx + 1} of ${active.length} months`;
+  document.getElementById('prev-month').disabled = currentMonthIdx === 0;
+  document.getElementById('next-month').disabled = currentMonthIdx === active.length - 1;
+
+  const firstDay = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const grid = document.getElementById('cal-grid');
+  let html = '';
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-cell empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const s = dateMap[dateStr];
+
+    if (!s) {
+      html += `<div class="cal-cell empty"><div class="cell-date">${d}</div></div>`;
+      continue;
+    }
+
+    const yr = getDailyJamYear(s[0]);
+    const color = YEAR_COLORS[yr];
+    const dimmed = filterYear !== 0 && filterYear !== yr;
+
+    html += `
+      <div class="cal-cell has-song" onclick="openModal('${dateStr}')" style="opacity:${dimmed ? '0.15' : '1'}">
+        <div class="cell-date">${d}</div>
+        <div class="day-bar" style="background:${color}"></div>
+        <div class="song-name">${s[2]}</div>
+        <div class="song-artist">${s[3]}</div>
+        <div class="song-day">Day ${s[0]}</div>
+      </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function openModal(dateStr) {
+  const s = dateMap[dateStr];
+  if (!s) return;
+  const yr = getDailyJamYear(s[0]);
+  const color = YEAR_COLORS[yr];
+
+  document.getElementById('modal-top-bar').style.background = color;
+  document.getElementById('m-name').textContent = s[2];
+  document.getElementById('m-artist').textContent = s[3];
+  document.getElementById('m-album').textContent = s[4];
+  document.getElementById('m-added').textContent = s[5];
+  document.getElementById('m-daynum').textContent = `Day ${s[0].toLocaleString()}`;
+  document.getElementById('m-year').textContent = `Year ${yr} (${YEAR_LABELS[yr]})`;
+  document.getElementById('m-release').textContent = s[14] || '—';
+  document.getElementById('m-popularity').textContent = s[8] + ' / 100';
+  document.getElementById('m-tempo').textContent = s[12] + ' BPM';
+  document.getElementById('m-artist').style.color = color;
+
+  [['dance', s[9]], ['energy', s[10]], ['valence', s[11]], ['acoustic', s[13]]].forEach(([k, v]) => {
+    document.getElementById(`fb-${k}`).style.width = (v * 100) + '%';
+    document.getElementById(`fb-${k}`).style.background = color;
+    document.getElementById(`fv-${k}`).textContent = Math.round(v * 100);
+  });
+
+  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/${s[1]}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+document.getElementById('prev-month').onclick = () => { if (currentMonthIdx > 0) { currentMonthIdx--; renderCalendar(); } };
+document.getElementById('next-month').onclick = () => { if (currentMonthIdx < getActiveMonths().length - 1) { currentMonthIdx++; renderCalendar(); } };
+
+document.querySelectorAll('.yl-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.yl-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    filterYear = parseInt(this.dataset.year);
+    currentMonthIdx = 0;
+    if (filterYear === 0) currentMonthIdx = allMonths.length - 1;
+    renderCalendar();
+  });
+});
+
+document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');
+document.getElementById('modal-overlay').onclick = function(e) { if (e.target === this) this.classList.remove('open'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open'); });
+
+Promise.all([1,2,3,4,5,6,7,8].map(y => fetch(`calendar-dj${y}.json`).then(r => r.json())))
+  .then(arrays => {
+    for (const chunk of arrays) {
+      for (const [date, s] of Object.entries(chunk)) { dateMap[date] = s; }
+    }
+  })
+  .then(() => {
+    allMonths = [...new Set(Object.keys(dateMap).map(d => d.slice(0,7)))].sort();
+    for (const [date, s] of Object.entries(dateMap)) {
+      const ym = date.slice(0,7);
+      const yr = getDailyJamYear(s[0]);
+      if (!yearMonths[yr]) yearMonths[yr] = new Set();
+      yearMonths[yr].add(ym);
+    }
+    for (const yr in yearMonths) { yearMonths[yr] = [...yearMonths[yr]].sort(); }
+    currentMonthIdx = allMonths.length - 1;
+    renderCalendar();
+  });
+</script>
+</body>
+</html>
