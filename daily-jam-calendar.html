@@ -333,7 +333,7 @@ const yr = getDailyJamYear(s[0]);
     document.getElementById(`fv-${k}`).textContent = Math.round(v * 100);
   });
 
-  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/${s[1]}`;
+  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/$${s[1]}`;
   document.getElementById('modal-overlay').classList.add('open');
 }
 
