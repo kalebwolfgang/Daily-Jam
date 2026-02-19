@@ -283,7 +283,7 @@ function renderCalendar() {
       continue;
     }
 
-    const yr = s[6];
+    const yr = getDailyJamYear(s[0]);
     const color = getYearColor(yr);
     const dimmed = filterYear !== 0 && filterYear !== yr;
     const opacity = dimmed ? '0.15' : '1';
@@ -312,7 +312,7 @@ function renderCalendar() {
 function openModal(dateStr) {
   const s = dateMap[dateStr];
   if (!s) return;
-  const yr = s[6];
+const yr = getDailyJamYear(s[0]);
   const color = getYearColor(yr);
 
   document.getElementById('modal-top-bar').style.background = color;
