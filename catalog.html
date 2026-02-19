@@ -247,9 +247,14 @@ let songMap = {};
 
 function applyFilters() {
   const q = document.getElementById('search').value.toLowerCase().trim();
+  const qNorm = q.replace(/\s+/g, '');
   filtered = SONGS.filter(s => {
     if (currentYear !== 0 && getDailyJamYear(s[0]) !== currentYear) return false;
-    if (q && !(s[2] + ' ' + s[3] + ' ' + s[4]).toLowerCase().includes(q)) return false;
+    if (q) {
+      const haystack = (s[2] + ' ' + s[3] + ' ' + s[4]).toLowerCase();
+      const haystackNorm = haystack.replace(/\s+/g, '');
+      if (!haystack.includes(q) && !haystackNorm.includes(qNorm)) return false;
+    }
     return true;
   });
   applySort();
@@ -262,6 +267,7 @@ function applySort() {
   filtered.sort((a, b) => {
     let av = a[col], bv = b[col];
     if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
+    else { av = Number(av); bv = Number(bv); }
     if (av < bv) return asc ? -1 : 1;
     if (av > bv) return asc ? 1 : -1;
     return 0;
@@ -339,9 +345,19 @@ document.querySelectorAll('.year-tab').forEach(btn => {
   });
 });
 
-Promise.all([1,2,3,4,5,6,7,8].map(y => fetch(`songs-dj${y}.json`).then(r => r.json())))
+Promise.all([1,2,3,4,5,6,7,8].map(y =>
+  fetch(`songs-dj${y}.json`)
+    .then(r => r.text())
+    .then(txt => {
+      // Strip UTF-8 BOM if present
+      if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+      return JSON.parse(txt);
+    })
+))
   .then(arrays => {
     SONGS = arrays.flat();
+    // Ensure day numbers are proper integers
+    SONGS.forEach(s => { s[0] = parseInt(s[0], 10); });
     SONGS.forEach(s => songMap[s[1]] = s);
     document.getElementById('total-songs').textContent = SONGS.length.toLocaleString();
     document.getElementById('total-artists').textContent = new Set(SONGS.map(s => s[3])).size.toLocaleString();
