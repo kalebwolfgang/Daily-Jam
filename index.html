@@ -249,7 +249,7 @@ const YEAR_LABELS = ['','2018–19','2019–20','2020–21','2021–22','2022–
 function applyFilters() {
   const q = document.getElementById('search').value.toLowerCase().trim();
   filtered = SONGS.filter(s => {
-    if (currentYear !== 0 && s[6] !== currentYear) return false;
+if (currentYear !== 0 && getDailyJamYear(s[0]) !== currentYear) return false;
     if (q && !(s[2] + ' ' + s[3] + ' ' + s[4]).toLowerCase().includes(q)) return false;
     return true;
   });
@@ -279,10 +279,10 @@ function render() {
     <tr onclick="openModal('${s[1]}')">
       <td class="td-num" style="text-align:right">${s[0].toLocaleString()}</td>
       <td class="td-name">${s[2]}${s[7] ? '<span class="explicit-tag">E</span>' : ''}</td>
-      <td class="td-artist y${s[6]}-text">${s[3]}</td>
-      <td class="td-album y${s[6]}-text">${s[4]}</td>
-      <td class="td-date y${s[6]}-text">${s[5]}</td>
-      <td><span class="year-pill y${s[6]}">DJ ${s[6]}</span></td>
+     <td class="td-artist y${getDailyJamYear(s[0])}-text">${s[3]}</td>
+<td class="td-album y${getDailyJamYear(s[0])}-text">${s[4]}</td>
+<td class="td-date y${getDailyJamYear(s[0])}-text">${s[5]}</td>
+<td><span class="year-pill y${getDailyJamYear(s[0])}">DJ ${getDailyJamYear(s[0])}</span></td>
     </tr>`).join('');
   renderPagination();
 }
