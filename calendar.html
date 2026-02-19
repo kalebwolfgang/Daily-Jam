@@ -312,10 +312,13 @@ document.getElementById('modal-close').onclick = () => document.getElementById('
 document.getElementById('modal-overlay').onclick = function(e) { if (e.target === this) this.classList.remove('open'); };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open'); });
 
-fetch('songs.json')
-  .then(r => r.json())
-  .then(SONGS => {
-    for (const [date, s] of Object.entries(SONGS)) { dateMap[date] = s; }
+Promise.all([1,2,3,4,5,6,7,8].map(y => fetch(`calendar-dj${y}.json`).then(r => r.json())))
+  .then(arrays => {
+    for (const chunk of arrays) {
+      for (const [date, s] of Object.entries(chunk)) { dateMap[date] = s; }
+    }
+  })
+  .then(() => {
     allMonths = [...new Set(Object.keys(dateMap).map(d => d.slice(0,7)))].sort();
     for (const [date, s] of Object.entries(dateMap)) {
       const ym = date.slice(0,7);
