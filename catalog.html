@@ -47,7 +47,7 @@
   .year-tab:hover { color: var(--text); }
   .year-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
 
-  .controls { position: sticky; top: 56px; z-index: 20; padding: 16px 40px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .controls { padding: 16px 40px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
   .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 380px; }
   .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
   input[type="text"] { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; padding: 9px 12px 9px 38px; outline: none; transition: border-color 0.15s; }
@@ -60,7 +60,7 @@
 
   .table-wrap { overflow-x: auto; padding: 0 40px 40px; }
   table { width: 100%; border-collapse: collapse; }
-  thead { position: sticky; top: 110px; z-index: 10; background: var(--surface); }
+  thead { position: sticky; top: 56px; z-index: 10; background: var(--surface); box-shadow: 0 1px 0 var(--border); }
   th { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); padding: 13px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; transition: color 0.15s; }
   th:hover { color: var(--amber); }
   th.sorted { color: var(--amber); }
