@@ -324,7 +324,7 @@ function openModal(id) {
   document.getElementById('m-daynum').textContent = `Day ${s[0].toLocaleString()} of ${SONGS.length.toLocaleString()}`;
 document.getElementById('m-year').textContent = 'Year ' + getDailyJamYear(s[0]);
   document.getElementById('m-release').textContent = s[14] || '—';
-  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/${s[1]}`;
+  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/$${s[1]}`;
   document.getElementById('modal-overlay').classList.add('open');
 }
 
