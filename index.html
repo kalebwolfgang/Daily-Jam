@@ -1,361 +1,148 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daily Jam — 8 Years of Music</title>
+<title>Daily Jam — Home</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --surface2: #1a1a1a;
-    --border: #222222;
-    --amber: #9b6dff;
-    --amber-glow: rgba(155,109,255,0.10);
-    --text: #e8e0d0;
-    --text-dim: #7a7060;
-    --text-muted: #3a3530;
-    --red: #e85d4a;
-    --green: #5dba7f;
-    --blue: #5d8fe8;
+    --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.10);
+    --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
-  .header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); }
-  .header-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; gap: 20px; flex-wrap: wrap; }
-  .title-block h1 { font-family: 'Playfair Display', serif; font-size: clamp(42px, 6vw, 80px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
-  .title-block h1 span { color: var(--amber); font-style: italic; }
-  .title-block p { margin-top: 12px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
-  .stats-strip { display: flex; gap: 32px; flex-wrap: wrap; }
-  .stat { text-align: right; }
-  .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--amber); line-height: 1; }
-  .stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+  /* NAV */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,10,10,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
 
-  .year-tabs { display: flex; gap: 0; margin-top: 0; flex-wrap: wrap; }
-  .year-tab { padding: 12px 18px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-dim); background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.15s; position: relative; top: 1px; white-space: nowrap; }
-  .year-tab:hover { color: var(--text); }
-  .year-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+  /* HERO */
+  .hero { padding: 80px 40px 64px; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(56px, 8vw, 120px); font-weight: 900; line-height: 0.88; letter-spacing: -3px; }
+  .hero h1 span { color: var(--amber); font-style: italic; }
+  .hero-sub { margin-top: 20px; font-size: 12px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+  .hero-date { margin-top: 8px; font-size: 11px; color: var(--text-muted); letter-spacing: 2px; }
 
-  .controls { padding: 16px 40px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
-  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 380px; }
-  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
-  input[type="text"] { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; padding: 9px 12px 9px 38px; outline: none; transition: border-color 0.15s; }
-  input[type="text"]:focus { border-color: var(--amber); }
-  input[type="text"]::placeholder { color: var(--text-muted); }
-  select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 12px; padding: 9px 12px; outline: none; cursor: pointer; transition: border-color 0.15s; }
-  select:focus { border-color: var(--amber); }
-  .result-count { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-left: auto; white-space: nowrap; }
-  .result-count span { color: var(--amber); }
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .stat-card { background: var(--surface); padding: 28px 32px; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; color: var(--amber); line-height: 1; }
+  .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
 
-  .table-wrap { overflow-x: auto; padding: 0 40px 40px; }
-  table { width: 100%; border-collapse: collapse; }
-  thead { position: sticky; top: 0; z-index: 10; background: var(--surface); }
-  th { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); padding: 13px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; transition: color 0.15s; }
-  th:hover { color: var(--amber); }
-  th.sorted { color: var(--amber); }
-  th.sorted::after { content: ' ↓'; }
-  th.sorted.asc::after { content: ' ↑'; }
-  td { padding: 11px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
-  tr { transition: background 0.1s; cursor: pointer; }
-  tr:hover td { background: var(--amber-glow); }
+  /* SECTION CARDS */
+  .cards-section { padding: 56px 40px 80px; }
+  .cards-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px; }
+  .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .card { background: var(--surface); padding: 32px 28px; text-decoration: none; color: var(--text); display: block; transition: background 0.15s; position: relative; overflow: hidden; }
+  .card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--card-color, var(--amber)); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease; }
+  .card:hover { background: var(--surface2); }
+  .card:hover::after { transform: scaleX(1); }
+  .card-icon { font-size: 22px; margin-bottom: 16px; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .card-title span { color: var(--card-color, var(--amber)); font-style: italic; }
+  .card-desc { font-size: 11px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
+  .card-link { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--card-color, var(--amber)); }
 
-  .td-num { color: var(--text-muted); font-size: 11px; width: 44px; text-align: right; }
-  .td-name { font-weight: 700; color: var(--text); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-artist { color: var(--text-dim); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-album { color: var(--text-muted); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-date { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
-
-  .year-pill { display: inline-block; padding: 3px 7px; font-size: 10px; font-weight: 700; letter-spacing: 1px; border: 1px solid; }
-  .year-pill.y1 { border-color: #5d8fe8; color: #5d8fe8; }
-  .year-pill.y2 { border-color: #5dba7f; color: #5dba7f; }
-  .year-pill.y3 { border-color: #e85d8f; color: #e85d8f; }
-  .year-pill.y4 { border-color: #e8a45d; color: #e8a45d; }
-  .year-pill.y5 { border-color: #a45de8; color: #a45de8; }
-  .year-pill.y6 { border-color: #5de8e8; color: #5de8e8; }
-  .year-pill.y7 { border-color: #e8e85d; color: #e8e85d; }
-  .year-pill.y8 { border-color: #FF6B6B; color: #FF6B6B; }
-
-  .y1-text { color: #5d8fe8 !important; }
-  .y2-text { color: #5dba7f !important; }
-  .y3-text { color: #e85d8f !important; }
-  .y4-text { color: #e8a45d !important; }
-  .y5-text { color: #a45de8 !important; }
-  .y6-text { color: #5de8e8 !important; }
-  .y7-text { color: #e8e85d !important; }
-  .y8-text { color: #FF6B6B !important; }
-
-  .explicit-tag { display: inline-block; background: var(--text-muted); color: var(--bg); font-size: 9px; font-weight: 700; padding: 1px 4px; margin-left: 5px; vertical-align: middle; }
-
-  .pagination { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 24px 40px; border-top: 1px solid var(--border); flex-wrap: wrap; }
-  .page-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 12px; padding: 7px 13px; cursor: pointer; transition: all 0.15s; }
-  .page-btn:hover { border-color: var(--amber); color: var(--amber); }
-  .page-btn.active { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 700; }
-  .page-btn:disabled { opacity: 0.3; cursor: default; }
-  .page-btn:disabled:hover { border-color: var(--border); color: var(--text-dim); }
-
-  /* MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.87); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); max-width: 540px; width: 100%; position: relative; animation: modalIn 0.18s ease-out; }
-  @keyframes modalIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-  .modal-header { padding: 28px 28px 18px; border-bottom: 1px solid var(--border); }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 5px; color: #f0e8d8; }
-  .modal-artist { font-size: 13px; color: var(--amber); margin-bottom: 3px; }
-  .modal-album { font-size: 12px; color: #7a7060; }
-  .modal-body { padding: 20px 28px 26px; }
-  .modal-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
-  .modal-meta-item label { display: block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-  .modal-meta-item span { font-size: 14px; color: #e8e0d0; font-weight: 700; }
-  .modal-actions { margin-top: 18px; }
-  .btn-spotify { display: inline-flex; align-items: center; gap: 8px; background: #1DB954; color: #000; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 10px 18px; text-decoration: none; letter-spacing: 1px; transition: opacity 0.15s; }
-  .btn-spotify:hover { opacity: 0.85; }
-  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; padding: 4px 8px; transition: color 0.15s; line-height: 1; }
-  .modal-close:hover { color: var(--text); }
-
-  @media (max-width: 700px) {
-    .header, .controls, .table-wrap, .pagination { padding-left: 16px; padding-right: 16px; }
-    .td-album { display: none; }
+  @media (max-width: 900px) {
+    .site-nav { padding: 0 16px; }
+    .hero { padding: 48px 16px 40px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .cards-section { padding: 40px 16px 60px; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 500px) {
+    .nav-links .nav-link { padding: 8px 8px; font-size: 10px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .cards-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-top">
-    <div class="title-block">
-      <h1>Daily <span>Jam</span></h1>
-      <p>One song · Every day · No repeats · Sept 24, 2018 →</p>
-      <div style="margin-top:16px;display:flex;gap:16px">
-        <a href="daily-jam-stats.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;transition:color 0.15s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-dim)'">Stats & Insights →</a>
-        <a href="daily-jam-calendar.html" style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px;transition:color 0.15s" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-dim)'">Calendar →</a>
-      </div>
-    </div>
-    <div class="stats-strip">
-      <div class="stat">
-        <div class="stat-num" id="total-songs">—</div>
-        <div class="stat-label">Songs</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num" id="total-artists">—</div>
-        <div class="stat-label">Artists</div>
-      </div>
-      <div class="stat">
-        <div class="stat-num">8</div>
-        <div class="stat-label">Years</div>
-      </div>
-    </div>
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
   </div>
-  <div class="year-tabs">
-    <button class="year-tab active" data-year="0">All Years</button>
-    <button class="year-tab" data-year="1">Daily Jam 1</button>
-    <button class="year-tab" data-year="2">Daily Jam 2</button>
-    <button class="year-tab" data-year="3">Daily Jam 3</button>
-    <button class="year-tab" data-year="4">Daily Jam 4</button>
-    <button class="year-tab" data-year="5">Daily Jam 5</button>
-    <button class="year-tab" data-year="6">Daily Jam 6</button>
-    <button class="year-tab" data-year="7">Daily Jam 7</button>
-    <button class="year-tab" data-year="8">Daily Jam 8</button>
+</nav>
+
+<div class="hero">
+  <h1>Daily <span>Jam</span></h1>
+  <p class="hero-sub">One song · Every day · No repeats</p>
+  <p class="hero-date">Started September 24, 2018 · Now in Year 8</p>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-num" id="stat-songs">—</div>
+    <div class="stat-label">Songs</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="stat-artists">—</div>
+    <div class="stat-label">Artists</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">8</div>
+    <div class="stat-label">Years</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="stat-days">—</div>
+    <div class="stat-label">Days & Counting</div>
   </div>
 </div>
 
-<div class="controls">
-  <div class="search-wrap">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search" placeholder="Search songs, artists, albums…">
-  </div>
-  <select id="sort-by">
-    <option value="0-asc">Original Order ↑</option>
-    <option value="0-desc">Original Order ↓</option>
-    <option value="2-asc">Song A–Z</option>
-    <option value="3-asc">Artist A–Z</option>
-  </select>
-
-  <div class="result-count"><span id="count-display">—</span> songs</div>
-</div>
-
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th class="td-num" data-col="0">Day #</th>
-        <th data-col="2">Song</th>
-        <th data-col="3">Artist</th>
-        <th data-col="4" class="td-album">Album</th>
-        <th data-col="5">Date</th>
-        <th data-col="6">Year</th>
-      </tr>
-    </thead>
-    <tbody id="song-table"></tbody>
-  </table>
-</div>
-<div class="pagination" id="pagination"></div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <button class="modal-close" id="modal-close">×</button>
-    <div class="modal-header">
-      <h2 id="m-name">—</h2>
-      <div class="modal-artist" id="m-artist">—</div>
-      <div class="modal-album" id="m-album">—</div>
-    </div>
-    <div class="modal-body">
-      <div class="modal-meta">
-        <div class="modal-meta-item"><label>Jam Date</label><span id="m-added">—</span></div>
-        <div class="modal-meta-item"><label>Day Number</label><span id="m-daynum">—</span></div>
-        <div class="modal-meta-item"><label>Playlist Year</label><span id="m-year">—</span></div>
-        <div class="modal-meta-item"><label>Release Year</label><span id="m-release">—</span></div>
-      </div>
-      <div class="modal-actions">
-        <a class="btn-spotify" id="m-spotify-link" href="#" target="_blank">▶ Open in Spotify</a>
-      </div>
-    </div>
+<div class="cards-section">
+  <p class="cards-title">Explore</p>
+  <div class="cards-grid">
+    <a class="card" href="catalog.html" style="--card-color: #9b6dff">
+      <div class="card-icon">♪</div>
+      <div class="card-title">Cata<span>log</span></div>
+      <div class="card-desc">Every song, searchable and sortable. Filter by year, search by title or artist.</div>
+      <div class="card-link">Browse all songs →</div>
+    </a>
+    <a class="card" href="calendar.html" style="--card-color: #5d8fe8">
+      <div class="card-icon">◫</div>
+      <div class="card-title">Calen<span>dar</span></div>
+      <div class="card-desc">See every song on the date it was played. Navigate month by month across 8 years.</div>
+      <div class="card-link">Open calendar →</div>
+    </a>
+    <a class="card" href="stats.html" style="--card-color: #5dba7f">
+      <div class="card-icon">◈</div>
+      <div class="card-title">Stats &amp; <span>Insights</span></div>
+      <div class="card-desc">Top artists, decade breakdown, audio features, and deeper data across every year.</div>
+      <div class="card-link">View stats →</div>
+    </a>
+    <a class="card" href="shuffle.html" style="--card-color: #e85d8f">
+      <div class="card-icon">⇄</div>
+      <div class="card-title">Shuf<span>fle</span></div>
+      <div class="card-desc">Spin a random song from any DJ year. Rediscover forgotten picks from the archive.</div>
+      <div class="card-link">Try your luck →</div>
+    </a>
   </div>
 </div>
 
 <script>
-  function getDailyJamYear(dayNum) {
-  // Years 2 and 6 are leap years (366 days)
-  const daysInYears = [365, 366, 365, 365, 365, 366, 365, 365];
-  let currentTotalDays = 0;
-  for (let i = 0; i < daysInYears.length; i++) {
-    currentTotalDays += daysInYears[i];
-    if (dayNum <= currentTotalDays) return i + 1;
-  }
-  return 8;
-}
-
-</script>
-<script>
-// Array indices:
-// 0:idx  1:id  2:name  3:artist  4:album  5:added  6:year
-// 7:explicit  8:popularity  9:dance  10:energy  11:valence  12:tempo  13:acoustic  14:release
-
-let SONGS = [];
-let filtered = [];
-let currentYear = 0;
-let currentSort = '0-asc';
-let currentPage = 1;
-const PAGE_SIZE = 50;
-
-const YEAR_LABELS = ['','2018-19','2019-20','2020-21','2021-22','2022-23','2023-24','2024-25','2025-26'];
-
-
-// Array indices:
-// 0:idx  1:id  2:name  3:artist  4:album  5:added  6:year
-// 7:explicit  8:popularity  9:dance  10:energy  11:valence  12:tempo  13:acoustic  14:release
-
-
-
-
-function applyFilters() {
-  const q = document.getElementById('search').value.toLowerCase().trim();
-  filtered = SONGS.filter(s => {
-if (currentYear !== 0 && getDailyJamYear(s[0]) !== currentYear) return false;
-    if (q && !(s[2] + ' ' + s[3] + ' ' + s[4]).toLowerCase().includes(q)) return false;
-    return true;
-  });
-  applySort();
-}
-
-function applySort() {
-  const parts = currentSort.split('-');
-  const col = parseInt(parts[0]);
-  const asc = parts[1] === 'asc';
-  filtered.sort((a, b) => {
-    let av = a[col], bv = b[col];
-    if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
-    if (av < bv) return asc ? -1 : 1;
-    if (av > bv) return asc ? 1 : -1;
-    return 0;
-  });
-  currentPage = 1;
-  render();
-}
-
-function render() {
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const page = filtered.slice(start, start + PAGE_SIZE);
-  document.getElementById('count-display').textContent = filtered.length.toLocaleString();
-  document.getElementById('song-table').innerHTML = page.map(s => `
-    <tr onclick="openModal('${s[1]}')">
-      <td class="td-num" style="text-align:right">${s[0].toLocaleString()}</td>
-      <td class="td-name">${s[2]}${s[7] ? '<span class="explicit-tag">E</span>' : ''}</td>
-     <td class="td-artist y${getDailyJamYear(s[0])}-text">${s[3]}</td>
-<td class="td-album y${getDailyJamYear(s[0])}-text">${s[4]}</td>
-<td class="td-date y${getDailyJamYear(s[0])}-text">${s[5]}</td>
-<td><span class="year-pill y${getDailyJamYear(s[0])}">DJ ${getDailyJamYear(s[0])}</span></td>
-    </tr>`).join('');
-  renderPagination();
-}
-
-function renderPagination() {
-  const total = Math.ceil(filtered.length / PAGE_SIZE);
-  const pag = document.getElementById('pagination');
-  if (total <= 1) { pag.innerHTML = ''; return; }
-  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← Prev</button>`;
-  let pages = [...new Set([1,total,currentPage,currentPage-1,currentPage+1,currentPage-2,currentPage+2].filter(p=>p>=1&&p<=total))].sort((a,b)=>a-b);
-  let prev = null;
-  for (let p of pages) {
-    if (prev !== null && p - prev > 1) html += `<span style="color:var(--text-muted);padding:0 4px">…</span>`;
-    html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-    prev = p;
-  }
-  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>Next →</button>`;
-  pag.innerHTML = html;
-}
-
-function goPage(p) {
-  const total = Math.ceil(filtered.length / PAGE_SIZE);
-  if (p < 1 || p > total) return;
-  currentPage = p;
-  render();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-let songMap = {};
-
-function openModal(id) {
-  const s = songMap[id];
-  if (!s) return;
-  document.getElementById('m-name').textContent = s[2];
-  document.getElementById('m-artist').textContent = s[3];
-  document.getElementById('m-album').textContent = s[4];
-  document.getElementById('m-added').textContent = s[5];
-  document.getElementById('m-daynum').textContent = `Day ${s[0].toLocaleString()} of ${SONGS.length.toLocaleString()}`;
-document.getElementById('m-year').textContent = 'Year ' + getDailyJamYear(s[0]);
-  document.getElementById('m-release').textContent = s[14] || '—';
-  document.getElementById('m-spotify-link').href = `https://open.spotify.com/track/$${s[1]}`;
-  document.getElementById('modal-overlay').classList.add('open');
-}
-
-document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');
-document.getElementById('modal-overlay').onclick = function(e) { if (e.target===this) this.classList.remove('open'); };
-document.addEventListener('keydown', e => { if (e.key==='Escape') document.getElementById('modal-overlay').classList.remove('open'); });
-
-document.getElementById('search').addEventListener('input', applyFilters);
-document.getElementById('sort-by').addEventListener('change', function() { currentSort = this.value; applyFilters(); });
-document.querySelectorAll('.year-tab').forEach(btn => {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.year-tab').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    currentYear = parseInt(this.dataset.year);
-    applyFilters();
-  });
-});
-
 fetch('songs-list.json')
   .then(r => r.json())
-  .then(data => {
-    SONGS = data;
-    SONGS.forEach(s => songMap[s[1]] = s);
-    document.getElementById('total-songs').textContent = SONGS.length.toLocaleString();
-    document.getElementById('total-artists').textContent = new Set(SONGS.map(s => s[3])).size.toLocaleString();
-    applyFilters();
+  .then(songs => {
+    document.getElementById('stat-songs').textContent = songs.length.toLocaleString();
+    document.getElementById('stat-artists').textContent = new Set(songs.map(s => s[3])).size.toLocaleString();
+    document.getElementById('stat-days').textContent = songs.length.toLocaleString();
   });
 </script>
 </body>
