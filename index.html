@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
-    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.10);
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
     --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
     --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
@@ -19,8 +19,8 @@
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
   /* NAV */
-  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,10,10,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
-  .site-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -1px; }
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
   .site-logo span { color: var(--amber); font-style: italic; }
   .nav-links { display: flex; gap: 4px; }
   .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
@@ -49,8 +49,7 @@
   .card:hover { background: var(--surface2); }
   .card:hover::after { transform: scaleX(1); }
   .card-icon { font-size: 22px; margin-bottom: 16px; }
-  .card-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-  .card-title span { color: var(--card-color, var(--amber)); font-style: italic; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: var(--card-color, var(--amber)); }
   .card-desc { font-size: 11px; color: var(--text-dim); line-height: 1.7; margin-bottom: 20px; }
   .card-link { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--card-color, var(--amber)); }
 
@@ -111,25 +110,25 @@
   <div class="cards-grid">
     <a class="card" href="catalog.html" style="--card-color: #9b6dff">
       <div class="card-icon">♪</div>
-      <div class="card-title">Cata<span>log</span></div>
+      <div class="card-title">Catalog</div>
       <div class="card-desc">Every song, searchable and sortable. Filter by year, search by title or artist.</div>
       <div class="card-link">Browse all songs →</div>
     </a>
     <a class="card" href="calendar.html" style="--card-color: #5d8fe8">
       <div class="card-icon">◫</div>
-      <div class="card-title">Calen<span>dar</span></div>
+      <div class="card-title">Calendar</div>
       <div class="card-desc">See every song on the date it was played. Navigate month by month across 8 years.</div>
       <div class="card-link">Open calendar →</div>
     </a>
     <a class="card" href="stats.html" style="--card-color: #5dba7f">
       <div class="card-icon">◈</div>
-      <div class="card-title">Stats &amp; <span>Insights</span></div>
+      <div class="card-title">Stats &amp; Insights</div>
       <div class="card-desc">Top artists, decade breakdown, audio features, and deeper data across every year.</div>
       <div class="card-link">View stats →</div>
     </a>
     <a class="card" href="shuffle.html" style="--card-color: #e85d8f">
       <div class="card-icon">⇄</div>
-      <div class="card-title">Shuf<span>fle</span></div>
+      <div class="card-title">Shuffle</div>
       <div class="card-desc">Spin a random song from any DJ year. Rediscover forgotten picks from the archive.</div>
       <div class="card-link">Try your luck →</div>
     </a>

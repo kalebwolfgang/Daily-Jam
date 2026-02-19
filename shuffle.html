@@ -8,8 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
-    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.10);
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
     --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
     --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
@@ -19,15 +19,15 @@
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
   /* NAV */
-  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,10,10,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
-  .site-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--text); text-decoration: none; letter-spacing: -1px; }
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
   .site-logo span { color: var(--amber); font-style: italic; }
   .nav-links { display: flex; gap: 4px; }
   .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--amber); }
 
-  /* PAGE */
+  /* PAGE HEADER */
   .page-header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); }
   .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; margin-bottom: 12px; }
   .page-header h1 span { color: var(--amber); font-style: italic; }
@@ -44,73 +44,94 @@
   .yf-btn.y7 { color: var(--y7); } .yf-btn.y8 { color: var(--y8); }
 
   /* MAIN AREA */
-  .shuffle-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 40px 80px; min-height: calc(100vh - 200px); }
+  .shuffle-area { padding: 48px 40px 80px; }
 
-  /* CARD */
-  .song-card { width: 100%; max-width: 540px; background: var(--surface); border: 1px solid var(--border); position: relative; margin-bottom: 36px; }
-  .card-top-bar { height: 4px; width: 100%; background: var(--amber); transition: background 0.3s; }
-  .card-inner { padding: 32px 36px 36px; }
-  .card-pool { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
-  .card-song { font-family: 'Playfair Display', serif; font-size: clamp(24px, 4vw, 36px); font-weight: 700; line-height: 1.1; margin-bottom: 8px; color: var(--text); }
-  .card-artist { font-size: 14px; color: var(--amber); margin-bottom: 4px; transition: color 0.3s; }
-  .card-album { font-size: 12px; color: var(--text-muted); margin-bottom: 24px; }
-  .card-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
-  .meta-item label { display: block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
-  .meta-item span { font-size: 14px; font-weight: 700; color: var(--text); }
-  .year-pill { display: inline-block; padding: 3px 8px; font-size: 10px; font-weight: 700; letter-spacing: 1px; border: 1px solid; }
+  /* REELS ROW */
+  .reels-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 1000px; margin: 0 auto 36px; }
+
+  /* SINGLE REEL CARD */
+  .reel-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    display: flex;
+    flex-direction: column;
+  }
+  .reel-card.has-song { cursor: pointer; }
+  .reel-card.has-song:hover { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 0 1px var(--reel-color, var(--amber)); transform: translateY(-2px); }
+  .reel-card.selected { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 24px var(--reel-glow, var(--amber-glow)); }
+  .reel-card.selected .reel-select-hint { opacity: 0; }
+  .reel-card.dimmed { opacity: 0.35; transform: scale(0.97); }
+
+  .reel-top-bar { height: 3px; width: 100%; background: var(--border); transition: background 0.3s; }
+  .reel-card.selected .reel-top-bar { background: var(--reel-color, var(--amber)); }
+
+  .reel-body { padding: 24px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+
+  .reel-num { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+
+  /* slot scroll window */
+  .reel-window { height: 120px; overflow: hidden; position: relative; margin-bottom: 14px; }
+  .reel-tape { position: absolute; left: 0; right: 0; top: 0; transition: none; }
+  .reel-tape-item { height: 40px; display: flex; align-items: center; font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
+  .reel-tape-item.center { font-size: 17px; color: var(--reel-color, var(--text)); }
+
+  /* gradient masks on window */
+  .reel-window::before, .reel-window::after {
+    content: ''; position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none;
+  }
+  .reel-window::before { top: 0; height: 36px; background: linear-gradient(to bottom, var(--surface), transparent); }
+  .reel-window::after  { bottom: 0; height: 36px; background: linear-gradient(to top, var(--surface), transparent); }
+
+  .reel-artist { font-size: 12px; color: var(--reel-color, var(--text-dim)); margin-bottom: 4px; transition: color 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reel-album  { font-size: 11px; color: var(--text-muted); margin-bottom: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .reel-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+  .reel-meta { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+  .year-pill { display: inline-block; padding: 2px 7px; font-size: 9px; font-weight: 700; letter-spacing: 1px; border: 1px solid; }
   .year-pill.y1 { border-color: var(--y1); color: var(--y1); } .year-pill.y2 { border-color: var(--y2); color: var(--y2); }
   .year-pill.y3 { border-color: var(--y3); color: var(--y3); } .year-pill.y4 { border-color: var(--y4); color: var(--y4); }
   .year-pill.y5 { border-color: var(--y5); color: var(--y5); } .year-pill.y6 { border-color: var(--y6); color: var(--y6); }
   .year-pill.y7 { border-color: var(--y7); color: var(--y7); } .year-pill.y8 { border-color: var(--y8); color: var(--y8); }
 
-  .btn-spotify { display: inline-flex; align-items: center; gap: 8px; background: #1DB954; color: #000; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 10px 18px; text-decoration: none; letter-spacing: 1px; transition: opacity 0.15s; }
+  .reel-select-hint { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); transition: opacity 0.2s; }
+  .reel-card.has-song:hover .reel-select-hint { color: var(--reel-color, var(--text-dim)); }
+
+  /* placeholder state */
+  .reel-card.placeholder .reel-tape-item { color: var(--text-muted); }
+  .reel-card.placeholder .reel-artist,
+  .reel-card.placeholder .reel-album,
+  .reel-card.placeholder .reel-meta { color: var(--text-muted); }
+
+  /* SELECTED SONG PANEL */
+  .selected-panel { max-width: 1000px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); display: none; }
+  .selected-panel.visible { display: block; }
+  .selected-panel-bar { height: 3px; background: var(--selected-color, var(--amber)); }
+  .selected-panel-inner { padding: 20px 24px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .selected-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .selected-song { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--text); }
+  .selected-sub { font-size: 12px; color: var(--selected-color, var(--amber)); margin-top: 3px; }
+  .btn-spotify { display: inline-flex; align-items: center; gap: 8px; background: #1DB954; color: #000; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 10px 18px; text-decoration: none; letter-spacing: 1px; transition: opacity 0.15s; white-space: nowrap; }
   .btn-spotify:hover { opacity: 0.85; }
+  .selected-info { flex: 1; min-width: 0; }
 
-  /* PLACEHOLDER STATE */
-  .card-placeholder .card-song { color: var(--text-muted); font-style: italic; }
-  .card-placeholder .card-artist,
-  .card-placeholder .card-album { color: var(--text-muted); }
-  .card-placeholder .btn-spotify { opacity: 0.3; pointer-events: none; }
-
-  /* SLOT MACHINE SPIN ANIMATION */
-  @keyframes slotSpin {
-    0%   { opacity: 1; transform: translateY(0); }
-    20%  { opacity: 0; transform: translateY(-12px); }
-    21%  { opacity: 0; transform: translateY(12px); }
-    40%  { opacity: 1; transform: translateY(0); }
-    60%  { opacity: 0; transform: translateY(-12px); }
-    61%  { opacity: 0; transform: translateY(12px); }
-    80%  { opacity: 1; transform: translateY(0); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes settleBounce {
-    0%   { opacity: 0; transform: translateY(18px) scale(0.97); }
-    60%  { opacity: 1; transform: translateY(-4px) scale(1.01); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  .card-inner.spinning .card-song,
-  .card-inner.spinning .card-artist,
-  .card-inner.spinning .card-album,
-  .card-inner.spinning .card-meta,
-  .card-inner.spinning .btn-spotify { animation: slotSpin 0.18s linear infinite; }
-  .card-inner.settling .card-song,
-  .card-inner.settling .card-artist,
-  .card-inner.settling .card-album,
-  .card-inner.settling .card-meta,
-  .card-inner.settling .btn-spotify { animation: settleBounce 0.35s cubic-bezier(.34,1.56,.64,1) forwards; }
-
-  /* SHUFFLE BUTTON */
-  .shuffle-btn { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: var(--amber); color: var(--bg); border: none; padding: 16px 48px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  /* CONTROLS */
+  .controls { max-width: 1000px; margin: 28px auto 0; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .shuffle-btn { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: var(--amber); color: var(--bg); border: none; padding: 14px 40px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
   .shuffle-btn:hover { opacity: 0.88; }
   .shuffle-btn:active { transform: scale(0.97); }
   .shuffle-btn:disabled { opacity: 0.4; cursor: default; }
-  .pool-size { margin-top: 14px; font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+  .pool-info { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
 
-  @media (max-width: 700px) {
+  @media (max-width: 800px) {
+    .reels-row { grid-template-columns: 1fr; gap: 8px; }
     .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; }
     .page-header { padding: 32px 16px 0; }
-    .shuffle-area { padding: 40px 16px 60px; }
-    .card-inner { padding: 24px 20px 28px; }
+    .shuffle-area { padding: 32px 16px 60px; }
+    .reel-body { padding: 18px 16px 16px; }
   }
 </style>
 </head>
@@ -129,7 +150,7 @@
 
 <div class="page-header">
   <h1>Shuf<span>fle</span></h1>
-  <p>Spin a random song from the archive</p>
+  <p>Roll 3 songs — pick one to play</p>
   <div class="year-filter">
     <button class="yf-btn all active" data-year="0">All Years</button>
     <button class="yf-btn y1" data-year="1">DJ 1</button>
@@ -144,28 +165,95 @@
 </div>
 
 <div class="shuffle-area">
-  <div class="song-card card-placeholder" id="song-card">
-    <div class="card-top-bar" id="card-top-bar"></div>
-    <div class="card-inner" id="card-inner">
-      <div class="card-pool" id="card-pool">All Years · Loading…</div>
-      <div class="card-song" id="card-song">Hit shuffle to begin</div>
-      <div class="card-artist" id="card-artist">—</div>
-      <div class="card-album" id="card-album">—</div>
-      <div class="card-meta">
-        <div class="meta-item"><label>Day</label><span id="card-day">—</span></div>
-        <div class="meta-item"><label>Date</label><span id="card-date">—</span></div>
-        <div class="meta-item"><label>Year</label><span id="card-year-pill">—</span></div>
-        <div class="meta-item"><label>Release</label><span id="card-release">—</span></div>
+
+  <div class="reels-row" id="reels-row">
+    <!-- Reel 1 -->
+    <div class="reel-card placeholder" id="reel-0">
+      <div class="reel-top-bar"></div>
+      <div class="reel-body">
+        <div class="reel-num">Reel 1</div>
+        <div class="reel-window">
+          <div class="reel-tape" id="tape-0">
+            <div class="reel-tape-item">—</div>
+            <div class="reel-tape-item center">Hit Shuffle</div>
+            <div class="reel-tape-item">—</div>
+          </div>
+        </div>
+        <div class="reel-artist" id="artist-0">—</div>
+        <div class="reel-album"  id="album-0">—</div>
+        <div class="reel-footer">
+          <div class="reel-meta" id="meta-0">—</div>
+          <div class="reel-select-hint" id="hint-0"></div>
+        </div>
       </div>
-      <a class="btn-spotify" id="card-spotify" href="#" target="_blank">▶ Open in Spotify</a>
+    </div>
+    <!-- Reel 2 -->
+    <div class="reel-card placeholder" id="reel-1">
+      <div class="reel-top-bar"></div>
+      <div class="reel-body">
+        <div class="reel-num">Reel 2</div>
+        <div class="reel-window">
+          <div class="reel-tape" id="tape-1">
+            <div class="reel-tape-item">—</div>
+            <div class="reel-tape-item center">to begin</div>
+            <div class="reel-tape-item">—</div>
+          </div>
+        </div>
+        <div class="reel-artist" id="artist-1">—</div>
+        <div class="reel-album"  id="album-1">—</div>
+        <div class="reel-footer">
+          <div class="reel-meta" id="meta-1">—</div>
+          <div class="reel-select-hint" id="hint-1"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Reel 3 -->
+    <div class="reel-card placeholder" id="reel-2">
+      <div class="reel-top-bar"></div>
+      <div class="reel-body">
+        <div class="reel-num">Reel 3</div>
+        <div class="reel-window">
+          <div class="reel-tape" id="tape-2">
+            <div class="reel-tape-item">—</div>
+            <div class="reel-tape-item center">↓</div>
+            <div class="reel-tape-item">—</div>
+          </div>
+        </div>
+        <div class="reel-artist" id="artist-2">—</div>
+        <div class="reel-album"  id="album-2">—</div>
+        <div class="reel-footer">
+          <div class="reel-meta" id="meta-2">—</div>
+          <div class="reel-select-hint" id="hint-2"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <button class="shuffle-btn" id="shuffle-btn" disabled>Loading…</button>
-  <div class="pool-size" id="pool-size"></div>
+  <!-- Selected song panel (appears after picking) -->
+  <div class="selected-panel" id="selected-panel">
+    <div class="selected-panel-bar" id="selected-bar"></div>
+    <div class="selected-panel-inner">
+      <div class="selected-info">
+        <div class="selected-label">Your Pick</div>
+        <div class="selected-song" id="selected-song-name"></div>
+        <div class="selected-sub" id="selected-song-sub"></div>
+      </div>
+      <a class="btn-spotify" id="btn-spotify" href="#" target="_blank">▶ Open in Spotify</a>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="shuffle-btn" id="shuffle-btn" disabled>Loading…</button>
+    <div class="pool-info" id="pool-info"></div>
+  </div>
+
 </div>
 
 <script>
+const YEAR_COLORS = ['','#5d8fe8','#5dba7f','#e85d8f','#e8a45d','#a45de8','#5de8e8','#e8e85d','#FF6B6B'];
+const YEAR_GLOWS  = ['','rgba(93,143,232,0.15)','rgba(93,186,127,0.15)','rgba(232,93,143,0.15)','rgba(232,164,93,0.15)','rgba(164,93,232,0.15)','rgba(93,232,232,0.15)','rgba(232,232,93,0.15)','rgba(255,107,107,0.15)'];
+const YEAR_LABELS = ['','2018–19','2019–20','2020–21','2021–22','2022–23','2023–24','2024–25','2025–26'];
+
 function getDailyJamYear(dayNum) {
   const daysInYears = [365, 366, 365, 365, 365, 366, 365, 365];
   let total = 0;
@@ -176,79 +264,206 @@ function getDailyJamYear(dayNum) {
   return 8;
 }
 
-const YEAR_COLORS = ['','#5d8fe8','#5dba7f','#e85d8f','#e8a45d','#a45de8','#5de8e8','#e8e85d','#FF6B6B'];
-const YEAR_LABELS = ['','2018–19','2019–20','2020–21','2021–22','2022–23','2023–24','2024–25','2025–26'];
-
 let SONGS = [];
 let pool = [];
 let filterYear = 0;
 let spinning = false;
+let finalSongs = [null, null, null];
+let selectedReel = -1;
 
 function getPool() {
   return filterYear === 0 ? SONGS : SONGS.filter(s => getDailyJamYear(s[0]) === filterYear);
 }
 
 function updatePoolInfo() {
-  const p = getPool();
-  pool = p;
+  pool = getPool();
   const label = filterYear === 0 ? 'All Years' : `DJ ${filterYear} (${YEAR_LABELS[filterYear]})`;
-  document.getElementById('card-pool').textContent = `${label} · ${p.length.toLocaleString()} songs`;
-  document.getElementById('pool-size').textContent = `${p.length.toLocaleString()} songs in pool`;
+  document.getElementById('pool-info').textContent = `${pool.length.toLocaleString()} songs in pool`;
 }
 
-function showSong(s) {
-  const yr = getDailyJamYear(s[0]);
+// Build a tape of song titles for the scroll animation
+function buildTape(songs, centerIndex) {
+  // center item is at index 1 in a 3-item tape; build longer tape around it
+  const items = [];
+  for (let i = -4; i <= 4; i++) {
+    const idx = (centerIndex + i + songs.length) % songs.length;
+    items.push(songs[idx][2]);
+  }
+  return items; // 9 items, center is index 4
+}
+
+// Animate one reel scrolling: rapidly cycle through songs, then ease into final
+function spinReel(reelIndex, songPool, delay, finalSong) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const tape = document.getElementById(`tape-${reelIndex}`);
+      const card = document.getElementById(`reel-${reelIndex}`);
+      const ITEM_H = 40;
+
+      // Generate a long random tape, with finalSong at position -1 from end
+      const count = 30 + Math.floor(Math.random() * 10);
+      let items = [];
+      for (let i = 0; i < count; i++) {
+        items.push(songPool[Math.floor(Math.random() * songPool.length)]);
+      }
+      // Put the final song at position count-2 (so center lands on it)
+      items[count - 2] = finalSong;
+
+      // Build DOM
+      tape.innerHTML = '';
+      items.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'reel-tape-item' + (i === count - 2 ? ' center' : '');
+        div.textContent = s[2];
+        tape.appendChild(div);
+      });
+
+      // Start at top
+      tape.style.transition = 'none';
+      tape.style.transform = 'translateY(0)';
+
+      // The center of the window is at 40px (items 0,1,2 visible; item 1 is center)
+      // We want item (count-2) to be in center = offset = (count-2 - 1) * 40 = (count-3)*40
+      const targetOffset = (count - 3) * ITEM_H;
+
+      // Animate via requestAnimationFrame with easing
+      const duration = 900 + delay * 0.5;
+      const startTime = performance.now();
+
+      function easeOut(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      function frame(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = easeOut(t);
+        const currentY = -(eased * targetOffset);
+        tape.style.transform = `translateY(${currentY}px)`;
+
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          tape.style.transform = `translateY(-${targetOffset}px)`;
+          // Settle bounce
+          card.style.transition = 'transform 0.25s cubic-bezier(.34,1.56,.64,1)';
+          card.style.transform = 'translateY(-4px)';
+          setTimeout(() => {
+            card.style.transform = '';
+            resolve();
+          }, 250);
+        }
+      }
+      requestAnimationFrame(frame);
+    }, delay);
+  });
+}
+
+function setReelSong(i, song) {
+  const yr = getDailyJamYear(song[0]);
   const color = YEAR_COLORS[yr];
-  document.getElementById('card-top-bar').style.background = color;
-  document.getElementById('card-song').textContent = s[2];
-  document.getElementById('card-artist').textContent = s[3];
-  document.getElementById('card-artist').style.color = color;
-  document.getElementById('card-album').textContent = s[4];
-  document.getElementById('card-day').textContent = `Day ${s[0].toLocaleString()}`;
-  document.getElementById('card-date').textContent = s[5];
-  document.getElementById('card-year-pill').innerHTML = `<span class="year-pill y${yr}">DJ ${yr}</span>`;
-  document.getElementById('card-release').textContent = s[14] || '—';
-  document.getElementById('card-spotify').href = `https://open.spotify.com/track/${s[1]}`;
-  document.getElementById('song-card').classList.remove('card-placeholder');
+  const glow  = YEAR_GLOWS[yr];
+  const card  = document.getElementById(`reel-${i}`);
+
+  card.style.setProperty('--reel-color', color);
+  card.style.setProperty('--reel-glow', glow);
+  card.classList.remove('placeholder');
+  card.classList.add('has-song');
+
+  document.getElementById(`artist-${i}`).textContent = song[3];
+  document.getElementById(`album-${i}`).textContent  = song[4];
+  document.getElementById(`meta-${i}`).textContent   = `Day ${song[0].toLocaleString()} · ${song[5]}`;
+  document.getElementById(`hint-${i}`).textContent   = 'Click to pick →';
+
+  // set year pill on top bar (reuse card's top bar color)
+  card.querySelector('.reel-top-bar').style.background = color;
 }
 
-function pickRandom() {
-  return pool[Math.floor(Math.random() * pool.length)];
+function clearSelection() {
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`reel-${i}`);
+    card.classList.remove('selected', 'dimmed');
+  }
+  document.getElementById('selected-panel').classList.remove('visible');
+  selectedReel = -1;
 }
 
-function doShuffle() {
-  if (spinning || pool.length === 0) return;
+function selectReel(i) {
+  if (!finalSongs[i]) return;
+  selectedReel = i;
+
+  for (let j = 0; j < 3; j++) {
+    const card = document.getElementById(`reel-${j}`);
+    card.classList.remove('selected', 'dimmed');
+    if (j === i) card.classList.add('selected');
+    else card.classList.add('dimmed');
+  }
+
+  const song = finalSongs[i];
+  const yr = getDailyJamYear(song[0]);
+  const color = YEAR_COLORS[yr];
+
+  const panel = document.getElementById('selected-panel');
+  panel.style.setProperty('--selected-color', color);
+  document.getElementById('selected-bar').style.background = color;
+  document.getElementById('selected-song-name').textContent = song[2];
+  document.getElementById('selected-song-sub').textContent  = `${song[3]} · ${song[4]} · Day ${song[0].toLocaleString()}`;
+  document.getElementById('selected-song-sub').style.color  = color;
+  document.getElementById('btn-spotify').href = `https://open.spotify.com/track/${song[1]}`;
+  panel.classList.add('visible');
+}
+
+async function doShuffle() {
+  if (spinning || pool.length < 3) return;
   spinning = true;
+  clearSelection();
+  finalSongs = [null, null, null];
+
   const btn = document.getElementById('shuffle-btn');
   btn.disabled = true;
   btn.textContent = 'Spinning…';
 
-  const inner = document.getElementById('card-inner');
-  inner.classList.add('spinning');
+  // Pick 3 distinct songs
+  const picked = new Set();
+  while (picked.size < 3) picked.add(Math.floor(Math.random() * pool.length));
+  const picks = [...picked].map(i => pool[i]);
+  finalSongs = picks;
 
-  // Cycle through a few random songs visually during the spin
-  let ticks = 0;
-  const totalTicks = 7;
-  const tickInterval = setInterval(() => {
-    const preview = pickRandom();
-    document.getElementById('card-song').textContent = preview[2];
-    document.getElementById('card-artist').textContent = preview[3];
-    document.getElementById('card-album').textContent = preview[4];
-    ticks++;
-    if (ticks >= totalTicks) {
-      clearInterval(tickInterval);
-      inner.classList.remove('spinning');
-      inner.classList.add('settling');
-      const final = pickRandom();
-      showSong(final);
-      setTimeout(() => {
-        inner.classList.remove('settling');
-        spinning = false;
-        btn.disabled = false;
-        btn.textContent = 'Shuffle Again';
-      }, 380);
-    }
-  }, 90);
+  // Reset cards to spinning state
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`reel-${i}`);
+    card.classList.remove('has-song', 'selected', 'dimmed');
+    card.classList.add('placeholder');
+    card.style.transform = '';
+    card.style.transition = '';
+    document.getElementById(`artist-${i}`).textContent = '—';
+    document.getElementById(`album-${i}`).textContent  = '—';
+    document.getElementById(`meta-${i}`).textContent   = '—';
+    document.getElementById(`hint-${i}`).textContent   = '';
+  }
+
+  // Spin all 3 reels, staggered by 180ms each
+  await Promise.all([
+    spinReel(0, pool, 0,   picks[0]),
+    spinReel(1, pool, 180, picks[1]),
+    spinReel(2, pool, 360, picks[2]),
+  ]);
+
+  // After all settled, fill in the details
+  for (let i = 0; i < 3; i++) {
+    setReelSong(i, finalSongs[i]);
+  }
+
+  spinning = false;
+  btn.disabled = false;
+  btn.textContent = 'Shuffle Again';
+}
+
+// Reel click handlers
+for (let i = 0; i < 3; i++) {
+  document.getElementById(`reel-${i}`).addEventListener('click', () => {
+    if (finalSongs[i]) selectReel(i);
+  });
 }
 
 document.getElementById('shuffle-btn').addEventListener('click', doShuffle);
@@ -266,7 +481,6 @@ fetch('songs-list.json')
   .then(r => r.json())
   .then(data => {
     SONGS = data;
-    pool = SONGS;
     updatePoolInfo();
     const btn = document.getElementById('shuffle-btn');
     btn.disabled = false;
