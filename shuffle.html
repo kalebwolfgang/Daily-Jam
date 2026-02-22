@@ -15,21 +15,13 @@
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #080808; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body { background: #050508; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
 
-  /* Subtle felt grid texture */
-  body::before {
-    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.012) 39px, rgba(255,255,255,0.012) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.012) 39px, rgba(255,255,255,0.012) 40px);
-  }
-
-  /* Canvas element for animated floating suits */
+  /* Neon music canvas */
   #suit-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 
   /* NAV */
-  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,10,8,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(5,5,8,0.97); border-bottom: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(16px); }
   .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
   .site-logo span { color: var(--amber); font-style: italic; }
   .nav-links { display: flex; gap: 4px; }
@@ -38,7 +30,7 @@
   .nav-link.active { color: var(--amber); }
 
   /* PAGE HEADER */
-  .page-header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+  .page-header { padding: 40px 40px 0; border-bottom: 1px solid rgba(255,255,255,0.06); position: relative; z-index: 1; background: rgba(5,5,8,0.6); backdrop-filter: blur(4px); }
   .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; margin-bottom: 12px; }
   .page-header h1 span { color: var(--amber); font-style: italic; }
   .page-header p { font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 24px; }
@@ -61,8 +53,10 @@
 
   /* SINGLE REEL CARD */
   .reel-card {
-    background: var(--surface);
-    border: 2px solid var(--border);
+    background: rgba(10,10,14,0.82);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     cursor: default;
     position: relative;
     overflow: hidden;
@@ -72,10 +66,10 @@
     min-height: 280px;
   }
   .reel-card.has-song { cursor: pointer; }
-  .reel-card.has-song:hover { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 0 1px var(--reel-color, var(--amber)); transform: translateY(-3px); }
-  .reel-card.selected { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 32px var(--reel-glow, var(--amber-glow)); }
+  .reel-card.has-song:hover { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 0 1px var(--reel-color, var(--amber)), 0 0 24px var(--reel-color, var(--amber-glow)); transform: translateY(-3px); }
+  .reel-card.selected { border-color: var(--reel-color, var(--amber)); box-shadow: 0 0 48px var(--reel-glow, var(--amber-glow)), 0 0 0 1px var(--reel-color, var(--amber)); }
   .reel-card.selected .reel-select-hint { opacity: 0; }
-  .reel-card.dimmed { opacity: 0.3; transform: scale(0.96); }
+  .reel-card.dimmed { opacity: 0.25; transform: scale(0.96); }
 
   .reel-top-bar { height: 4px; width: 100%; background: var(--border); transition: background 0.3s; }
   .reel-card.has-song .reel-top-bar { background: var(--reel-color, var(--border)); }
@@ -123,8 +117,9 @@
   .reveal-panel { max-width: 1200px; margin: 0 auto; display: none; }
   .reveal-panel.visible { display: block; }
   .reveal-card {
-    background: var(--surface); border: 2px solid var(--reveal-color, var(--amber));
-    box-shadow: 0 0 48px var(--reveal-glow, var(--amber-glow));
+    background: rgba(8,8,14,0.88); border: 1px solid var(--reveal-color, var(--amber));
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 0 60px var(--reveal-glow, var(--amber-glow)), 0 0 0 1px var(--reveal-color, var(--amber));
     padding: 0;
     animation: revealIn 0.4s cubic-bezier(.34,1.56,.64,1);
   }
@@ -563,114 +558,257 @@ Promise.all([1,2,3,4,5,6,7,8].map(y =>
     btn.textContent = 'Shuffle';
   });
 
-// ── Card Suit Background Animation ──────────────────────────────────────────
+// ── Neon Music Background ────────────────────────────────────────────────────
 (function() {
   const canvas = document.getElementById('suit-canvas');
   const ctx = canvas.getContext('2d');
 
-  const SUITS = ['♠', '♥', '♦', '♣'];
-  // spades/clubs = white-ish, hearts/diamonds = red-ish
-  const SUIT_COLORS = {
-    '♠': 'rgba(220,220,220,',
-    '♣': 'rgba(200,200,200,',
-    '♥': 'rgba(180,40,40,',
-    '♦': 'rgba(160,35,35,'
-  };
+  // Neon palette
+  const NEON = [
+    [255, 20, 147],   // hot pink
+    [0,   255, 255],  // cyan
+    [180, 0,   255],  // purple
+    [0,   255, 100],  // green
+    [255, 200, 0],    // yellow
+    [255, 80,  0],    // orange
+  ];
+
+  const NOTES = ['♩','♪','♫','♬'];
 
   let W, H;
-  let particles = [];
 
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-
-  function randomBetween(a, b) { return a + Math.random() * (b - a); }
-
-  function createParticle(randomY) {
-    const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
-    const size = randomBetween(28, 120);
+  // ── VINYL RECORDS ───────────────────────────────────────────────────────────
+  let vinyls = [];
+  function mkVinyl() {
+    const c = NEON[Math.floor(Math.random() * NEON.length)];
+    const r = 55 + Math.random() * 80;
     return {
-      suit,
-      x: randomBetween(-60, W + 60),
-      y: randomY !== undefined ? randomY : randomBetween(-200, H + 200),
-      size,
-      baseOpacity: randomBetween(0.025, 0.1),
-      opacity: 0,
-      fadeIn: Math.random() < 0.5,     // still fading in
-      angle: randomBetween(-Math.PI, Math.PI),
-      rotSpeed: randomBetween(-0.0006, 0.0006),
-      driftX: randomBetween(-0.12, 0.12),
-      driftY: randomBetween(0.05, 0.25),  // slowly drift down
-      pulseSpeed: randomBetween(0.0005, 0.0015),
-      pulsePhase: randomBetween(0, Math.PI * 2),
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r,
+      angle: Math.random() * Math.PI * 2,
+      rotSpeed: (0.0003 + Math.random() * 0.0005) * (Math.random() < 0.5 ? 1 : -1),
+      color: c,
+      baseOpacity: 0.12 + Math.random() * 0.18,
+      pulsePhase: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.0008 + Math.random() * 0.001,
+      driftX: (Math.random() - 0.5) * 0.04,
+      driftY: (Math.random() - 0.5) * 0.03,
     };
   }
 
-  // Spawn ~40 particles spread across the screen at start
-  function initParticles() {
-    particles = [];
-    const count = Math.round((W * H) / 28000);
-    for (let i = 0; i < count; i++) {
-      particles.push(createParticle(randomBetween(-H * 0.2, H * 1.1)));
+  function drawVinyl(v, now) {
+    const pulse = Math.sin(now * v.pulseSpeed + v.pulsePhase) * 0.04;
+    const op = Math.max(0, v.baseOpacity + pulse);
+    const [r, g, b] = v.color;
+
+    ctx.save();
+    ctx.translate(v.x, v.y);
+    ctx.rotate(v.angle);
+
+    // Outer glow ring
+    const grd = ctx.createRadialGradient(0, 0, v.r * 0.7, 0, 0, v.r * 1.35);
+    grd.addColorStop(0, `rgba(${r},${g},${b},${op * 0.6})`);
+    grd.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();
+    ctx.arc(0, 0, v.r * 1.35, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Vinyl grooves (concentric rings, getting dimmer)
+    const grooveCount = 7;
+    for (let i = grooveCount; i >= 1; i--) {
+      const gr = (v.r * 0.28) + (v.r * 0.72) * (i / grooveCount);
+      const gop = op * (0.25 + 0.75 * (i / grooveCount));
+      ctx.beginPath();
+      ctx.arc(0, 0, gr, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${gop})`;
+      ctx.lineWidth = i === grooveCount ? 2.5 : 1;
+      ctx.shadowColor = `rgba(${r},${g},${b},${gop * 2})`;
+      ctx.shadowBlur = i === grooveCount ? 12 : 4;
+      ctx.stroke();
+    }
+
+    // Center label dot
+    ctx.beginPath();
+    ctx.arc(0, 0, v.r * 0.13, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${op * 1.5})`;
+    ctx.shadowColor = `rgba(${r},${g},${b},0.9)`;
+    ctx.shadowBlur = 16;
+    ctx.fill();
+
+    // Center spindle hole
+    ctx.beginPath();
+    ctx.arc(0, 0, v.r * 0.04, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(5,5,8,0.9)';
+    ctx.shadowBlur = 0;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // ── MUSIC NOTES ─────────────────────────────────────────────────────────────
+  let notes = [];
+  function mkNote(startY) {
+    const c = NEON[Math.floor(Math.random() * NEON.length)];
+    return {
+      x: Math.random() * W,
+      y: startY !== undefined ? startY : H + 60,
+      note: NOTES[Math.floor(Math.random() * NOTES.length)],
+      size: 18 + Math.random() * 36,
+      color: c,
+      opacity: 0,
+      maxOpacity: 0.5 + Math.random() * 0.4,
+      fadeIn: true,
+      speed: 0.3 + Math.random() * 0.5,
+      driftX: (Math.random() - 0.5) * 0.4,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.001 + Math.random() * 0.002,
+      wobbleAmp: 20 + Math.random() * 40,
+    };
+  }
+
+  function drawNote(n, now) {
+    ctx.save();
+    const wx = n.x + Math.sin(now * n.wobbleSpeed + n.wobble) * (n.wobbleAmp * 0.5);
+    ctx.translate(wx, n.y);
+    ctx.font = `${n.size}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const [r, g, b] = n.color;
+    ctx.fillStyle = `rgba(${r},${g},${b},${n.opacity})`;
+    ctx.shadowColor = `rgba(${r},${g},${b},${n.opacity * 1.5})`;
+    ctx.shadowBlur = 20;
+    ctx.fillText(n.note, 0, 0);
+    ctx.restore();
+  }
+
+  // ── WAVEFORM BARS ───────────────────────────────────────────────────────────
+  let wavePhases = [];
+  const WAVE_BAR_COUNT = 60;
+
+  function initWave() {
+    wavePhases = [];
+    for (let i = 0; i < WAVE_BAR_COUNT; i++) {
+      wavePhases.push({
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.001 + Math.random() * 0.002,
+        amp: 0.4 + Math.random() * 0.6,
+      });
     }
   }
 
+  function drawWaveform(now) {
+    const waveH = 70;  // max bar height
+    const barW = W / WAVE_BAR_COUNT;
+    const baseY = H - 1;
+
+    // Pick a neon color per draw call that slowly shifts
+    const hue = (now * 0.02) % 360;
+
+    for (let i = 0; i < WAVE_BAR_COUNT; i++) {
+      const wp = wavePhases[i];
+      const raw = Math.sin(now * wp.speed + wp.phase);
+      const h = Math.abs(raw) * waveH * wp.amp;
+
+      const x = i * barW + barW * 0.15;
+      const bw = barW * 0.7;
+
+      // Color cycles through neons based on position + time
+      const localHue = (hue + i * (360 / WAVE_BAR_COUNT)) % 360;
+      const op = 0.15 + Math.abs(raw) * 0.45;
+
+      const grd = ctx.createLinearGradient(0, baseY, 0, baseY - h);
+      grd.addColorStop(0, `hsla(${localHue},100%,60%,${op})`);
+      grd.addColorStop(1, `hsla(${localHue},100%,80%,${op * 0.1})`);
+
+      ctx.fillStyle = grd;
+      ctx.shadowColor = `hsla(${localHue},100%,70%,0.6)`;
+      ctx.shadowBlur = 8;
+      ctx.fillRect(x, baseY - h, bw, h);
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  // ── INIT ───────────────────────────────────────────────────────────────────
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    initScene();
+  }
+
+  function initScene() {
+    // Place 4-7 vinyl records scattered around
+    const vinylCount = Math.max(4, Math.round(W / 280));
+    vinyls = [];
+    for (let i = 0; i < vinylCount; i++) vinyls.push(mkVinyl());
+
+    // Seed notes across the screen height
+    notes = [];
+    const noteCount = Math.max(8, Math.round(W / 120));
+    for (let i = 0; i < noteCount; i++) {
+      const n = mkNote(Math.random() * H);
+      n.opacity = n.maxOpacity * Math.random();
+      n.fadeIn = false;
+      notes.push(n);
+    }
+
+    initWave();
+  }
+
+  let noteSpawn = 0;
   let lastTime = 0;
+
   function draw(now) {
-    const dt = now - lastTime;
+    const dt = Math.min(now - lastTime, 50); // cap dt to avoid jumps
     lastTime = now;
 
     ctx.clearRect(0, 0, W, H);
 
-    particles.forEach((p, i) => {
-      // Update position
-      p.x += p.driftX * dt * 0.016;
-      p.y += p.driftY * dt * 0.016;
-      p.angle += p.rotSpeed * dt;
+    // ── Draw waveform at bottom
+    drawWaveform(now);
 
-      // Pulsing opacity
-      const pulse = Math.sin(now * p.pulseSpeed + p.pulsePhase) * 0.015;
-      const targetOpacity = p.baseOpacity + pulse;
-
-      if (p.fadeIn) {
-        p.opacity = Math.min(p.opacity + 0.00008 * dt, targetOpacity);
-        if (p.opacity >= targetOpacity * 0.9) p.fadeIn = false;
-      } else {
-        p.opacity = targetOpacity;
-      }
-
-      // Recycle if drifted off-screen
-      if (p.y > H + p.size + 40) {
-        particles[i] = createParticle(-p.size - 40);
-        particles[i].opacity = 0;
-        particles[i].fadeIn = true;
-        return;
-      }
-      if (p.x < -W * 0.3 || p.x > W * 1.3) {
-        p.driftX *= -1;
-      }
-
-      // Draw suit glyph
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.angle);
-      ctx.font = `${p.size}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const colorBase = SUIT_COLORS[p.suit];
-      ctx.fillStyle = colorBase + p.opacity + ')';
-      ctx.fillText(p.suit, 0, 0);
-      ctx.restore();
+    // ── Update & draw vinyls
+    vinyls.forEach(v => {
+      v.angle += v.rotSpeed * dt;
+      v.x += v.driftX * dt;
+      v.y += v.driftY * dt;
+      // bounce off edges
+      if (v.x < -v.r * 1.5 || v.x > W + v.r * 1.5) v.driftX *= -1;
+      if (v.y < -v.r * 1.5 || v.y > H + v.r * 1.5) v.driftY *= -1;
+      drawVinyl(v, now);
     });
+
+    // ── Update & draw notes
+    notes.forEach((n, i) => {
+      n.y -= n.speed * (dt * 0.06);
+      n.x += n.driftX * (dt * 0.06);
+
+      if (n.fadeIn) {
+        n.opacity = Math.min(n.opacity + 0.001 * dt, n.maxOpacity);
+        if (n.opacity >= n.maxOpacity * 0.95) n.fadeIn = false;
+      } else if (n.y < -60) {
+        // Recycle from bottom
+        notes[i] = mkNote(H + 40);
+      }
+
+      drawNote(n, now);
+    });
+
+    // Occasionally spawn extra note bursts
+    noteSpawn += dt;
+    if (noteSpawn > 3000 + Math.random() * 4000) {
+      noteSpawn = 0;
+      const burst = mkNote();
+      notes.push(burst);
+      if (notes.length > 24) notes.shift();
+    }
 
     requestAnimationFrame(draw);
   }
 
-  window.addEventListener('resize', () => { resize(); initParticles(); });
+  window.addEventListener('resize', resize);
   resize();
-  initParticles();
   requestAnimationFrame(draw);
 })();
 </script>
