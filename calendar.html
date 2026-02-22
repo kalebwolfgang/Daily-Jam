@@ -60,15 +60,13 @@
   .date-jump { display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
   .date-jump.hidden { opacity: 0; pointer-events: none; }
   .date-jump-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
-  .date-jump select, .date-jump input[type="number"] {
+  .date-jump select {
     background: var(--surface2); border: 1px solid var(--border); color: var(--text);
     font-family: 'Space Mono', monospace; font-size: 12px; padding: 7px 10px;
     outline: none; cursor: pointer; transition: border-color 0.15s;
     -webkit-appearance: none; appearance: none;
   }
-  .date-jump select:focus, .date-jump input[type="number"]:focus { border-color: var(--amber); }
-  .date-jump input[type="number"] { width: 72px; -moz-appearance: textfield; }
-  .date-jump input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .date-jump select:focus { border-color: var(--amber); }
   .date-jump-go { background: var(--amber); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 7px 14px; border: none; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.15s; }
   .date-jump-go:hover { opacity: 0.85; }
   .date-jump-err { font-size: 10px; color: #e85d4a; letter-spacing: 1px; display: none; }
@@ -185,7 +183,17 @@
         <option value="11">November</option>
         <option value="12">December</option>
       </select>
-      <input type="number" id="jump-year" min="2018" max="2026" value="2018" placeholder="Year">
+      <select id="jump-year">
+        <option value="2018">2018</option>
+        <option value="2019">2019</option>
+        <option value="2020">2020</option>
+        <option value="2021">2021</option>
+        <option value="2022">2022</option>
+        <option value="2023">2023</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+      </select>
       <button class="date-jump-go" id="jump-go">Go</button>
       <span class="date-jump-err" id="jump-err">Not found</span>
     </div>
@@ -364,7 +372,7 @@ document.getElementById('jump-go').addEventListener('click', () => {
   const m = parseInt(document.getElementById('jump-month').value);
   const y = parseInt(document.getElementById('jump-year').value);
   const errEl = document.getElementById('jump-err');
-  if (!y || y < 2018 || y > 2026) { errEl.classList.add('show'); return; }
+  if (!y) { errEl.classList.add('show'); return; }
   const target = `${y}-${String(m).padStart(2,'0')}`;
   const idx = allMonths.indexOf(target);
   if (idx === -1) { errEl.classList.add('show'); return; }
@@ -373,9 +381,7 @@ document.getElementById('jump-go').addEventListener('click', () => {
   renderCalendar();
 });
 
-document.getElementById('jump-year').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('jump-go').click();
-});
+
 
 document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');
 document.getElementById('modal-overlay').onclick = function(e) { if (e.target === this) this.classList.remove('open'); };

@@ -15,12 +15,13 @@
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0a0a08; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body { background: #060d0d; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
-      radial-gradient(ellipse 80% 60% at 10% 0%,   rgba(245,166,35,0.10) 0%, transparent 65%),
-      radial-gradient(ellipse 60% 50% at 90% 100%,  rgba(245,166,35,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 35% at 85% 10%,   rgba(200,130,20,0.06) 0%, transparent 55%); }
+      radial-gradient(ellipse 100% 55% at 50% -10%,  rgba(20,90,80,0.55)  0%, transparent 65%),
+      radial-gradient(ellipse 60%  50% at 0%   80%,  rgba(10,60,55,0.35)  0%, transparent 60%),
+      radial-gradient(ellipse 50%  40% at 100% 20%,  rgba(15,75,65,0.28)  0%, transparent 55%),
+      radial-gradient(ellipse 80%  30% at 50%  110%, rgba(5, 40,38,0.40)  0%, transparent 60%); }
   body::after  { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
   /* NAV */
@@ -80,17 +81,19 @@
   .reel-num { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 16px; }
 
   /* slot scroll window */
-  .reel-window { height: 150px; overflow: hidden; position: relative; margin-bottom: 18px; }
+  .reel-window { height: 150px; overflow: hidden; position: relative; margin-bottom: 18px; transition: height 0.35s cubic-bezier(.4,0,.2,1); }
+  .reel-window.settled { height: 50px; }
   .reel-tape { position: absolute; left: 0; right: 0; top: 0; transition: none; }
   .reel-tape-item { height: 50px; display: flex; align-items: center; font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
   .reel-tape-item.center { font-size: 20px; color: var(--text); }
 
-  /* gradient masks on window */
+  /* gradient masks on window — hidden once settled */
   .reel-window::before, .reel-window::after {
-    content: ''; position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none;
+    content: ''; position: absolute; left: 0; right: 0; z-index: 2; pointer-events: none; transition: opacity 0.3s;
   }
   .reel-window::before { top: 0; height: 44px; background: linear-gradient(to bottom, var(--surface), transparent); }
   .reel-window::after  { bottom: 0; height: 44px; background: linear-gradient(to top, var(--surface), transparent); }
+  .reel-window.settled::before, .reel-window.settled::after { opacity: 0; }
 
   .reel-artist { font-size: 18px; color: var(--reel-color, var(--amber)); margin-bottom: 6px; transition: color 0.3s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
   .reel-album  { font-size: 13px; color: var(--text-dim); margin-bottom: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -386,6 +389,8 @@ function spinReel(reelIndex, songPool, delay, finalSong) {
           requestAnimationFrame(frame);
         } else {
           tape.style.transform = `translateY(-${targetOffset}px)`;
+          // Collapse window to show only center item
+          card.querySelector('.reel-window').classList.add('settled');
           // Settle bounce
           card.style.transition = 'transform 0.25s cubic-bezier(.34,1.56,.64,1)';
           card.style.transform = 'translateY(-4px)';
@@ -490,6 +495,7 @@ async function doShuffle() {
     card.classList.add('placeholder');
     card.style.transform = '';
     card.style.transition = '';
+    card.querySelector('.reel-window').classList.remove('settled');
     document.getElementById(`artist-${i}`).textContent = '—';
     document.getElementById(`album-${i}`).textContent  = '—';
     document.getElementById(`meta-${i}`).textContent   = '—';

@@ -8,26 +8,40 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
-  --amber: #f5a623; --amber-dim: rgba(245,166,35,0.15); --amber-glow: rgba(245,166,35,0.10);
+  --bg: #0a0810; --surface: #131118; --surface2: #1b1820; --border: #252030;
+  --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
   --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
   --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
   --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#f5a623;
   --spotify: #1DB954;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
-body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 5%   0%,  rgba(155,109,255,0.38) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 60% at 95% 100%, rgba(93,143,232,0.28)  0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 88%  5%,  rgba(232,93,143,0.18)  0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 3%  95%,  rgba(93,186,127,0.18)  0%, transparent 55%); }
+body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
-.header { padding: 40px 40px 32px; border-bottom: 1px solid var(--border); }
-.header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,72px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
-.header h1 span { color: var(--amber); font-style: italic; }
-.header p { margin-top: 12px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
-.nav-links { margin-top: 20px; display: flex; gap: 16px; }
-.nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
-.nav-link:hover, .nav-link.active { color: var(--amber); border-color: var(--amber); }
+/* NAV */
+.site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,8,16,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+.site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+.site-logo span { color: var(--amber); font-style: italic; }
+.nav-links { display: flex; gap: 4px; }
+.nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+.nav-link:hover { color: var(--text); }
+.nav-link.active { color: var(--amber); }
 
-.page { padding: 40px; max-width: 900px; }
+/* PAGE HEADER */
+.page-header { padding: 48px 40px 32px; border-bottom: 1px solid var(--border); text-align: center; }
+.page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(40px,6vw,80px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
+.page-header h1 span { color: var(--amber); font-style: italic; }
+.page-header p { margin-top: 14px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+
+/* CONTENT */
+.page { padding: 56px 40px 80px; max-width: 860px; margin: 0 auto; }
 
 /* PROFILE CARD */
 .profile-card {
@@ -35,9 +49,11 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   background: var(--surface); border: 1px solid var(--border);
   padding: 32px 36px; margin-bottom: 56px;
   transition: border-color 0.2s, background 0.2s;
-  text-decoration: none;
+  text-decoration: none; position: relative; overflow: hidden;
 }
-.profile-card:hover { border-color: var(--spotify); background: rgba(29,185,84,0.04); }
+.profile-card::before { content: ''; position: absolute; inset: 0; background: rgba(29,185,84,0.0); transition: background 0.2s; }
+.profile-card:hover { border-color: var(--spotify); }
+.profile-card:hover::before { background: rgba(29,185,84,0.04); }
 .profile-icon {
   width: 56px; height: 56px; flex-shrink: 0;
   background: var(--spotify); display: flex; align-items: center; justify-content: center;
@@ -47,7 +63,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .profile-info .label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
 .profile-info .name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
 .profile-info .sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; letter-spacing: 1px; }
-.profile-arrow { font-size: 20px; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
+.profile-arrow { font-size: 20px; color: var(--text-muted); transition: color 0.2s, transform 0.2s; flex-shrink: 0; }
 .profile-card:hover .profile-arrow { color: var(--spotify); transform: translateX(4px); }
 
 /* SECTION */
@@ -101,8 +117,9 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 .playlist-card:hover .playlist-arrow { color: var(--spotify); transform: translateX(3px); }
 
 @media (max-width: 760px) {
-  .page { padding: 20px; }
-  .header { padding: 24px 20px; }
+  .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; }
+  .page-header { padding: 32px 20px; }
+  .page { padding: 32px 20px 60px; }
   .profile-card { flex-wrap: wrap; gap: 16px; padding: 24px 20px; }
   .playlist-grid { grid-template-columns: 1fr; }
 }
@@ -110,17 +127,21 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
 </head>
 <body>
 
-<div class="header">
-  <h1>Daily <span>Jam</span></h1>
-  <p>Spotify Links — 8 Years of Music</p>
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
   <div class="nav-links">
     <a class="nav-link" href="index.html">Home</a>
     <a class="nav-link" href="catalog.html">Catalog</a>
     <a class="nav-link" href="calendar.html">Calendar</a>
     <a class="nav-link" href="stats.html">Stats</a>
     <a class="nav-link" href="shuffle.html">Shuffle</a>
-    <a class="nav-link active" href="#">Links</a>
+    <a class="nav-link active" href="daily-jam-links.html">Links</a>
   </div>
+</nav>
+
+<div class="page-header">
+  <h1>Daily <span>Jam</span></h1>
+  <p>Spotify Links — 8 Years of Music</p>
 </div>
 
 <div class="page">
@@ -128,7 +149,6 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
   <!-- PROFILE -->
   <a class="profile-card" href="https://open.spotify.com/user/kaleb.beiter?si=b61ba6629aa142c1" target="_blank" rel="noopener">
     <div class="profile-icon">
-      <!-- Spotify logo mark -->
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.516 17.305a.748.748 0 01-1.03.249c-2.818-1.723-6.365-2.112-10.542-1.157a.748.748 0 01-.357-1.454c4.571-1.045 8.492-.595 11.676 1.337a.748.748 0 01.253 1.025zm1.472-3.272a.936.936 0 01-1.288.308c-3.225-1.983-8.14-2.557-11.956-1.399a.937.937 0 01-.543-1.79c4.356-1.322 9.774-.682 13.479 1.594a.937.937 0 01.308 1.287zm.127-3.408C15.53 8.387 9.446 8.187 6.07 9.216a1.123 1.123 0 01-.652-2.148c3.894-1.183 10.373-.954 14.47 1.625a1.124 1.124 0 01-1.373 1.932z"/>
       </svg>
