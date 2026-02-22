@@ -47,7 +47,7 @@
   .yl-btn.y8 { color: var(--y8); }
   .yl-btn.all { color: var(--amber); }
 
-  .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid var(--border); background: var(--surface); gap: 16px; flex-wrap: wrap; }
   .month-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
   .month-title span { color: var(--amber); font-style: italic; }
   .nav-arrows { display: flex; gap: 8px; align-items: center; }
@@ -55,6 +55,24 @@
   .arrow-btn:hover { border-color: var(--amber); color: var(--amber); }
   .arrow-btn:disabled { opacity: 0.25; cursor: default; }
   .month-counter { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+  /* DATE JUMP */
+  .date-jump { display: flex; align-items: center; gap: 8px; transition: opacity 0.2s; }
+  .date-jump.hidden { opacity: 0; pointer-events: none; }
+  .date-jump-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+  .date-jump select, .date-jump input[type="number"] {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 12px; padding: 7px 10px;
+    outline: none; cursor: pointer; transition: border-color 0.15s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .date-jump select:focus, .date-jump input[type="number"]:focus { border-color: var(--amber); }
+  .date-jump input[type="number"] { width: 72px; -moz-appearance: textfield; }
+  .date-jump input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .date-jump-go { background: var(--amber); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 7px 14px; border: none; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.15s; }
+  .date-jump-go:hover { opacity: 0.85; }
+  .date-jump-err { font-size: 10px; color: #e85d4a; letter-spacing: 1px; display: none; }
+  .date-jump-err.show { display: block; }
 
   .calendar-wrap { padding: 24px 40px 40px; max-width: 1400px; margin: 0 auto; }
   .day-headers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 1px; }
@@ -118,6 +136,7 @@
     <a class="nav-link active" href="calendar.html">Calendar</a>
     <a class="nav-link" href="stats.html">Stats</a>
     <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
   </div>
 </nav>
 
@@ -149,7 +168,29 @@
     <button class="arrow-btn" id="next-month">Next →</button>
   </div>
   <div class="month-title" id="month-title">—</div>
-  <div class="month-counter" id="month-counter">—</div>
+  <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+    <div class="date-jump" id="date-jump">
+      <span class="date-jump-label">Go to</span>
+      <select id="jump-month">
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <input type="number" id="jump-year" min="2018" max="2026" value="2018" placeholder="Year">
+      <button class="date-jump-go" id="jump-go">Go</button>
+      <span class="date-jump-err" id="jump-err">Not found</span>
+    </div>
+    <div class="month-counter" id="month-counter">—</div>
+  </div>
 </div>
 
 <div class="calendar-wrap">
@@ -297,6 +338,16 @@ function openModal(dateStr) {
 document.getElementById('prev-month').onclick = () => { if (currentMonthIdx > 0) { currentMonthIdx--; renderCalendar(); } };
 document.getElementById('next-month').onclick = () => { if (currentMonthIdx < getActiveMonths().length - 1) { currentMonthIdx++; renderCalendar(); } };
 
+function updateDateJumpVisibility() {
+  const jump = document.getElementById('date-jump');
+  if (filterYear === 0) {
+    jump.classList.remove('hidden');
+  } else {
+    jump.classList.add('hidden');
+    document.getElementById('jump-err').classList.remove('show');
+  }
+}
+
 document.querySelectorAll('.yl-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.yl-btn').forEach(b => b.classList.remove('active'));
@@ -304,8 +355,26 @@ document.querySelectorAll('.yl-btn').forEach(btn => {
     filterYear = parseInt(this.dataset.year);
     currentMonthIdx = 0;
     if (filterYear === 0) currentMonthIdx = allMonths.length - 1;
+    updateDateJumpVisibility();
     renderCalendar();
   });
+});
+
+document.getElementById('jump-go').addEventListener('click', () => {
+  const m = parseInt(document.getElementById('jump-month').value);
+  const y = parseInt(document.getElementById('jump-year').value);
+  const errEl = document.getElementById('jump-err');
+  if (!y || y < 2018 || y > 2026) { errEl.classList.add('show'); return; }
+  const target = `${y}-${String(m).padStart(2,'0')}`;
+  const idx = allMonths.indexOf(target);
+  if (idx === -1) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+  currentMonthIdx = idx;
+  renderCalendar();
+});
+
+document.getElementById('jump-year').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('jump-go').click();
 });
 
 document.getElementById('modal-close').onclick = () => document.getElementById('modal-overlay').classList.remove('open');
@@ -328,6 +397,7 @@ Promise.all([1,2,3,4,5,6,7,8].map(y => fetch(`calendar-dj${y}.json`).then(r => r
     }
     for (const yr in yearMonths) { yearMonths[yr] = [...yearMonths[yr]].sort(); }
     currentMonthIdx = allMonths.length - 1;
+    updateDateJumpVisibility();
     renderCalendar();
   });
 </script>
