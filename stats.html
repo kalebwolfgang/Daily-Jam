@@ -269,7 +269,8 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 
   <div class="section">
     <div class="section-title">Genre <span>Wheel</span></div>
-    <div class="section-sub">Based on Spotify genre tags — songs with no genre data excluded</div>
+    <div class="section-sub">Based on Spotify genre tags — hover to explore · genre data is per-playlist, not per-song</div>
+    <div id="genre-note" style="display:none;margin-bottom:16px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--text-dim);letter-spacing:1px;">Genre data is aggregated at the playlist level — individual songs don't have genre tags in the catalog. Use <strong style="color:var(--amber)">Most Added Artists</strong> above to browse by artist instead. <span onclick="document.getElementById('genre-note').style.display='none'" style="cursor:pointer;color:var(--amber);float:right">✕</span></div>
     <div class="year-filter" id="genre-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
       <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
@@ -346,7 +347,7 @@ function renderArtistBars() {
     const leadW = (lead / maxTotal * 100).toFixed(1);
     const featW = (feat / maxTotal * 100).toFixed(1);
     const breakdown = feat > 0 ? `${lead} lead · ${feat} feat` : `${lead} songs`;
-    return `<div class="artist-row">
+    return `<div class="artist-row" data-artist="${name}">
       <div class="artist-rank">${i+1}</div>
       <div class="artist-name" title="${name}">${name}</div>
       <div class="artist-bar-track">
@@ -366,6 +367,11 @@ function renderArtistBars() {
   }).join('');
 }
 renderArtistBars();
+
+document.getElementById('artist-bars').addEventListener('click', function(e) {
+  const row = e.target.closest('.artist-row[data-artist]');
+  if (row) window.location.href = 'catalog.html?search=' + encodeURIComponent(row.dataset.artist);
+});
 
 document.querySelectorAll('#artist-year-filter .yf-btn').forEach(btn => {
   btn.addEventListener('click', function() {
@@ -428,7 +434,7 @@ function renderDecadeBars() {
   document.getElementById('decade-bars').innerHTML = DECADE_ORDER.map((d, i) => {
     const count = raw[d] || 0;
     const pct = total ? (count/total*100).toFixed(1) : 0;
-    return `<div class="decade-row">
+    return `<div class="decade-row" data-decade="${d}">
       <div class="decade-label">${d}</div>
       <div class="decade-bar-wrap"><div class="decade-bar-fill" style="width:${max?(count/max*100).toFixed(1):0}%;background:${DECADE_COLORS[i]}"></div></div>
       <div class="decade-count">${count.toLocaleString()}</div>
@@ -437,6 +443,12 @@ function renderDecadeBars() {
   }).join('');
 }
 renderDecadeBars();
+
+document.getElementById('decade-bars').addEventListener('click', function(e) {
+  const row = e.target.closest('.decade-row[data-decade]');
+  if (row) window.location.href = 'catalog.html?decade=' + encodeURIComponent(row.dataset.decade);
+});
+
 document.querySelectorAll('#decade-year-filter .yf-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('#decade-year-filter .yf-btn').forEach(b => b.classList.remove('active'));
@@ -516,7 +528,6 @@ function renderGenreWheel() {
     path.setAttribute('data-idx', idx);
     path.addEventListener('mouseenter', () => highlightGenre(idx, d, total));
     path.addEventListener('mouseleave', () => unhighlightGenre());
-    path.addEventListener('click', () => { window.location.href = 'catalog.html?genre=' + encodeURIComponent(d.name); });
     svg.appendChild(path);
     startAngle += slice;
   });
@@ -543,8 +554,7 @@ function renderGenreWheel() {
     });
     el.addEventListener('mouseleave', unhighlightGenre);
     el.addEventListener('click', () => {
-      const idx = parseInt(el.dataset.idx);
-      window.location.href = 'catalog.html?genre=' + encodeURIComponent(window._genreData[idx].name);
+      document.getElementById('genre-note').style.display = 'block';
     });
   });
 }
