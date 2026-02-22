@@ -15,16 +15,18 @@
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #080510; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
-  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-      radial-gradient(ellipse 120% 70% at -10% 50%,  rgba(180,20,255,0.45)  0%, transparent 55%),
-      radial-gradient(ellipse 100% 65% at 110% 50%,  rgba(20,100,255,0.40)  0%, transparent 55%),
-      radial-gradient(ellipse 70%  50% at 50%  -5%,  rgba(255,30,120,0.30)  0%, transparent 60%),
-      radial-gradient(ellipse 60%  40% at 50%  105%, rgba(100,0,200,0.35)   0%, transparent 55%),
-      radial-gradient(ellipse 40%  30% at 25%  80%,  rgba(255,60,180,0.18)  0%, transparent 50%),
-      radial-gradient(ellipse 35%  25% at 75%  20%,  rgba(0,150,255,0.20)   0%, transparent 50%); }
-  body::after  { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+  body { background: #080808; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+
+  /* Subtle felt grid texture */
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.012) 39px, rgba(255,255,255,0.012) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.012) 39px, rgba(255,255,255,0.012) 40px);
+  }
+
+  /* Canvas element for animated floating suits */
+  #suit-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 
   /* NAV */
   .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(10,10,8,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
@@ -36,7 +38,7 @@
   .nav-link.active { color: var(--amber); }
 
   /* PAGE HEADER */
-  .page-header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); }
+  .page-header { padding: 40px 40px 0; border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
   .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; margin-bottom: 12px; }
   .page-header h1 span { color: var(--amber); font-style: italic; }
   .page-header p { font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 24px; }
@@ -52,7 +54,7 @@
   .yf-btn.y7 { color: var(--y7); } .yf-btn.y8 { color: var(--y8); }
 
   /* MAIN AREA */
-  .shuffle-area { padding: 48px 40px 80px; max-width: 1280px; margin: 0 auto; }
+  .shuffle-area { padding: 48px 40px 80px; max-width: 1280px; margin: 0 auto; position: relative; z-index: 1; }
 
   /* REELS ROW */
   .reels-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto 40px; }
@@ -163,6 +165,7 @@
 </style>
 </head>
 <body>
+<canvas id="suit-canvas"></canvas>
 
 <nav class="site-nav">
   <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
@@ -559,6 +562,117 @@ Promise.all([1,2,3,4,5,6,7,8].map(y =>
     btn.disabled = false;
     btn.textContent = 'Shuffle';
   });
+
+// ── Card Suit Background Animation ──────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('suit-canvas');
+  const ctx = canvas.getContext('2d');
+
+  const SUITS = ['♠', '♥', '♦', '♣'];
+  // spades/clubs = white-ish, hearts/diamonds = red-ish
+  const SUIT_COLORS = {
+    '♠': 'rgba(220,220,220,',
+    '♣': 'rgba(200,200,200,',
+    '♥': 'rgba(180,40,40,',
+    '♦': 'rgba(160,35,35,'
+  };
+
+  let W, H;
+  let particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function randomBetween(a, b) { return a + Math.random() * (b - a); }
+
+  function createParticle(randomY) {
+    const suit = SUITS[Math.floor(Math.random() * SUITS.length)];
+    const size = randomBetween(28, 120);
+    return {
+      suit,
+      x: randomBetween(-60, W + 60),
+      y: randomY !== undefined ? randomY : randomBetween(-200, H + 200),
+      size,
+      baseOpacity: randomBetween(0.025, 0.1),
+      opacity: 0,
+      fadeIn: Math.random() < 0.5,     // still fading in
+      angle: randomBetween(-Math.PI, Math.PI),
+      rotSpeed: randomBetween(-0.0006, 0.0006),
+      driftX: randomBetween(-0.12, 0.12),
+      driftY: randomBetween(0.05, 0.25),  // slowly drift down
+      pulseSpeed: randomBetween(0.0005, 0.0015),
+      pulsePhase: randomBetween(0, Math.PI * 2),
+    };
+  }
+
+  // Spawn ~40 particles spread across the screen at start
+  function initParticles() {
+    particles = [];
+    const count = Math.round((W * H) / 28000);
+    for (let i = 0; i < count; i++) {
+      particles.push(createParticle(randomBetween(-H * 0.2, H * 1.1)));
+    }
+  }
+
+  let lastTime = 0;
+  function draw(now) {
+    const dt = now - lastTime;
+    lastTime = now;
+
+    ctx.clearRect(0, 0, W, H);
+
+    particles.forEach((p, i) => {
+      // Update position
+      p.x += p.driftX * dt * 0.016;
+      p.y += p.driftY * dt * 0.016;
+      p.angle += p.rotSpeed * dt;
+
+      // Pulsing opacity
+      const pulse = Math.sin(now * p.pulseSpeed + p.pulsePhase) * 0.015;
+      const targetOpacity = p.baseOpacity + pulse;
+
+      if (p.fadeIn) {
+        p.opacity = Math.min(p.opacity + 0.00008 * dt, targetOpacity);
+        if (p.opacity >= targetOpacity * 0.9) p.fadeIn = false;
+      } else {
+        p.opacity = targetOpacity;
+      }
+
+      // Recycle if drifted off-screen
+      if (p.y > H + p.size + 40) {
+        particles[i] = createParticle(-p.size - 40);
+        particles[i].opacity = 0;
+        particles[i].fadeIn = true;
+        return;
+      }
+      if (p.x < -W * 0.3 || p.x > W * 1.3) {
+        p.driftX *= -1;
+      }
+
+      // Draw suit glyph
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.font = `${p.size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const colorBase = SUIT_COLORS[p.suit];
+      ctx.fillStyle = colorBase + p.opacity + ')';
+      ctx.fillText(p.suit, 0, 0);
+      ctx.restore();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); initParticles(); });
+  resize();
+  initParticles();
+  requestAnimationFrame(draw);
+})();
 </script>
 </body>
 </html>
