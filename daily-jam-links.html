@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Spotify Links</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
+  --amber: #f5a623; --amber-dim: rgba(245,166,35,0.15); --amber-glow: rgba(245,166,35,0.10);
+  --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
+  --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+  --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#f5a623;
+  --spotify: #1DB954;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+.header { padding: 40px 40px 32px; border-bottom: 1px solid var(--border); }
+.header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,72px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
+.header h1 span { color: var(--amber); font-style: italic; }
+.header p { margin-top: 12px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
+.nav-links { margin-top: 20px; display: flex; gap: 16px; }
+.nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
+.nav-link:hover, .nav-link.active { color: var(--amber); border-color: var(--amber); }
+
+.page { padding: 40px; max-width: 900px; }
+
+/* PROFILE CARD */
+.profile-card {
+  display: flex; align-items: center; gap: 28px;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 32px 36px; margin-bottom: 56px;
+  transition: border-color 0.2s, background 0.2s;
+  text-decoration: none;
+}
+.profile-card:hover { border-color: var(--spotify); background: rgba(29,185,84,0.04); }
+.profile-icon {
+  width: 56px; height: 56px; flex-shrink: 0;
+  background: var(--spotify); display: flex; align-items: center; justify-content: center;
+}
+.profile-icon svg { width: 30px; height: 30px; fill: #000; }
+.profile-info { flex: 1; }
+.profile-info .label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+.profile-info .name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.profile-info .sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; letter-spacing: 1px; }
+.profile-arrow { font-size: 20px; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
+.profile-card:hover .profile-arrow { color: var(--spotify); transform: translateX(4px); }
+
+/* SECTION */
+.section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+.section-title span { color: var(--amber); font-style: italic; }
+.section-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
+
+/* PLAYLIST GRID */
+.playlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.playlist-card {
+  background: var(--surface); padding: 24px 28px;
+  display: flex; align-items: center; gap: 20px;
+  text-decoration: none; transition: background 0.15s;
+  position: relative; overflow: hidden;
+}
+.playlist-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  transition: opacity 0.2s; opacity: 0;
+}
+.playlist-card:hover { background: var(--surface2); }
+.playlist-card:hover::before { opacity: 1; }
+
+.playlist-card.y1::before { background: var(--y1); }
+.playlist-card.y2::before { background: var(--y2); }
+.playlist-card.y3::before { background: var(--y3); }
+.playlist-card.y4::before { background: var(--y4); }
+.playlist-card.y5::before { background: var(--y5); }
+.playlist-card.y6::before { background: var(--y6); }
+.playlist-card.y7::before { background: var(--y7); }
+.playlist-card.y8::before { background: var(--y8); }
+
+.playlist-num {
+  font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900;
+  line-height: 1; flex-shrink: 0; width: 44px; text-align: center;
+  opacity: 0.22; transition: opacity 0.2s;
+}
+.playlist-card.y1 .playlist-num { color: var(--y1); }
+.playlist-card.y2 .playlist-num { color: var(--y2); }
+.playlist-card.y3 .playlist-num { color: var(--y3); }
+.playlist-card.y4 .playlist-num { color: var(--y4); }
+.playlist-card.y5 .playlist-num { color: var(--y5); }
+.playlist-card.y6 .playlist-num { color: var(--y6); }
+.playlist-card.y7 .playlist-num { color: var(--y7); }
+.playlist-card.y8 .playlist-num { color: var(--y8); }
+.playlist-card:hover .playlist-num { opacity: 0.55; }
+
+.playlist-info { flex: 1; min-width: 0; }
+.playlist-info .pl-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.playlist-info .pl-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.playlist-arrow { font-size: 16px; color: var(--text-muted); flex-shrink: 0; transition: color 0.15s, transform 0.15s; }
+.playlist-card:hover .playlist-arrow { color: var(--spotify); transform: translateX(3px); }
+
+@media (max-width: 760px) {
+  .page { padding: 20px; }
+  .header { padding: 24px 20px; }
+  .profile-card { flex-wrap: wrap; gap: 16px; padding: 24px 20px; }
+  .playlist-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Daily <span>Jam</span></h1>
+  <p>Spotify Links — 8 Years of Music</p>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link active" href="#">Links</a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- PROFILE -->
+  <a class="profile-card" href="https://open.spotify.com/user/kaleb.beiter?si=b61ba6629aa142c1" target="_blank" rel="noopener">
+    <div class="profile-icon">
+      <!-- Spotify logo mark -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.516 17.305a.748.748 0 01-1.03.249c-2.818-1.723-6.365-2.112-10.542-1.157a.748.748 0 01-.357-1.454c4.571-1.045 8.492-.595 11.676 1.337a.748.748 0 01.253 1.025zm1.472-3.272a.936.936 0 01-1.288.308c-3.225-1.983-8.14-2.557-11.956-1.399a.937.937 0 01-.543-1.79c4.356-1.322 9.774-.682 13.479 1.594a.937.937 0 01.308 1.287zm.127-3.408C15.53 8.387 9.446 8.187 6.07 9.216a1.123 1.123 0 01-.652-2.148c3.894-1.183 10.373-.954 14.47 1.625a1.124 1.124 0 01-1.373 1.932z"/>
+      </svg>
+    </div>
+    <div class="profile-info">
+      <div class="label">Spotify Profile</div>
+      <div class="name">kaleb.beiter</div>
+      <div class="sub">open.spotify.com/user/kaleb.beiter</div>
+    </div>
+    <div class="profile-arrow">→</div>
+  </a>
+
+  <!-- PLAYLISTS -->
+  <div class="section-title">The <span>Playlists</span></div>
+  <div class="section-sub">8 years — one song per day</div>
+
+  <div class="playlist-grid">
+
+    <a class="playlist-card y1" href="https://open.spotify.com/playlist/11BuE8PDowRpc8ZJx6rfbV?si=46aa2aa9884b4fe3" target="_blank" rel="noopener">
+      <div class="playlist-num">1</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year One</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y2" href="https://open.spotify.com/playlist/6pyquPcsVO1nkrnMeTDb7l?si=efb5ee7a62b247c5" target="_blank" rel="noopener">
+      <div class="playlist-num">2</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Two</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y3" href="https://open.spotify.com/playlist/5m5WRzTJyGb9pfEElnwILM?si=d5886a536eff4c6b" target="_blank" rel="noopener">
+      <div class="playlist-num">3</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Three</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y4" href="https://open.spotify.com/playlist/0nLn5Pq78jUnLTE5qLRUp1?si=aeba0416698e4029" target="_blank" rel="noopener">
+      <div class="playlist-num">4</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Four</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y5" href="https://open.spotify.com/playlist/0eDNIiGs1mbTiCte8cCOTn?si=8c691b3d26b649f5" target="_blank" rel="noopener">
+      <div class="playlist-num">5</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Five</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y6" href="https://open.spotify.com/playlist/7g1vtccAtpdjzp1JTf3kV1?si=09d590221ff94149" target="_blank" rel="noopener">
+      <div class="playlist-num">6</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Six</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y7" href="https://open.spotify.com/playlist/2OZCADvvmCNTgKCGKjnDe1?si=07de1e61329f4f23" target="_blank" rel="noopener">
+      <div class="playlist-num">7</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Seven</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+    <a class="playlist-card y8" href="https://open.spotify.com/playlist/6reMLpb8byvKBfqCzXpbXs?si=fe4385fdcb134463" target="_blank" rel="noopener">
+      <div class="playlist-num">8</div>
+      <div class="playlist-info">
+        <div class="pl-label">Daily Jam</div>
+        <div class="pl-name">Year Eight</div>
+      </div>
+      <div class="playlist-arrow">→</div>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>

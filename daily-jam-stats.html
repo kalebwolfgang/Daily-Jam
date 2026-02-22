@@ -8,31 +8,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
-  --amber: #9b6dff; --amber-dim: rgba(155,109,255,0.32); --amber-glow: rgba(155,109,255,0.12);
+  --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
+  --amber: #f5a623; --amber-dim: rgba(245,166,35,0.32); --amber-glow: rgba(245,166,35,0.10);
   --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
   --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
-  --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+  --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#f5a623;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
-body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background:
-    radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
-    radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
-    radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
-body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
 
 .header { padding: 40px 40px 32px; border-bottom: 1px solid var(--border); }
 .header h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px,5vw,72px); font-weight: 900; line-height: 0.9; letter-spacing: -2px; }
-.header h1 span { color: var(--amber); }
+.header h1 span { color: var(--amber); font-style: italic; }
 .header p { margin-top: 12px; font-size: 11px; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; }
 .nav-links { margin-top: 20px; display: flex; gap: 16px; }
 .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.15s, border-color 0.15s; }
 .nav-link:hover, .nav-link.active { color: var(--amber); border-color: var(--amber); }
 
-.page { padding: 40px; max-width: 1200px; margin: 0 auto; }
+.page { padding: 40px; max-width: 1200px; }
 .section { margin-bottom: 64px; }
 .section-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
 .section-title span { color: var(--amber); font-style: italic; }
@@ -42,20 +36,8 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 56px; }
 .summary-card { background: var(--surface); padding: 24px 20px; }
 .summary-card .num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); line-height: 1; }
-/* UPDATED ACCESSIBILITY */
-.summary-card .label { 
-  font-size: 10px; 
-  letter-spacing: 2px; 
-  text-transform: uppercase; 
-  color: var(--text);    /* Brighter text */
-  opacity: 0.7;          
-  margin-top: 6px; 
-}
-.summary-card .sub { 
-  font-size: 12px;       /* Larger size */
-  color: #cccccc;        /* High contrast gray */
-  margin-top: 4px; 
-}
+.summary-card .label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
+.summary-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
 /* YEAR FILTER */
 .year-filter { display: flex; gap: 0; margin-bottom: 24px; flex-wrap: wrap; }
@@ -72,10 +54,12 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .legend-swatch.feat { background: var(--amber-dim); border: 1px dashed var(--amber); }
 
 .artist-bars { display: flex; flex-direction: column; gap: 6px; }
-.artist-row { display: flex; align-items: center; gap: 12px; }
+.artist-row { display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 0; transition: background 0.12s; margin: 0 -8px; padding: 2px 8px; }
+.artist-row:hover { background: var(--surface2); }
+.artist-row:hover .artist-name { color: var(--amber); }
 .artist-rank { font-size: 10px; color: var(--text-muted); width: 20px; text-align: right; flex-shrink: 0; }
-.artist-name { font-size: 12px; color: var(--text); width: 170px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.artist-bar-track { flex: 1; height: 26px; background: var(--surface2); position: relative; display: flex; overflow: hidden; cursor: default; }
+.artist-name { font-size: 12px; color: var(--text); width: 170px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.12s; }
+.artist-bar-track { flex: 1; height: 26px; background: var(--surface2); position: relative; display: flex; overflow: hidden; cursor: pointer; }
 .bar-lead { height: 100%; flex-shrink: 0; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
 .bar-feat { height: 100%; flex-shrink: 0; transition: width 0.55s cubic-bezier(.4,0,.2,1) 0.05s; }
 .artist-totals { display: flex; gap: 4px; align-items: baseline; flex-shrink: 0; width: 80px; }
@@ -106,35 +90,24 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .split-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
 .split-card { background: var(--surface); padding: 28px 24px; }
 .split-card .big { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; line-height: 1; }
-/* UPDATED ACCESSIBILITY */
-.split-card .lbl { 
-  font-size: 10px; 
-  letter-spacing: 2px; 
-  text-transform: uppercase; 
-  color: var(--text);    /* Brighter text */
-  opacity: 0.7;
-  margin-top: 6px; 
-}
-.split-card .desc { 
-  font-size: 13px;       /* Larger size */
-  color: #cccccc;        /* High contrast gray */
-  margin-top: 8px; 
-  line-height: 1.6; 
-}
+.split-card .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
+.split-card .desc { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.7; }
 .split-bar { margin-top: 16px; height: 4px; background: var(--border); }
 .split-bar-fill { height: 100%; }
 
 /* DECADE */
 .decade-section { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
 .decade-bars { display: flex; flex-direction: column; gap: 10px; }
-.decade-row { display: flex; align-items: center; gap: 12px; }
-.decade-label { font-size: 12px; color: var(--text-dim); width: 64px; flex-shrink: 0; }
+.decade-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0 -8px; padding: 2px 8px; transition: background 0.12s; }
+.decade-row:hover { background: var(--surface2); }
+.decade-row:hover .decade-label { color: var(--amber); }
+.decade-label { font-size: 12px; color: var(--text-dim); width: 64px; flex-shrink: 0; transition: color 0.12s; }
 .decade-bar-wrap { flex: 1; height: 22px; background: var(--surface2); position: relative; overflow: hidden; }
 .decade-bar-fill { height: 100%; position: absolute; left: 0; top: 0; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
 .decade-count { font-size: 11px; color: var(--text-dim); width: 36px; text-align: right; flex-shrink: 0; }
 .decade-pct { font-size: 10px; color: var(--text-muted); width: 38px; text-align: right; flex-shrink: 0; }
 .dby-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.dby-label { font-size: 11px; font-weight: 700; width: 80px; flex-shrink: 0; }
+.dby-label { font-size: 11px; font-weight: 700; width: 48px; flex-shrink: 0; }
 .dby-bar { flex: 1; height: 26px; display: flex; overflow: hidden; }
 .dby-seg { height: 100%; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
 .decade-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
@@ -173,55 +146,38 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
   .pie-wrap { width: 280px; height: 280px; margin: 0 auto; }
 }
 
-
-  /* NAV */
-  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
-  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
-  .site-logo span { color: var(--amber); font-style: italic; }
-  .nav-links { display: flex; gap: 4px; }
-  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
-  .nav-link:hover { color: var(--text); }
-  .nav-link.active { color: var(--amber); }
-  @media (max-width: 700px) { .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; } }
 </style>
 </head>
 <body>
-<nav class="site-nav">
-  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
-  <div class="nav-links">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link" href="catalog.html">Catalog</a>
-    <a class="nav-link" href="calendar.html">Calendar</a>
-    <a class="nav-link active" href="stats.html">Stats</a>
-    <a class="nav-link" href="shuffle.html">Shuffle</a>
-    <a class="nav-link" href="daily-jam-links.html">Links</a>
-  </div>
-</nav>
-
 
 <div class="header">
   <h1>Daily <span>Jam</span></h1>
   <p>Stats &amp; Insights — 8 Years of Music</p>
-  
+  <div class="nav-links">
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link active" href="#">Stats</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
+  </div>
 </div>
 
 <div class="page">
 
   <div class="summary-grid" id="summary-grid"></div>
 
+  <!-- TOP ARTISTS -->
   <div class="section">
     <div class="section-title">Most Added <span>Artists</span></div>
     <div class="section-sub">Ranked by total appearances — lead + featured</div>
     <div class="year-filter" id="artist-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
     </div>
     <div class="chart-legend">
       <div class="legend-item"><div class="legend-swatch lead" id="legend-lead-swatch"></div><span id="legend-lead-text">Lead artist</span></div>
@@ -230,31 +186,34 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
     <div class="artist-bars" id="artist-bars"></div>
   </div>
 
+  <!-- TOP PER YEAR -->
   <div class="section">
     <div class="section-title">Top Artists <span>Per Year</span></div>
     <div class="section-sub">Top 5 per Daily Jam playlist — solid = lead, faded = featured</div>
     <div class="per-year-grid" id="per-year-grid"></div>
   </div>
 
+  <!-- ARTIST DEPTH -->
   <div class="section">
     <div class="section-title">Artist <span>Depth</span></div>
     <div class="section-sub">One-time adds vs. artists you kept coming back to</div>
     <div class="split-stats" id="split-stats"></div>
   </div>
 
+  <!-- DECADE -->
   <div class="section">
     <div class="section-title">Decade <span>Breakdown</span></div>
     <div class="section-sub">When were the songs you added originally released?</div>
     <div class="year-filter" id="decade-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
     </div>
     <div class="decade-section">
       <div><div class="decade-bars" id="decade-bars"></div></div>
@@ -267,19 +226,20 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
   </div>
 
 
+  <!-- GENRE WHEEL -->
   <div class="section">
     <div class="section-title">Genre <span>Wheel</span></div>
     <div class="section-sub">Based on Spotify genre tags — songs with no genre data excluded</div>
     <div class="year-filter" id="genre-year-filter">
       <button class="yf-btn active" data-year="0">All Daily Jams</button>
-      <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
-      <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
-      <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
-      <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
-      <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
-      <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
-      <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
-      <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
+      <button class="yf-btn" data-year="1" style="color:var(--y1)">DJ 1</button>
+      <button class="yf-btn" data-year="2" style="color:var(--y2)">DJ 2</button>
+      <button class="yf-btn" data-year="3" style="color:var(--y3)">DJ 3</button>
+      <button class="yf-btn" data-year="4" style="color:var(--y4)">DJ 4</button>
+      <button class="yf-btn" data-year="5" style="color:var(--y5)">DJ 5</button>
+      <button class="yf-btn" data-year="6" style="color:var(--y6)">DJ 6</button>
+      <button class="yf-btn" data-year="7" style="color:var(--y7)">DJ 7</button>
+      <button class="yf-btn" data-year="8" style="color:var(--y8)">DJ 8</button>
     </div>
     <div class="genre-section">
       <div class="pie-wrap">
@@ -296,9 +256,9 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 </div>
 
 <script>
-const STATS = {"topArtists": [["Mac Miller", 60, 6], ["Drake", 30, 7], ["Joji", 22, 4], ["Dominic Fike", 21, 3], ["The Weeknd", 18, 5], ["Ariana Grande", 20, 3], ["SZA", 19, 3], ["Kanye West", 18, 4], ["Tyler, The Creator", 18, 3], ["Omar Apollo", 18, 1], ["The Kid LAROI", 18, 1], ["Billie Eilish", 19, 0], ["Rex Orange County", 19, 0], ["Post Malone", 18, 0], ["Travis Scott", 9, 9], ["Harry Styles", 18, 0], ["Anderson .Paak", 6, 12], ["Tame Impala", 17, 1], ["Dua Lipa", 13, 4], ["beabadoobee", 17, 0]], "topPerYear": {"1": [["Ariana Grande", 11, 0], ["AJR", 8, 1], ["Jon Bellion", 8, 1], ["Billie Eilish", 9, 0], ["Post Malone", 8, 0], ["Mac Miller", 8, 0], ["Khalid", 6, 2], ["Joji", 4, 4], ["Hoodie Allen", 7, 0], ["Rex Orange County", 7, 0]], "2": [["Drake", 3, 5], ["Lil Baby", 2, 5], ["Audrey Mika", 6, 1], ["Dominic Fike", 6, 0], ["The Weeknd", 6, 0], ["J. Cole", 4, 2], ["Jeremy Zucker", 5, 0], ["Oliver Tree", 4, 1], ["Quinn XCII", 5, 0], ["Young Thug", 3, 2]], "3": [["Lil Nas X", 11, 0], ["The Kid LAROI", 10, 0], ["Kanye West", 7, 1], ["Kid Cudi", 7, 1], ["Mac Miller", 8, 0], ["ROLE MODEL", 7, 0], ["Clairo", 6, 0], ["Drake", 5, 1], ["Doja Cat", 4, 1], ["Jack Harlow", 3, 1]], "4": [["Mac Miller", 18, 2], ["Djo", 8, 0], ["Rex Orange County", 7, 0], ["Harry Styles", 7, 0], ["Kanye West", 5, 2], ["Weston Estate", 7, 0], ["Remi Wolf", 5, 2], ["Yellow Days", 6, 0], ["Diplo", 4, 2], ["SEB", 6, 0]], "5": [["Dominic Fike", 12, 1], ["Mac Miller", 10, 3], ["SZA", 9, 0], ["Drake", 8, 0], ["Ariana Grande", 5, 1], ["Omar Apollo", 6, 0], ["The Weeknd", 3, 2], ["Zach Bryan", 5, 0], ["Teezo Touchdown", 4, 1], ["21 Savage", 0, 5]], "6": [["beabadoobee", 12, 0], ["Drake", 9, 0], ["The Kid LAROI", 7, 1], ["Dua Lipa", 7, 0], ["Remi Wolf", 7, 0], ["Sabrina Carpenter", 6, 0], ["Fred again..", 6, 0], ["SZA", 4, 2], ["Mac Miller", 5, 0], ["Lyn Lapid", 5, 0]], "7": [["Tyler, The Creator", 8, 0], ["Jean Dawson", 7, 0], ["Sabrina Carpenter", 7, 0], ["Bad Bunny", 6, 1], ["Djo", 5, 0], ["The Two Lips", 5, 0], ["SZA", 5, 0], ["Smino", 4, 1], ["The Marías", 3, 2], ["keshi", 4, 0]], "8": [["Tame Impala", 6, 0], ["Daniel Caesar", 5, 0], ["Mac Miller", 3, 1], ["Harry Styles", 3, 0], ["Joji", 3, 0], ["Labi Siffre", 3, 0], ["sombr", 2, 0], ["Alemeda", 2, 0], ["Dogpark", 2, 0], ["Tiffany Day", 2, 0]]}, "decadeAll": {"pre-60s": 4, "1960s": 14, "1970s": 33, "1980s": 16, "1990s": 49, "2000s": 114, "2010s": 929, "2020s": 1512}, "decadePerYear": {"1": {"pre-60s": 3, "1960s": 1, "1970s": 4, "1980s": 2, "1990s": 12, "2000s": 19, "2010s": 324, "2020s": 0}, "2": {"pre-60s": 0, "1960s": 2, "1970s": 4, "1980s": 4, "1990s": 3, "2000s": 18, "2010s": 245, "2020s": 89}, "3": {"pre-60s": 0, "1960s": 2, "1970s": 7, "1980s": 2, "1990s": 8, "2000s": 23, "2010s": 132, "2020s": 191}, "4": {"pre-60s": 0, "1960s": 0, "1970s": 5, "1980s": 1, "1990s": 5, "2000s": 15, "2010s": 92, "2020s": 247}, "5": {"pre-60s": 1, "1960s": 3, "1970s": 5, "1980s": 1, "1990s": 6, "2000s": 8, "2010s": 72, "2020s": 269}, "6": {"pre-60s": 0, "1960s": 1, "1970s": 3, "1980s": 1, "1990s": 4, "2000s": 10, "2010s": 37, "2020s": 309}, "7": {"pre-60s": 0, "1960s": 4, "1970s": 3, "1980s": 3, "1990s": 9, "2000s": 17, "2010s": 15, "2020s": 314}, "8": {"pre-60s": 0, "1960s": 1, "1970s": 2, "1980s": 2, "1990s": 2, "2000s": 4, "2010s": 12, "2020s": 93}}, "oneHit": 1256, "multiArtist": 339, "totalArtists": 1595, "totalSongs": 2671, "genreAll": {"Hip-Hop / Rap": 708, "Pop": 384, "R&B / Soul": 560, "Indie / Alt": 655, "Electronic": 195, "Rock / Metal": 55, "Country": 37, "Latin": 4, "Christmas": 34, "Other": 39}, "genrePerYear": {"1": {"Hip-Hop / Rap": 123, "Pop": 44, "R&B / Soul": 54, "Indie / Alt": 55, "Electronic": 51, "Rock / Metal": 9, "Country": 5, "Latin": 1, "Christmas": 18, "Other": 5}, "2": {"Hip-Hop / Rap": 136, "Pop": 31, "R&B / Soul": 70, "Indie / Alt": 79, "Electronic": 30, "Rock / Metal": 10, "Country": 3, "Latin": 0, "Christmas": 1, "Other": 5}, "3": {"Hip-Hop / Rap": 111, "Pop": 51, "R&B / Soul": 57, "Indie / Alt": 111, "Electronic": 19, "Rock / Metal": 9, "Country": 6, "Latin": 0, "Christmas": 0, "Other": 1}, "4": {"Hip-Hop / Rap": 93, "Pop": 48, "R&B / Soul": 80, "Indie / Alt": 103, "Electronic": 26, "Rock / Metal": 7, "Country": 0, "Latin": 0, "Christmas": 6, "Other": 2}, "5": {"Hip-Hop / Rap": 89, "Pop": 49, "R&B / Soul": 98, "Indie / Alt": 82, "Electronic": 12, "Rock / Metal": 2, "Country": 10, "Latin": 3, "Christmas": 4, "Other": 16}, "6": {"Hip-Hop / Rap": 88, "Pop": 77, "R&B / Soul": 68, "Indie / Alt": 80, "Electronic": 31, "Rock / Metal": 7, "Country": 9, "Latin": 0, "Christmas": 3, "Other": 2}, "7": {"Hip-Hop / Rap": 54, "Pop": 74, "R&B / Soul": 91, "Indie / Alt": 108, "Electronic": 20, "Rock / Metal": 7, "Country": 4, "Latin": 0, "Christmas": 2, "Other": 5}, "8": {"Hip-Hop / Rap": 14, "Pop": 10, "R&B / Soul": 42, "Indie / Alt": 37, "Electronic": 6, "Rock / Metal": 4, "Country": 0, "Latin": 0, "Christmas": 0, "Other": 3}}};
+const STATS = {"topArtists": [["Mac Miller", 60, 6], ["Drake", 30, 7], ["Joji", 22, 4], ["Dominic Fike", 21, 3], ["The Weeknd", 18, 5], ["Ariana Grande", 20, 3], ["SZA", 19, 3], ["Kanye West", 18, 4], ["Tyler, The Creator", 18, 3], ["Omar Apollo", 18, 1], ["The Kid LAROI", 18, 1], ["Billie Eilish", 19, 0], ["Rex Orange County", 19, 0], ["Post Malone", 18, 0], ["Travis Scott", 9, 9], ["Harry Styles", 18, 0], ["Anderson .Paak", 6, 12], ["Tame Impala", 17, 1], ["Dua Lipa", 13, 4], ["beabadoobee", 17, 0]], "topPerYear": {"1": [["Ariana Grande", 11, 0], ["AJR", 8, 1], ["Jon Bellion", 8, 1], ["Billie Eilish", 9, 0], ["Post Malone", 8, 0], ["Mac Miller", 8, 0], ["Khalid", 6, 2], ["Joji", 4, 4], ["Hoodie Allen", 7, 0], ["Rex Orange County", 7, 0]], "2": [["Drake", 3, 5], ["Lil Baby", 2, 5], ["Audrey Mika", 6, 1], ["Dominic Fike", 6, 0], ["The Weeknd", 6, 0], ["J. Cole", 4, 2], ["Jeremy Zucker", 5, 0], ["Oliver Tree", 4, 1], ["Quinn XCII", 5, 0], ["Young Thug", 3, 2]], "3": [["Lil Nas X", 11, 0], ["The Kid LAROI", 10, 0], ["Kanye West", 7, 1], ["Kid Cudi", 7, 1], ["Mac Miller", 8, 0], ["ROLE MODEL", 7, 0], ["Clairo", 6, 0], ["Drake", 5, 1], ["Doja Cat", 4, 1], ["Jack Harlow", 3, 1]], "4": [["Mac Miller", 18, 2], ["Djo", 8, 0], ["Rex Orange County", 7, 0], ["Harry Styles", 7, 0], ["Kanye West", 5, 2], ["Weston Estate", 7, 0], ["Remi Wolf", 5, 2], ["Yellow Days", 6, 0], ["Diplo", 4, 2], ["SEB", 6, 0]], "5": [["Dominic Fike", 12, 1], ["Mac Miller", 10, 3], ["SZA", 9, 0], ["Drake", 8, 0], ["Ariana Grande", 5, 1], ["Omar Apollo", 6, 0], ["The Weeknd", 3, 2], ["Zach Bryan", 5, 0], ["Teezo Touchdown", 4, 1], ["21 Savage", 0, 5]], "6": [["beabadoobee", 12, 0], ["Drake", 9, 0], ["The Kid LAROI", 7, 1], ["Dua Lipa", 7, 0], ["Remi Wolf", 7, 0], ["Sabrina Carpenter", 6, 0], ["Fred again..", 6, 0], ["SZA", 4, 2], ["Mac Miller", 5, 0], ["Lyn Lapid", 5, 0]], "7": [["Tyler, The Creator", 8, 0], ["Jean Dawson", 7, 0], ["Sabrina Carpenter", 7, 0], ["Bad Bunny", 6, 1], ["Djo", 5, 0], ["The Two Lips", 5, 0], ["SZA", 5, 0], ["Smino", 4, 1], ["The Marías", 3, 2], ["keshi", 4, 0]], "8": [["Tame Impala", 6, 0], ["Daniel Caesar", 5, 0], ["Mac Miller", 3, 1], ["Harry Styles", 3, 0], ["Joji", 3, 0], ["Labi Siffre", 3, 0], ["sombr", 2, 0], ["Alemeda", 2, 0], ["Dogpark", 2, 0], ["Tiffany Day", 2, 0]]}, "decadeAll": {"pre-60s": 4, "1960s": 14, "1970s": 33, "1980s": 16, "1990s": 49, "2000s": 114, "2010s": 929, "2020s": 1512}, "decadePerYear": {"1": {"pre-60s": 3, "1960s": 1, "1970s": 4, "1980s": 2, "1990s": 12, "2000s": 19, "2010s": 324, "2020s": 0}, "2": {"pre-60s": 0, "1960s": 2, "1970s": 4, "1980s": 4, "1990s": 3, "2000s": 18, "2010s": 245, "2020s": 89}, "3": {"pre-60s": 0, "1960s": 2, "1970s": 7, "1980s": 2, "1990s": 8, "2000s": 23, "2010s": 132, "2020s": 191}, "4": {"pre-60s": 0, "1960s": 0, "1970s": 5, "1980s": 1, "1990s": 5, "2000s": 15, "2010s": 92, "2020s": 247}, "5": {"pre-60s": 1, "1960s": 3, "1970s": 5, "1980s": 1, "1990s": 6, "2000s": 8, "2010s": 72, "2020s": 269}, "6": {"pre-60s": 0, "1960s": 1, "1970s": 3, "1980s": 1, "1990s": 4, "2000s": 10, "2010s": 37, "2020s": 309}, "7": {"pre-60s": 0, "1960s": 4, "1970s": 3, "1980s": 3, "1990s": 9, "2000s": 17, "2010s": 15, "2020s": 314}, "8": {"pre-60s": 0, "1960s": 1, "1970s": 2, "1980s": 2, "1990s": 2, "2000s": 4, "2010s": 12, "2020s": 93}}, "oneHit": 1256, "multiArtist": 339, "totalArtists": 1595, "totalSongs": 2671, "genreAll": {"Pop": 896, "Hip-Hop / Rap": 666, "R&B / Soul": 407, "Indie / Alt": 390, "Latin": 25, "Electronic": 127, "Christmas": 41, "Rock / Metal": 98, "Country": 36}, "genrePerYear": {"1": {"Pop": 151, "Hip-Hop / Rap": 104, "R&B / Soul": 31, "Indie / Alt": 24, "Latin": 1, "Electronic": 26, "Christmas": 20, "Rock / Metal": 6}, "2": {"Indie / Alt": 35, "Hip-Hop / Rap": 113, "Electronic": 21, "R&B / Soul": 49, "Pop": 124, "Country": 5, "Rock / Metal": 10, "Latin": 4, "Christmas": 2}, "3": {"Pop": 111, "Indie / Alt": 64, "R&B / Soul": 41, "Hip-Hop / Rap": 106, "Rock / Metal": 21, "Country": 3, "Electronic": 10, "Christmas": 1}, "4": {"Hip-Hop / Rap": 86, "R&B / Soul": 52, "Pop": 126, "Country": 4, "Indie / Alt": 69, "Rock / Metal": 12, "Christmas": 6, "Electronic": 6, "Latin": 2}, "5": {"Hip-Hop / Rap": 95, "Pop": 100, "Indie / Alt": 46, "R&B / Soul": 82, "Rock / Metal": 11, "Electronic": 12, "Country": 10, "Christmas": 6, "Latin": 4}, "6": {"Rock / Metal": 10, "Pop": 121, "Indie / Alt": 48, "Hip-Hop / Rap": 89, "R&B / Soul": 66, "Electronic": 26, "Country": 10, "Latin": 2, "Christmas": 3}, "7": {"R&B / Soul": 58, "Indie / Alt": 76, "Pop": 129, "Hip-Hop / Rap": 61, "Electronic": 19, "Rock / Metal": 21, "Christmas": 3, "Country": 4, "Latin": 9}, "8": {"Pop": 34, "Indie / Alt": 28, "Rock / Metal": 7, "Latin": 3, "R&B / Soul": 28, "Electronic": 7, "Hip-Hop / Rap": 12}}};
 
-const YEAR_COLORS = ['','#5d8fe8','#5dba7f','#e85d8f','#e8a45d','#a45de8','#5de8e8','#e8e85d','#FF6B6B'];
+const YEAR_COLORS = ['','#5d8fe8','#5dba7f','#e85d8f','#e8a45d','#a45de8','#5de8e8','#e8e85d','#f5a623'];
 const YEAR_LABELS = ['','2018–19','2019–20','2020–21','2021–22','2022–23','2023–24','2024–25','2025–26'];
 const DECADE_ORDER = ['pre-60s','1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const DECADE_COLORS = ['#6b5b95','#88b04b','#f7cac9','#92a8d1','#f5a623','#5d8fe8','#e85d8f','#5dba7f'];
@@ -346,7 +306,7 @@ function renderArtistBars() {
     const leadW = (lead / maxTotal * 100).toFixed(1);
     const featW = (feat / maxTotal * 100).toFixed(1);
     const breakdown = feat > 0 ? `${lead} lead · ${feat} feat` : `${lead} songs`;
-    return `<div class="artist-row">
+    return `<div class="artist-row" onclick="window.location.href='catalog.html?search=${encodeURIComponent(name)}'" title="View all ${name} songs in catalog">
       <div class="artist-rank">${i+1}</div>
       <div class="artist-name" title="${name}">${name}</div>
       <div class="artist-bar-track">
@@ -382,7 +342,7 @@ document.getElementById('per-year-grid').innerHTML = Object.entries(STATS.topPer
   const color = YEAR_COLORS[parseInt(yr)];
   const maxTotal = top5[0] ? top5[0][1] + top5[0][2] : 1;
   return `<div class="per-year-card">
-    <h3 style="color:${color}">Daily Jam ${yr} · ${YEAR_LABELS[parseInt(yr)]}</h3>
+    <h3 style="color:${color}">DJ ${yr} · ${YEAR_LABELS[parseInt(yr)]}</h3>
     ${top5.map(([name, lead, feat], i) => {
       const total = lead + feat;
       const leadPct = (lead/maxTotal*100).toFixed(0);
@@ -428,7 +388,7 @@ function renderDecadeBars() {
   document.getElementById('decade-bars').innerHTML = DECADE_ORDER.map((d, i) => {
     const count = raw[d] || 0;
     const pct = total ? (count/total*100).toFixed(1) : 0;
-    return `<div class="decade-row">
+    return `<div class="decade-row" onclick="window.location.href='catalog.html?decade=${encodeURIComponent(d)}'" title="View ${d} songs in catalog">
       <div class="decade-label">${d}</div>
       <div class="decade-bar-wrap"><div class="decade-bar-fill" style="width:${max?(count/max*100).toFixed(1):0}%;background:${DECADE_COLORS[i]}"></div></div>
       <div class="decade-count">${count.toLocaleString()}</div>
@@ -455,7 +415,7 @@ document.getElementById('decade-by-year').innerHTML = Object.entries(STATS.decad
     const w = total ? (count/total*100).toFixed(1) : 0;
     return `<div class="dby-seg" style="width:${w}%;background:${DECADE_COLORS[i]}" title="${d}: ${count} songs (${w}%)"></div>`;
   }).join('');
-  return `<div class="dby-row"><div class="dby-label" style="color:${color}">Daily Jam ${yr}</div><div class="dby-bar">${segs}</div></div>`;
+  return `<div class="dby-row"><div class="dby-label" style="color:${color}">DJ ${yr}</div><div class="dby-bar">${segs}</div></div>`;
 }).join('');
 
 document.getElementById('decade-legend').innerHTML = DECADE_ORDER.map((d, i) =>
@@ -464,7 +424,7 @@ document.getElementById('decade-legend').innerHTML = DECADE_ORDER.map((d, i) =>
 
 // GENRE WHEEL
 const GENRE_COLORS = {
-  'Hip-Hop / Rap': '#e8a45d',
+  'Hip-Hop / Rap': '#f5a623',
   'Pop':           '#e85d8f',
   'R&B / Soul':    '#5dba7f',
   'Indie / Alt':   '#5d8fe8',
@@ -473,9 +433,8 @@ const GENRE_COLORS = {
   'Country':       '#88b04b',
   'Latin':         '#a45de8',
   'Christmas':     '#e85d4a',
-  'Other':          '#3a3530',
 };
-const GENRE_ORDER = ['Hip-Hop / Rap','Pop','R&B / Soul','Indie / Alt','Electronic','Rock / Metal','Country','Latin','Christmas','Other'];
+const GENRE_ORDER = ['Hip-Hop / Rap','Pop','R&B / Soul','Indie / Alt','Electronic','Rock / Metal','Country','Latin','Christmas'];
 
 let genreYear = 0;
 
@@ -516,6 +475,8 @@ function renderGenreWheel() {
     path.setAttribute('data-idx', idx);
     path.addEventListener('mouseenter', () => highlightGenre(idx, d, total));
     path.addEventListener('mouseleave', () => unhighlightGenre());
+    path.addEventListener('click', () => { window.location.href = 'catalog.html?genre=' + encodeURIComponent(d.name); });
+    path.setAttribute('title', d.name);
     svg.appendChild(path);
     startAngle += slice;
   });
@@ -527,7 +488,7 @@ function renderGenreWheel() {
   window._genreTotal = total;
 
   document.getElementById('genre-list').innerHTML = data.map((d, idx) => `
-    <div class="genre-list-item" data-idx="${idx}">
+    <div class="genre-list-item" data-idx="${idx}" title="View ${d.name} songs in catalog">
       <div class="genre-dot" style="background:${d.color}"></div>
       <div class="genre-name">${d.name}</div>
       <div class="genre-bar-mini"><div class="genre-bar-mini-fill" style="width:${(d.count/maxCount*100).toFixed(0)}%;background:${d.color}"></div></div>
@@ -541,6 +502,11 @@ function renderGenreWheel() {
       highlightGenre(idx, window._genreData[idx], window._genreTotal);
     });
     el.addEventListener('mouseleave', unhighlightGenre);
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      const name = window._genreData[idx].name;
+      window.location.href = 'catalog.html?genre=' + encodeURIComponent(name);
+    });
   });
 }
 
