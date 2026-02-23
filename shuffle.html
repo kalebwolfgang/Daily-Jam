@@ -511,7 +511,17 @@ async function doShuffle() {
     card.classList.add('placeholder');
     card.style.transform = '';
     card.style.transition = '';
+
+    // Reset tape content first so old song title is gone before window expands
+    const tape = document.getElementById(`tape-${i}`);
+    tape.style.transition = 'none';
+    tape.style.transform  = 'translateY(0)';
+    tape.innerHTML = '<div class="reel-tape-item"></div><div class="reel-tape-item center">—</div><div class="reel-tape-item"></div>';
+    void tape.offsetHeight; // force reflow
+
+    // Now remove settled — height expands with empty placeholder content, no snapback
     card.querySelector('.reel-window').classList.remove('settled');
+
     document.getElementById(`artist-${i}`).textContent = '—';
     document.getElementById(`album-${i}`).textContent  = '—';
     document.getElementById(`meta-${i}`).textContent   = '—';
@@ -720,16 +730,16 @@ const BG = (function() {
     initScene();
   }
   function initScene() {
-    // All 8 DJ year colors — y-bases clustered so their large wave amplitudes cause them to cross
+    // All 8 DJ year colors — evenly spread top to bottom, but large wave amplitude means they cross
     ribbons = [
-      mkRibbon(0.25, 0),
-      mkRibbon(0.35, 1),
-      mkRibbon(0.40, 2),
-      mkRibbon(0.50, 3),
-      mkRibbon(0.55, 4),
-      mkRibbon(0.60, 5),
-      mkRibbon(0.70, 6),
-      mkRibbon(0.75, 7),
+      mkRibbon(0.06, 0),
+      mkRibbon(0.18, 1),
+      mkRibbon(0.31, 2),
+      mkRibbon(0.43, 3),
+      mkRibbon(0.56, 4),
+      mkRibbon(0.68, 5),
+      mkRibbon(0.81, 6),
+      mkRibbon(0.93, 7),
     ];
     // ~120 stars scattered
     stars = Array.from({length: 120}, mkStar);
