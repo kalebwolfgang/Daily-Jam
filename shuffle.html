@@ -396,8 +396,14 @@ function spinReel(reelIndex, songPool, delay, finalSong) {
         if (t < 1) {
           requestAnimationFrame(frame);
         } else {
-          tape.style.transform = `translateY(-${targetOffset}px)`;
-          // Collapse window to show only center item
+          // Strip tape to only the winning item — nothing above or below to bleed through
+          tape.innerHTML = '';
+          const winner = document.createElement('div');
+          winner.className = 'reel-tape-item center';
+          winner.textContent = finalSong[2];
+          tape.appendChild(winner);
+          tape.style.transform = 'translateY(0)';
+          // Collapse window to exactly one item height
           card.querySelector('.reel-window').classList.add('settled');
           // Settle bounce
           card.style.transition = 'transform 0.25s cubic-bezier(.34,1.56,.64,1)';
@@ -580,34 +586,32 @@ const BG = (function() {
   let e = 0; // 0 = calm, 1 = full flare — lerped smoothly
 
   // ── Aurora ribbons ────────────────────────────────────────────────────────
-  // Each ribbon is a wide soft band of color that undulates slowly across the screen
+  // DJ year colors + classic aurora tones
   const RIBBON_COLORS = [
-    [80,  0,   180],  // deep purple
-    [0,   160, 180],  // teal
-    [0,   200, 120],  // aurora green
-    [120, 0,   200],  // violet
-    [0,   120, 200],  // blue
+    [93,  143, 232],  // DJ1 blue
+    [93,  186, 127],  // DJ2 green
+    [232, 93,  143],  // DJ3 pink
+    [232, 164, 93 ],  // DJ4 amber
+    [164, 93,  232],  // DJ5 purple
+    [93,  232, 232],  // DJ6 cyan
+    [232, 232, 93 ],  // DJ7 yellow
+    [255, 107, 107],  // DJ8 red
   ];
 
   let ribbons = [];
-  function mkRibbon(yHint) {
-    const c = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
+  function mkRibbon(yHint, colorIndex) {
+    const c = RIBBON_COLORS[colorIndex % RIBBON_COLORS.length];
     return {
       color: c,
-      // y position of ribbon center, as fraction of screen height
       yBase: yHint !== undefined ? yHint : Math.random(),
-      yOffset: 0,
-      // wave parameters — ribbon undulates up/down
-      waveAmp:   0.04 + Math.random() * 0.08,   // fraction of H
-      waveSpeed: 0.00015 + Math.random() * 0.0002,
+      waveAmp:   0.025 + Math.random() * 0.04,
+      waveSpeed: 0.00012 + Math.random() * 0.00018,
       wavePhase: Math.random() * Math.PI * 2,
-      // ribbon thickness as fraction of H
-      thickness: 0.08 + Math.random() * 0.14,
-      // slow horizontal drift
-      driftSpeed: 0.00003 + Math.random() * 0.00004,
+      // Thinner than before — 4–7% of screen height
+      thickness: 0.04 + Math.random() * 0.03,
+      driftSpeed: 0.00002 + Math.random() * 0.00003,
       driftPhase: Math.random() * Math.PI * 2,
-      // base brightness
-      baseAlpha: 0.22 + Math.random() * 0.18,
+      baseAlpha: 0.28 + Math.random() * 0.2,
     };
   }
 
@@ -713,22 +717,30 @@ const BG = (function() {
     initScene();
   }
   function initScene() {
-    // 3–4 ribbons spread across vertical space
+    // 5 thinner ribbons spread across vertical space, each a different DJ year color
+    // Shuffle color order so it varies each page load
+    const colorOrder = [0,1,2,3,4,5,6,7].sort(() => Math.random()-0.5);
     ribbons = [
-      mkRibbon(0.18),
-      mkRibbon(0.45),
-      mkRibbon(0.70),
-      mkRibbon(0.88),
+      mkRibbon(0.12, colorOrder[0]),
+      mkRibbon(0.30, colorOrder[1]),
+      mkRibbon(0.48, colorOrder[2]),
+      mkRibbon(0.66, colorOrder[3]),
+      mkRibbon(0.84, colorOrder[4]),
     ];
     // ~120 stars scattered
     stars = Array.from({length: 120}, mkStar);
   }
 
   // ── Main draw loop ────────────────────────────────────────────────────────
+  // Use a small looping clock (t) instead of raw `now` so sine waves never freeze
+  // t wraps at 2π * 10000 ≈ 62832 — a clean loop point that never causes large numbers
+  const TWO_PI_LOOP = Math.PI * 2 * 10000;
+  let t = 0;          // our own looping time, in ms, wraps cleanly
   let lastTime = 0;
   function draw(now) {
     const dt = Math.min(now - lastTime, 50);
     lastTime = now;
+    t = (t + dt) % TWO_PI_LOOP;  // always small, always loops perfectly
 
     // Smoothly ramp e: fast up, slow back down
     const target = isSpinning ? 1 : 0;
@@ -737,10 +749,10 @@ const BG = (function() {
     ctx.clearRect(0, 0, W, H);
 
     // Stars first (behind aurora)
-    drawStars(now);
+    drawStars(t);
 
     // Aurora ribbons
-    ribbons.forEach(r => drawRibbon(r, now));
+    ribbons.forEach(r => drawRibbon(r, t));
 
     requestAnimationFrame(draw);
   }
