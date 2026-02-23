@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Chronological Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
+    --text: #e8e0d0; --text-dim: #9e9080; --text-muted: #6a6460;
+    --green: #5dba7f; --red: #e85d4a;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
+  body::after  { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  /* NAV */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
+
+  /* GAME LAYOUT */
+  .game-wrap { position: relative; z-index: 1; min-height: calc(100vh - 56px); display: flex; flex-direction: column; }
+
+  /* HEADER BAR */
+  .game-header { padding: 20px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .game-title-row { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .game-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--y3); }
+  .game-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+
+  /* PROGRESS */
+  .progress-row { display: flex; align-items: center; gap: 16px; flex: 1; justify-content: center; }
+  .round-pips { display: flex; gap: 6px; }
+  .pip { width: 10px; height: 10px; border: 1px solid var(--border); background: var(--surface2); transition: background 0.2s, border-color 0.2s; }
+  .pip.perfect  { background: var(--green); border-color: var(--green); }
+  .pip.partial  { background: var(--y4); border-color: var(--y4); }
+  .pip.wrong    { background: var(--red); border-color: var(--red); }
+  .pip.current  { border-color: var(--text-dim); }
+
+  /* SCORE */
+  .score-display { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+  .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: var(--amber); line-height: 1; }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; justify-content: center; flex: 1; font-size: 11px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
+
+  /* MAIN GAME BODY */
+  .game-body { flex: 1; display: flex; flex-direction: column; padding: 36px 40px; gap: 24px; max-width: 760px; margin: 0 auto; width: 100%; }
+
+  /* INSTRUCTION */
+  .instruction-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 28px; display: flex; align-items: center; gap: 16px; }
+  .instruction-icon { font-size: 22px; flex-shrink: 0; }
+  .instruction-text { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; line-height: 1.7; }
+  .instruction-text strong { color: var(--text); }
+
+  /* ROUND COUNTER */
+  .round-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); text-align: center; }
+
+  /* DRAG LIST */
+  .drag-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .song-tile {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+    cursor: grab; user-select: none;
+    transition: border-color 0.15s, background 0.15s, transform 0.12s, box-shadow 0.12s;
+    position: relative;
+  }
+  .song-tile:hover { border-color: var(--text-muted); background: var(--surface2); }
+  .song-tile.dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+  }
+  .song-tile.drag-over {
+    border-color: var(--amber);
+    background: var(--amber-glow);
+  }
+  .song-tile.locked { cursor: default; }
+
+  /* drag handle */
+  .tile-handle { color: var(--text-muted); font-size: 14px; flex-shrink: 0; cursor: grab; letter-spacing: -2px; line-height: 1; }
+
+  /* position number */
+  .tile-pos {
+    width: 28px; height: 28px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); font-size: 11px; font-weight: 700;
+    color: var(--text-muted); background: var(--surface2);
+    transition: all 0.2s;
+  }
+
+  /* song info */
+  .tile-info { flex: 1; min-width: 0; }
+  .tile-title { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tile-artist { font-size: 11px; color: var(--text-dim); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* result badge shown after reveal */
+  .tile-badge {
+    flex-shrink: 0; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 8px; border: 1px solid currentColor; display: none;
+  }
+  .tile-date-reveal {
+    flex-shrink: 0; font-size: 10px; color: var(--text-muted); letter-spacing: 1px;
+    display: none; text-align: right; min-width: 80px;
+  }
+
+  /* revealed states */
+  .song-tile.revealed-correct  { border-color: var(--green); background: rgba(93,186,127,0.07); }
+  .song-tile.revealed-partial  { border-color: var(--y4);    background: rgba(232,164,93,0.07); }
+  .song-tile.revealed-wrong    { border-color: var(--red);   background: rgba(232,93,74,0.07); }
+  .song-tile.revealed-correct .tile-pos  { background: var(--green); border-color: var(--green); color: #0a0810; }
+  .song-tile.revealed-partial  .tile-pos { background: var(--y4);    border-color: var(--y4);    color: #0a0810; }
+  .song-tile.revealed-wrong    .tile-pos { background: var(--red);    border-color: var(--red);   color: #0a0810; }
+  .song-tile.revealed-correct .tile-badge { display: inline-block; color: var(--green); }
+  .song-tile.revealed-partial  .tile-badge { display: inline-block; color: var(--y4); }
+  .song-tile.revealed-wrong    .tile-badge { display: inline-block; color: var(--red); }
+  .song-tile.revealed-correct .tile-date-reveal { display: block; color: var(--green); }
+  .song-tile.revealed-partial  .tile-date-reveal { display: block; color: var(--y4); }
+  .song-tile.revealed-wrong    .tile-date-reveal { display: block; color: var(--red); }
+
+  /* timeline arrow between tiles */
+  .timeline-arrow { text-align: center; color: var(--text-muted); font-size: 12px; letter-spacing: 1px; padding: 2px 0; }
+
+  /* SUBMIT BUTTON */
+  .submit-row { display: flex; justify-content: center; padding-top: 8px; }
+  .submit-btn { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 14px 48px; background: var(--amber); color: #0a0810; border: none; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .submit-btn:hover { opacity: 0.88; }
+  .submit-btn:active { transform: scale(0.97); }
+  .submit-btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* RESULT AREA */
+  .result-area { display: none; background: var(--surface); border: 1px solid var(--border); padding: 24px 32px; text-align: center; }
+  .result-area.visible { display: block; }
+  .result-headline { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .result-area.perfect .result-headline { color: var(--green); }
+  .result-area.partial  .result-headline { color: var(--y4); }
+  .result-area.wrong    .result-headline { color: var(--red); }
+  .result-detail { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 16px; }
+  .result-points { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); margin-bottom: 4px; }
+  .result-points-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
+  .next-btn { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 12px 28px; border: 1px solid var(--border); color: var(--text); background: transparent; cursor: pointer; transition: background 0.15s; }
+  .next-btn:hover { background: var(--surface2); }
+
+  /* SUMMARY */
+  .summary { display: none; flex-direction: column; flex: 1; }
+  .summary-header { padding: 40px 40px 24px; border-bottom: 1px solid var(--border); text-align: center; }
+  .summary-title { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; }
+  .summary-total { font-family: 'Playfair Display', serif; font-size: 80px; font-weight: 900; color: var(--amber); line-height: 1; }
+  .summary-total-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+  .summary-rows { flex: 1; }
+  .summary-row { display: grid; grid-template-columns: 32px 1fr 80px auto; align-items: center; gap: 16px; padding: 14px 40px; border-bottom: 1px solid var(--border); }
+  .summary-row:hover { background: var(--surface); }
+  .summary-rnum { font-size: 10px; color: var(--text-muted); }
+  .summary-songs { font-size: 11px; color: var(--text-dim); }
+  .summary-songs strong { color: var(--text); font-size: 12px; display: block; margin-bottom: 2px; }
+  .summary-result-badge { font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border: 1px solid currentColor; text-transform: uppercase; white-space: nowrap; }
+  .summary-pts { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--amber); text-align: right; }
+  .summary-pts.zero    { color: var(--red); }
+  .summary-pts.partial { color: var(--y4); }
+  .summary-footer { padding: 32px 40px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 16px; }
+  .restart-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--amber); color: var(--amber); background: transparent; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .restart-btn:hover { background: var(--amber); color: #0a0810; }
+  .hub-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.15s; }
+  .hub-btn:hover { background: var(--surface2); color: var(--text); }
+
+  @media (max-width: 900px) {
+    .site-nav { padding: 0 16px; }
+    .game-header { padding: 16px; flex-wrap: wrap; }
+    .game-body { padding: 20px 16px; gap: 16px; }
+    .summary-row { padding: 12px 16px; grid-template-columns: 24px 1fr 60px auto; gap: 10px; }
+    .summary-header { padding: 28px 16px 20px; }
+    .summary-footer { padding: 24px 16px; }
+  }
+  @media (max-width: 640px) {
+    .nav-links .nav-link { padding: 8px 8px; font-size: 10px; }
+    .round-pips { gap: 4px; }
+    .pip { width: 8px; height: 8px; }
+    .summary-row { grid-template-columns: 24px 1fr auto; }
+    .summary-result-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link active" href="games.html">Games</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
+  </div>
+</nav>
+
+<div class="game-wrap">
+
+  <div class="game-header">
+    <div class="game-title-row">
+      <div class="game-eyebrow">Game 03</div>
+      <div class="game-title">Chronological Order</div>
+    </div>
+    <div class="progress-row">
+      <div class="round-pips" id="pips"></div>
+    </div>
+    <div class="score-display">
+      <div class="score-label">Score</div>
+      <div class="score-num" id="score-display">0</div>
+    </div>
+  </div>
+
+  <div id="loading-state" class="loading">Loading catalog...</div>
+
+  <!-- GAME STATE -->
+  <div id="game-state" style="display:none; flex-direction:column; flex:1;">
+    <div class="game-body">
+
+      <div class="instruction-card">
+        <div class="instruction-icon">↕</div>
+        <div class="instruction-text">
+          <strong>Drag the songs into chronological order</strong> — oldest at the top, newest at the bottom.
+          All 5 correct = 1000 pts. Each song in the right spot earns partial credit.
+        </div>
+      </div>
+
+      <div class="round-label" id="round-label">Round 1 of 8</div>
+
+      <div class="drag-list" id="drag-list"></div>
+
+      <div class="submit-row">
+        <button class="submit-btn" id="submit-btn" onclick="submitOrder()">Lock In Order →</button>
+      </div>
+
+      <div class="result-area" id="result-area">
+        <div class="result-headline" id="result-headline"></div>
+        <div class="result-detail" id="result-detail"></div>
+        <div class="result-points" id="result-points"></div>
+        <div class="result-points-label">points</div>
+        <button class="next-btn" id="next-btn" onclick="nextRound()">Next Round →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUMMARY STATE -->
+  <div class="summary" id="summary-state">
+    <div class="summary-header">
+      <div class="summary-title">Final Score</div>
+      <div class="summary-total" id="summary-total">0</div>
+      <div class="summary-total-label">out of 8,000 points</div>
+    </div>
+    <div class="summary-rows" id="summary-rows"></div>
+    <div class="summary-footer">
+      <a class="hub-btn" href="games.html">← Back to Games</a>
+      <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────────
+const TOTAL_ROUNDS  = 8;
+const SONGS_PER_ROUND = 5;
+const MAX_POINTS    = 1000;
+
+// Points per round based on how many songs are in the correct position
+const SCORE_TABLE = [0, 0, 200, 500, 750, 1000]; // index = # correct positions
+
+// ── Game State ─────────────────────────────────────────────────────────────────
+let allSongs = [];         // flat array of all songs
+let rounds = [];           // array of 8 round song sets (each has 5 songs sorted by dayNum)
+let roundIdx = 0;
+let totalScore = 0;
+let history = [];          // {songs, userOrder, correctOrder, pts, correctCount}
+let submitted = false;
+
+// Drag state
+let dragSrcIdx = null;
+let touchStartY = 0;
+let touchSrcIdx = null;
+
+// ── LOAD ───────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const arrays = await Promise.all([1,2,3,4,5,6,7,8].map(y =>
+      fetch(`songs-dj${y}.json`)
+        .then(r => r.text())
+        .then(txt => { if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); return JSON.parse(txt); })
+    ));
+    allSongs = arrays.flat();
+    // Ensure day numbers are integers
+    allSongs.forEach(s => { s[0] = parseInt(s[0], 10); });
+    document.getElementById('loading-state').style.display = 'none';
+    startGame();
+  } catch(e) {
+    document.getElementById('loading-state').textContent = 'Failed to load catalog.';
+  }
+}
+
+// ── START / RESTART ────────────────────────────────────────────────────────────
+function startGame() {
+  rounds = pickRounds();
+  roundIdx = 0;
+  totalScore = 0;
+  history = [];
+  submitted = false;
+
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('summary-state').style.display = 'none';
+  document.getElementById('summary-state').style.flexDirection = '';
+  document.getElementById('game-state').style.display = 'flex';
+  buildPips();
+  loadRound();
+}
+
+function restartGame() { startGame(); }
+
+// Pick 8 groups of 5 random, distinct songs from the full catalog
+function pickRounds() {
+  const usedIndices = new Set();
+  const result = [];
+
+  for (let r = 0; r < TOTAL_ROUNDS; r++) {
+    const group = [];
+    while (group.length < SONGS_PER_ROUND) {
+      const idx = Math.floor(Math.random() * allSongs.length);
+      if (!usedIndices.has(idx)) {
+        usedIndices.add(idx);
+        group.push(allSongs[idx]);
+      }
+    }
+    // correctOrder = sorted by dayNum ascending (oldest first)
+    group.sort((a, b) => a[0] - b[0]);
+    result.push([...group]); // correctOrder stored already sorted
+  }
+  return result;
+}
+
+// ── PIPS ───────────────────────────────────────────────────────────────────────
+function buildPips() {
+  const c = document.getElementById('pips');
+  c.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const p = document.createElement('div');
+    p.className = 'pip' + (i === 0 ? ' current' : '');
+    p.id = `pip-${i}`;
+    c.appendChild(p);
+  }
+}
+
+function updatePip(idx, result) {
+  const p = document.getElementById(`pip-${idx}`);
+  if (p) p.className = 'pip ' + result;
+  const n = document.getElementById(`pip-${idx + 1}`);
+  if (n) n.classList.add('current');
+}
+
+// ── ROUND ──────────────────────────────────────────────────────────────────────
+function loadRound() {
+  submitted = false;
+  const correctOrder = rounds[roundIdx]; // already sorted oldest → newest
+
+  // Shuffle for display
+  const shuffled = [...correctOrder].sort(() => Math.random() - 0.5);
+  // Avoid accidentally giving the correct order
+  // Reshuffle if accidentally in correct order
+  let attempts = 0;
+  while (attempts < 20 && isAlreadySorted(shuffled, correctOrder)) {
+    shuffled.sort(() => Math.random() - 0.5);
+    attempts++;
+  }
+
+  document.getElementById('round-label').textContent = `Round ${roundIdx + 1} of ${TOTAL_ROUNDS}`;
+
+  const resultArea = document.getElementById('result-area');
+  resultArea.className = 'result-area';
+  resultArea.style.display = 'none';
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = false;
+  btn.textContent = 'Lock In Order →';
+
+  buildDragList(shuffled);
+}
+
+function isAlreadySorted(arr, correct) {
+  return arr.every((s, i) => s[0] === correct[i][0]);
+}
+
+// ── DRAG LIST BUILD ────────────────────────────────────────────────────────────
+function buildDragList(songs) {
+  const list = document.getElementById('drag-list');
+  list.innerHTML = '';
+  songs.forEach((song, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'timeline-arrow';
+      arrow.textContent = '↓ older than';
+      list.appendChild(arrow);
+    }
+    const tile = createTile(song, i);
+    list.appendChild(tile);
+  });
+}
+
+function createTile(song, idx) {
+  const tile = document.createElement('div');
+  tile.className = 'song-tile';
+  tile.dataset.daynum = song[0];
+  tile.dataset.idx = idx;
+  tile.draggable = true;
+
+  tile.innerHTML = `
+    <div class="tile-handle">⠿</div>
+    <div class="tile-pos">${idx + 1}</div>
+    <div class="tile-info">
+      <div class="tile-title">${escHtml(song[2])}</div>
+      <div class="tile-artist">${escHtml(song[3])}</div>
+    </div>
+    <div class="tile-badge"></div>
+    <div class="tile-date-reveal">${song[5]}</div>
+  `;
+
+  // Desktop drag events
+  tile.addEventListener('dragstart', onDragStart);
+  tile.addEventListener('dragover',  onDragOver);
+  tile.addEventListener('dragleave', onDragLeave);
+  tile.addEventListener('drop',      onDrop);
+  tile.addEventListener('dragend',   onDragEnd);
+
+  // Touch events for mobile
+  tile.addEventListener('touchstart', onTouchStart, { passive: true });
+  tile.addEventListener('touchmove',  onTouchMove,  { passive: false });
+  tile.addEventListener('touchend',   onTouchEnd);
+
+  return tile;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── DRAG & DROP (Desktop) ──────────────────────────────────────────────────────
+function getTiles() {
+  return [...document.getElementById('drag-list').querySelectorAll('.song-tile')];
+}
+
+function onDragStart(e) {
+  if (submitted) return;
+  dragSrcIdx = getTileIdx(this);
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', dragSrcIdx);
+}
+
+function onDragOver(e) {
+  if (submitted) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.song-tile.drag-over').forEach(t => t.classList.remove('drag-over'));
+  this.classList.add('drag-over');
+}
+
+function onDragLeave() {
+  this.classList.remove('drag-over');
+}
+
+function onDrop(e) {
+  if (submitted) return;
+  e.preventDefault();
+  const destIdx = getTileIdx(this);
+  if (dragSrcIdx !== null && dragSrcIdx !== destIdx) {
+    swapTiles(dragSrcIdx, destIdx);
+  }
+  document.querySelectorAll('.song-tile.drag-over').forEach(t => t.classList.remove('drag-over'));
+}
+
+function onDragEnd() {
+  this.classList.remove('dragging');
+  document.querySelectorAll('.song-tile.drag-over').forEach(t => t.classList.remove('drag-over'));
+  dragSrcIdx = null;
+  updatePositionNumbers();
+}
+
+function getTileIdx(tile) {
+  const tiles = getTiles();
+  return tiles.indexOf(tile);
+}
+
+function swapTiles(fromIdx, toIdx) {
+  const list = document.getElementById('drag-list');
+  const tiles = getTiles();
+  const arrows = [...list.querySelectorAll('.timeline-arrow')];
+
+  // Extract song data from tiles
+  const songData = tiles.map(t => ({
+    daynum:  parseInt(t.dataset.daynum),
+    title:   t.querySelector('.tile-title').textContent,
+    artist:  t.querySelector('.tile-artist').textContent,
+    date:    t.querySelector('.tile-date-reveal').textContent,
+    dayStr:  t.dataset.daynum,
+  }));
+
+  // Reorder
+  const [moved] = songData.splice(fromIdx, 1);
+  songData.splice(toIdx, 0, moved);
+
+  // Rebuild with animation
+  list.innerHTML = '';
+  songData.forEach((data, i) => {
+    if (i > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'timeline-arrow';
+      arrow.textContent = '↓ older than';
+      list.appendChild(arrow);
+    }
+    // Reconstruct tile
+    const tile = document.createElement('div');
+    tile.className = 'song-tile';
+    tile.dataset.daynum = data.daynum;
+    tile.dataset.idx = i;
+    tile.draggable = true;
+    tile.innerHTML = `
+      <div class="tile-handle">⠿</div>
+      <div class="tile-pos">${i + 1}</div>
+      <div class="tile-info">
+        <div class="tile-title">${escHtml(data.title)}</div>
+        <div class="tile-artist">${escHtml(data.artist)}</div>
+      </div>
+      <div class="tile-badge"></div>
+      <div class="tile-date-reveal">${data.date}</div>
+    `;
+    tile.addEventListener('dragstart', onDragStart);
+    tile.addEventListener('dragover',  onDragOver);
+    tile.addEventListener('dragleave', onDragLeave);
+    tile.addEventListener('drop',      onDrop);
+    tile.addEventListener('dragend',   onDragEnd);
+    tile.addEventListener('touchstart', onTouchStart, { passive: true });
+    tile.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    tile.addEventListener('touchend',   onTouchEnd);
+    list.appendChild(tile);
+  });
+}
+
+function updatePositionNumbers() {
+  getTiles().forEach((tile, i) => {
+    const pos = tile.querySelector('.tile-pos');
+    if (pos) pos.textContent = i + 1;
+    tile.dataset.idx = i;
+  });
+}
+
+// ── TOUCH DRAG (Mobile) ────────────────────────────────────────────────────────
+let touchGhost = null;
+
+function onTouchStart(e) {
+  if (submitted) return;
+  touchSrcIdx = getTileIdx(this);
+  touchStartY = e.touches[0].clientY;
+}
+
+function onTouchMove(e) {
+  if (submitted || touchSrcIdx === null) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const y = touch.clientY;
+
+  // Find element under touch point
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const targetTile = el ? el.closest('.song-tile') : null;
+
+  document.querySelectorAll('.song-tile.drag-over').forEach(t => t.classList.remove('drag-over'));
+  if (targetTile && getTileIdx(targetTile) !== touchSrcIdx) {
+    targetTile.classList.add('drag-over');
+  }
+}
+
+function onTouchEnd(e) {
+  if (submitted || touchSrcIdx === null) return;
+  const touch = e.changedTouches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const targetTile = el ? el.closest('.song-tile') : null;
+
+  document.querySelectorAll('.song-tile.drag-over').forEach(t => t.classList.remove('drag-over'));
+
+  if (targetTile) {
+    const destIdx = getTileIdx(targetTile);
+    if (destIdx !== touchSrcIdx) {
+      swapTiles(touchSrcIdx, destIdx);
+    }
+  }
+  touchSrcIdx = null;
+}
+
+// ── SUBMIT ─────────────────────────────────────────────────────────────────────
+function submitOrder() {
+  if (submitted) return;
+  submitted = true;
+
+  const tiles = getTiles();
+  const userOrderDaynums = tiles.map(t => parseInt(t.dataset.daynum));
+  const correctOrder = rounds[roundIdx]; // sorted by daynum ascending
+  const correctDaynums = correctOrder.map(s => s[0]);
+
+  // Count correct positions
+  let correctCount = 0;
+  userOrderDaynums.forEach((daynum, i) => {
+    if (daynum === correctDaynums[i]) correctCount++;
+  });
+
+  const pts = SCORE_TABLE[correctCount];
+  totalScore += pts;
+
+  // Determine result tier
+  let tier, headline, detail;
+  if (correctCount === 5) {
+    tier = 'perfect';
+    headline = 'Perfect Order! 🎯';
+    detail = 'All 5 songs in the right chronological order.';
+  } else if (correctCount >= 3) {
+    tier = 'partial';
+    headline = `${correctCount} of 5 Correct`;
+    detail = `${correctCount} songs were in the right position.`;
+  } else if (correctCount >= 1) {
+    tier = 'partial';
+    headline = `${correctCount} of 5 Correct`;
+    detail = `Only ${correctCount} song${correctCount > 1 ? 's were' : ' was'} in the right position.`;
+  } else {
+    tier = 'wrong';
+    headline = 'None in Order';
+    detail = 'The correct order has been revealed below.';
+  }
+
+  // Save to history
+  history.push({
+    songs: correctOrder,
+    userOrder: userOrderDaynums,
+    correctCount,
+    pts,
+    tier,
+  });
+
+  // Update score display
+  document.getElementById('score-display').textContent = totalScore.toLocaleString();
+
+  // Update pip
+  const pipClass = correctCount === 5 ? 'perfect' : correctCount >= 2 ? 'partial' : 'wrong';
+  updatePip(roundIdx, pipClass);
+
+  // Reveal tiles with correct/wrong indicators
+  revealTiles(tiles, userOrderDaynums, correctDaynums, correctOrder);
+
+  // Show result area
+  const resultArea = document.getElementById('result-area');
+  resultArea.className = `result-area ${tier}`;
+  resultArea.style.display = 'block';
+  document.getElementById('result-headline').textContent = headline;
+  document.getElementById('result-detail').textContent = detail;
+  document.getElementById('result-points').textContent = `+${pts.toLocaleString()}`;
+
+  // Lock tiles
+  getTiles().forEach(t => { t.draggable = false; t.classList.add('locked'); });
+
+  // Disable submit
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Submitted';
+
+  // Last round: change next button text
+  if (roundIdx >= TOTAL_ROUNDS - 1) {
+    document.getElementById('next-btn').textContent = 'See Results →';
+  }
+
+  resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function revealTiles(tiles, userOrder, correctDaynums, correctOrder) {
+  tiles.forEach((tile, i) => {
+    const daynum = parseInt(tile.dataset.daynum);
+    const isCorrectPos = daynum === correctDaynums[i];
+    const badge = tile.querySelector('.tile-badge');
+    const dateEl = tile.querySelector('.tile-date-reveal');
+
+    if (isCorrectPos) {
+      tile.classList.add('revealed-correct');
+      badge.textContent = '✓ Correct';
+    } else {
+      // Find where this song actually should be
+      const correctPos = correctDaynums.indexOf(daynum);
+      const diff = correctPos - i;
+      tile.classList.add('revealed-wrong');
+      badge.textContent = diff > 0 ? `↓ ${diff} too early` : `↑ ${Math.abs(diff)} too late`;
+    }
+    dateEl.style.display = 'block';
+  });
+}
+
+// ── NEXT ROUND ─────────────────────────────────────────────────────────────────
+function nextRound() {
+  roundIdx++;
+  if (roundIdx >= TOTAL_ROUNDS) {
+    showSummary();
+    return;
+  }
+  loadRound();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── SUMMARY ────────────────────────────────────────────────────────────────────
+function showSummary() {
+  document.getElementById('game-state').style.display = 'none';
+  const sumEl = document.getElementById('summary-state');
+  sumEl.style.display = 'flex';
+  sumEl.style.flexDirection = 'column';
+
+  document.getElementById('summary-total').textContent = totalScore.toLocaleString();
+
+  const rowsEl = document.getElementById('summary-rows');
+  rowsEl.innerHTML = '';
+
+  history.forEach((h, i) => {
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+
+    const badgeColor = h.tier === 'perfect' ? 'var(--green)' : h.tier === 'partial' ? 'var(--y4)' : 'var(--red)';
+    const badgeText  = h.tier === 'perfect' ? '5/5 Perfect' : `${h.correctCount}/5 Correct`;
+    const ptsClass   = h.pts === 0 ? 'zero' : h.tier === 'partial' ? 'partial' : '';
+
+    // List the songs in correct order
+    const songNames = h.songs.map(s => `<em>${escHtml(s[2])}</em>`).join(' → ');
+
+    row.innerHTML = `
+      <div class="summary-rnum">${i + 1}</div>
+      <div class="summary-songs">
+        <strong>${h.correctCount} of 5 in correct position</strong>
+        ${songNames}
+      </div>
+      <div class="summary-result-badge" style="color:${badgeColor}; border-color:${badgeColor}">${badgeText}</div>
+      <div class="summary-pts ${ptsClass}">+${h.pts.toLocaleString()}</div>
+    `;
+    rowsEl.appendChild(row);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
