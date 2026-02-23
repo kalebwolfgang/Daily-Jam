@@ -69,11 +69,24 @@
   .embed-col { display: flex; flex-direction: column; gap: 12px; }
   .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
 
-  /* Wrapper holds both the fake play button and the real iframe */
-  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--surface); }
+  /* Wrapper holds iframe + overlays */
+  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--surface); height: 152px; }
   .embed-frame-wrap iframe { display: block; border: none; }
 
-  /* Custom play button — shown before user clicks, hides once iframe is revealed */
+  /* Text blocker — covers only the song title / artist name area.
+     pointer-events: none so Spotify play controls (right side) stay clickable.
+     Hidden after answer is submitted. */
+  .text-blocker {
+    position: absolute; top: 0; bottom: 0;
+    left: 80px; right: 96px;   /* album art left, controls right */
+    background: var(--surface);
+    pointer-events: none;
+    z-index: 3;
+  }
+  .text-blocker.hidden { display: none; }
+
+  /* Custom play button — covers everything before user first clicks.
+     On click: triggers autoplay iframe reload, then hides itself leaving text-blocker in place. */
   .play-btn-wrap {
     position: absolute; inset: 0; z-index: 10;
     display: flex; align-items: center; justify-content: center;
@@ -94,7 +107,7 @@
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
     border-left: 18px solid #0a0810;
-    margin-left: 4px; /* optical centre */
+    margin-left: 4px;
   }
   .play-btn-label {
     position: absolute; bottom: 14px;
@@ -234,7 +247,9 @@
       <span class="embed-label">Listen for a clue</span>
       <div class="embed-frame-wrap" id="embed-frame-wrap">
         <!-- iframe injected by JS -->
-        <!-- Custom play button — sits on top, removed when clicked -->
+        <!-- Permanent text blocker — hides song/artist name, lets controls through -->
+        <div class="text-blocker" id="text-blocker"></div>
+        <!-- Full cover play button — removed on click, triggers autoplay -->
         <div class="play-btn-wrap" id="play-btn-wrap" onclick="revealEmbed()">
           <div class="play-circle"><div class="play-triangle"></div></div>
           <span class="play-btn-label">Play Preview</span>
@@ -397,9 +412,10 @@ function renderRound() {
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   iframe.setAttribute('loading', 'lazy');
-  // Insert before play button so play button stays on top
-  wrap.insertBefore(iframe, document.getElementById('play-btn-wrap'));
-  // Show play button
+  // Insert before text-blocker so layering is: iframe → text-blocker → play-btn
+  wrap.insertBefore(iframe, document.getElementById('text-blocker'));
+  // Restore both covers for new round
+  document.getElementById('text-blocker').classList.remove('hidden');
   document.getElementById('play-btn-wrap').classList.remove('hidden');
 
   // Choices
@@ -422,8 +438,21 @@ function renderRound() {
 }
 
 // ── REVEAL EMBED ─────────────────────────────────────────────────────────────
-// Called when user clicks the play button — removes the cover so Spotify iframe is interactive
+// Triggered by play button click — reloads iframe with autoplay=1, hides full cover.
+// Text blocker stays in place to keep artist name hidden until answer is submitted.
 function revealEmbed() {
+  const r    = rounds[roundIdx];
+  const wrap = document.getElementById('embed-frame-wrap');
+  const old  = wrap.querySelector('iframe');
+  if (old) old.remove();
+  const iframe = document.createElement('iframe');
+  iframe.src    = `https://open.spotify.com/embed/track/${r.song[1]}?utm_source=generator&theme=0&autoplay=1`;
+  iframe.width  = '100%';
+  iframe.height = '152';
+  iframe.setAttribute('frameborder', '0');
+  iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+  // Insert before text-blocker so text-blocker stays above iframe
+  wrap.insertBefore(iframe, document.getElementById('text-blocker'));
   document.getElementById('play-btn-wrap').classList.add('hidden');
 }
 
@@ -455,8 +484,9 @@ function selectAnswer(choiceIdx) {
   // Pip
   updatePip(roundIdx, correct ? 'correct' : 'wrong');
 
-  // Reveal the full embed (show artist name) after answer
+  // Reveal artist name in embed now that answer is locked in
   document.getElementById('play-btn-wrap').classList.add('hidden');
+  document.getElementById('text-blocker').classList.add('hidden');
 
   // Result banner
   const yr   = getDJYear(r.song[5]);
