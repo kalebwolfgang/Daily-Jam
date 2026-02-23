@@ -68,20 +68,40 @@
   /* ── SPOTIFY EMBED ───────────────────────────────────────── */
   .embed-col { display: flex; flex-direction: column; gap: 12px; }
   .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; }
-  /* The Spotify compact embed at 152px height layout:
-       ~0–80px left  = album art square
-       ~80–320px mid = track name + artist text  ← hide this
-       ~320px–end right = play/pause + scrubber  ← leave clickable
-     pointer-events: none so the overlay never captures clicks */
-  .embed-overlay {
-    position: absolute; top: 0; bottom: 0;
-    left: 80px; right: 112px;
-    background: var(--surface);
-    pointer-events: none;
-    z-index: 2;
-  }
+
+  /* Wrapper holds both the fake play button and the real iframe */
+  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--surface); }
   .embed-frame-wrap iframe { display: block; border: none; }
+
+  /* Custom play button — shown before user clicks, hides once iframe is revealed */
+  .play-btn-wrap {
+    position: absolute; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .play-btn-wrap:hover { background: var(--surface2); }
+  .play-btn-wrap.hidden { display: none; }
+  .play-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--cc); display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.15s;
+  }
+  .play-btn-wrap:hover .play-circle { opacity: 0.85; }
+  .play-triangle {
+    width: 0; height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 18px solid #0a0810;
+    margin-left: 4px; /* optical centre */
+  }
+  .play-btn-label {
+    position: absolute; bottom: 14px;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
   .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.7; }
 
   /* ── CHOICES COLUMN ──────────────────────────────────────── */
@@ -214,7 +234,11 @@
       <span class="embed-label">Listen for a clue</span>
       <div class="embed-frame-wrap" id="embed-frame-wrap">
         <!-- iframe injected by JS -->
-        <div class="embed-overlay" id="embed-overlay"></div>
+        <!-- Custom play button — sits on top, removed when clicked -->
+        <div class="play-btn-wrap" id="play-btn-wrap" onclick="revealEmbed()">
+          <div class="play-circle"><div class="play-triangle"></div></div>
+          <span class="play-btn-label">Play Preview</span>
+        </div>
       </div>
       <span class="embed-hint">Hit play for a 30-second preview — the artist name is hidden until you answer.</span>
     </div>
@@ -362,8 +386,8 @@ function renderRound() {
   document.getElementById('song-title').textContent = r.song[2];
 
   // Spotify embed — inject iframe fresh each round (avoids stale audio)
+  // iframe is loaded in background; play button covers it until user clicks
   const wrap = document.getElementById('embed-frame-wrap');
-  // Remove old iframe if present
   const old = wrap.querySelector('iframe');
   if (old) old.remove();
   const iframe = document.createElement('iframe');
@@ -373,8 +397,10 @@ function renderRound() {
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   iframe.setAttribute('loading', 'lazy');
-  // Insert before the overlay so overlay stays on top
-  wrap.insertBefore(iframe, document.getElementById('embed-overlay'));
+  // Insert before play button so play button stays on top
+  wrap.insertBefore(iframe, document.getElementById('play-btn-wrap'));
+  // Show play button
+  document.getElementById('play-btn-wrap').classList.remove('hidden');
 
   // Choices
   const grid = document.getElementById('choices-grid');
@@ -393,6 +419,12 @@ function renderRound() {
   rb.style.display = 'none';
   rb.className     = 'result-banner';
   document.getElementById('next-btn').style.display = 'none';
+}
+
+// ── REVEAL EMBED ─────────────────────────────────────────────────────────────
+// Called when user clicks the play button — removes the cover so Spotify iframe is interactive
+function revealEmbed() {
+  document.getElementById('play-btn-wrap').classList.add('hidden');
 }
 
 // ── ANSWER ────────────────────────────────────────────────────────────────────
@@ -423,9 +455,8 @@ function selectAnswer(choiceIdx) {
   // Pip
   updatePip(roundIdx, correct ? 'correct' : 'wrong');
 
-  // Remove embed overlay — reveal album art fully after answer
-  const overlay = document.getElementById('embed-overlay');
-  if (overlay) overlay.style.display = 'none';
+  // Reveal the full embed (show artist name) after answer
+  document.getElementById('play-btn-wrap').classList.add('hidden');
 
   // Result banner
   const yr   = getDJYear(r.song[5]);
@@ -451,10 +482,6 @@ function nextRound() {
     showSummary();
     return;
   }
-
-  // Restore overlay for new round
-  const overlay = document.getElementById('embed-overlay');
-  if (overlay) overlay.style.display = 'block';
 
   renderRound();
 }
@@ -511,9 +538,6 @@ function restartGame() {
   document.getElementById('bar-fill').style.width           = '0%';
   buildGame();
   buildPips();
-  // Restore overlay
-  const overlay = document.getElementById('embed-overlay');
-  if (overlay) overlay.style.display = 'block';
   renderRound();
 }
 
