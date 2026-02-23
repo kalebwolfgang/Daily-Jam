@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Match the Song</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
+    --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
+    --green: #5dba7f; --red: #e85d4a;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
+  body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  /* NAV */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
+
+  /* GAME LAYOUT */
+  .game-wrap { position: relative; z-index: 1; min-height: calc(100vh - 56px); display: flex; flex-direction: column; }
+
+  /* HEADER BAR */
+  .game-header { padding: 20px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .game-title-row { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .game-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--y2); }
+  .game-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+
+  /* PROGRESS */
+  .progress-row { display: flex; align-items: center; gap: 16px; flex: 1; justify-content: center; }
+  .round-pips { display: flex; gap: 6px; }
+  .pip { width: 10px; height: 10px; border: 1px solid var(--border); background: var(--surface2); transition: background 0.2s, border-color 0.2s; }
+  .pip.correct { background: var(--green); border-color: var(--green); }
+  .pip.wrong   { background: var(--red);   border-color: var(--red); }
+  .pip.current { border-color: var(--text-dim); }
+
+  /* SCORE */
+  .score-display { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+  .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: var(--amber); line-height: 1; }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; justify-content: center; flex: 1; font-size: 11px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
+
+  /* MAIN GAME AREA */
+  .game-body { flex: 1; display: flex; flex-direction: column; padding: 40px; gap: 32px; max-width: 860px; margin: 0 auto; width: 100%; }
+
+  /* SONG DISPLAY */
+  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 36px 40px; text-align: center; position: relative; }
+  .song-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3.5vw, 40px); font-weight: 900; line-height: 1.15; color: var(--text); }
+  .song-artist { margin-top: 12px; font-size: 14px; color: var(--text-dim); display: none; }
+  .song-artist.visible { display: block; }
+  .song-season { margin-top: 8px; font-size: 12px; color: var(--text-muted); letter-spacing: 1px; display: none; }
+  .song-season.visible { display: block; }
+
+  /* LIFELINES */
+  .lifelines-row { display: flex; gap: 10px; justify-content: center; align-items: center; }
+  .lifeline-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-right: 4px; }
+  .lifeline-btn { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
+  .lifeline-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+  .lifeline-btn:disabled { opacity: 0.3; cursor: default; }
+  .lifeline-btn.used { opacity: 0.25; cursor: default; text-decoration: line-through; }
+  .lifeline-num { font-size: 9px; opacity: 0.6; }
+
+  /* YEAR BUTTONS GRID */
+  .year-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .year-btn {
+    font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; padding: 20px 12px;
+    border: 2px solid var(--btn-color); color: var(--btn-color);
+    background: transparent; cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.1s, opacity 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .year-btn:hover:not(:disabled):not(.eliminated) { background: var(--btn-color); color: #0a0810; }
+  .year-btn:active:not(:disabled) { transform: scale(0.97); }
+  .year-btn.eliminated { opacity: 0.12; cursor: default; border-style: dashed; }
+  .year-btn.correct { background: var(--green) !important; border-color: var(--green) !important; color: #0a0810 !important; }
+  .year-btn.wrong   { background: var(--red)   !important; border-color: var(--red)   !important; color: #0a0810 !important; }
+  .year-btn.reveal-correct { background: var(--green) !important; border-color: var(--green) !important; color: #0a0810 !important; }
+  .year-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; font-weight: 400; }
+
+  /* RESULT AREA */
+  .result-area { display: none; background: var(--surface); border: 1px solid var(--border); padding: 24px 32px; text-align: center; }
+  .result-area.correct { border-color: var(--green); background: rgba(93,186,127,0.07); }
+  .result-area.wrong   { border-color: var(--red);   background: rgba(232,93,74,0.07); }
+  .result-headline { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .result-area.correct .result-headline { color: var(--green); }
+  .result-area.wrong   .result-headline { color: var(--red); }
+  .result-detail { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 20px; }
+  .result-points { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); margin-bottom: 4px; }
+  .result-points-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
+  .next-btn { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 12px 28px; border: 1px solid var(--border); color: var(--text); background: transparent; cursor: pointer; transition: background 0.15s; }
+  .next-btn:hover { background: var(--surface2); }
+
+  /* SUMMARY SCREEN */
+  .summary { display: none; flex-direction: column; gap: 0; flex: 1; }
+  .summary-header { padding: 40px 40px 24px; border-bottom: 1px solid var(--border); text-align: center; }
+  .summary-title { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; }
+  .summary-total { font-family: 'Playfair Display', serif; font-size: 80px; font-weight: 900; color: var(--amber); line-height: 1; }
+  .summary-total-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+  .summary-rows { flex: 1; }
+  .summary-row { display: grid; grid-template-columns: 32px 1fr auto auto; align-items: center; gap: 16px; padding: 14px 40px; border-bottom: 1px solid var(--border); }
+  .summary-row:hover { background: var(--surface); }
+  .summary-rnum { font-size: 10px; color: var(--text-muted); }
+  .summary-song { font-size: 12px; }
+  .summary-song-title { color: var(--text); }
+  .summary-song-artist { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .summary-year-pill { font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border: 1px solid currentColor; white-space: nowrap; }
+  .summary-pts { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--amber); text-align: right; min-width: 60px; }
+  .summary-pts.zero { color: var(--red); }
+  .summary-footer { padding: 32px 40px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 16px; }
+  .restart-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--amber); color: var(--amber); background: transparent; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .restart-btn:hover { background: var(--amber); color: #0a0810; }
+  .hub-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--border); color: var(--text-dim); background: transparent; cursor: pointer; text-decoration: none; display: inline-block; transition: background 0.15s; }
+  .hub-btn:hover { background: var(--surface2); color: var(--text); }
+
+  @media (max-width: 900px) {
+    .site-nav { padding: 0 16px; }
+    .game-header { padding: 16px; flex-wrap: wrap; }
+    .game-body { padding: 24px 16px; }
+    .summary-row { padding: 12px 16px; grid-template-columns: 24px 1fr auto auto; gap: 10px; }
+    .summary-header { padding: 28px 16px 20px; }
+    .summary-footer { padding: 24px 16px; }
+  }
+  @media (max-width: 600px) {
+    .year-grid { grid-template-columns: repeat(2, 1fr); }
+    .round-pips { gap: 4px; }
+    .pip { width: 8px; height: 8px; }
+    .nav-links .nav-link { padding: 8px 8px; font-size: 10px; }
+    .song-card { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link active" href="games.html">Games</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
+  </div>
+</nav>
+
+<div class="game-wrap">
+
+  <div class="game-header">
+    <div class="game-title-row">
+      <div class="game-eyebrow">Game 02</div>
+      <div class="game-title">Match the Song</div>
+    </div>
+    <div class="progress-row">
+      <div class="round-pips" id="pips"></div>
+    </div>
+    <div class="score-display">
+      <div class="score-label">Score</div>
+      <div class="score-num" id="score-display">0</div>
+    </div>
+  </div>
+
+  <div id="loading-state" class="loading">Loading catalog...</div>
+
+  <!-- GAME STATE -->
+  <div id="game-state" style="display:none; flex-direction:column; flex:1;">
+    <div class="game-body">
+
+      <div class="song-card">
+        <div class="song-label">Which DJ Year is this song from?</div>
+        <div class="song-title" id="song-title">—</div>
+        <div class="song-artist" id="song-artist"></div>
+        <div class="song-season" id="song-season"></div>
+      </div>
+
+      <div class="lifelines-row">
+        <span class="lifeline-label">Lifelines:</span>
+        <button class="lifeline-btn" id="hint1-btn" onclick="useHint(1)">
+          <span>Eliminate 4</span>
+          <span class="lifeline-num">①</span>
+        </button>
+        <button class="lifeline-btn" id="hint2-btn" onclick="useHint(2)">
+          <span>Reveal Artist</span>
+          <span class="lifeline-num">②</span>
+        </button>
+        <button class="lifeline-btn" id="hint3-btn" onclick="useHint(3)">
+          <span>Reveal Season</span>
+          <span class="lifeline-num">③</span>
+        </button>
+      </div>
+
+      <div class="year-grid" id="year-grid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="result-area" id="result-area">
+        <div class="result-headline" id="result-headline"></div>
+        <div class="result-detail" id="result-detail"></div>
+        <div class="result-points" id="result-points"></div>
+        <div class="result-points-label">points</div>
+        <button class="next-btn" id="next-btn" onclick="nextRound()">Next Round →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUMMARY STATE -->
+  <div class="summary" id="summary-state">
+    <div class="summary-header">
+      <div class="summary-title">Final Score</div>
+      <div class="summary-total" id="summary-total">0</div>
+      <div class="summary-total-label">out of 10,000 points</div>
+    </div>
+    <div class="summary-rows" id="summary-rows"></div>
+    <div class="summary-footer">
+      <a class="hub-btn" href="games.html">← Back to Games</a>
+      <button class="restart-btn" onclick="restartGame()">Play Again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DJ_YEARS = [
+  { num: 1, label: 'DJ1', color: '#5d8fe8', start: '2018-09-24', end: '2019-09-23' },
+  { num: 2, label: 'DJ2', color: '#5dba7f', start: '2019-09-24', end: '2020-09-23' },
+  { num: 3, label: 'DJ3', color: '#e85d8f', start: '2020-09-24', end: '2021-09-23' },
+  { num: 4, label: 'DJ4', color: '#e8a45d', start: '2021-09-24', end: '2022-09-23' },
+  { num: 5, label: 'DJ5', color: '#a45de8', start: '2022-09-24', end: '2023-09-23' },
+  { num: 6, label: 'DJ6', color: '#5de8e8', start: '2023-09-24', end: '2024-09-23' },
+  { num: 7, label: 'DJ7', color: '#e8e85d', start: '2024-09-24', end: '2025-09-23' },
+  { num: 8, label: 'DJ8', color: '#FF6B6B', start: '2025-09-24', end: '2026-09-23' },
+];
+
+const SEASONS = [
+  { name: 'Fall',   months: [9, 10, 11] },
+  { name: 'Winter', months: [12, 1, 2] },
+  { name: 'Spring', months: [3, 4, 5] },
+  { name: 'Summer', months: [6, 7, 8] },
+];
+
+const TOTAL_ROUNDS = 10;
+const BASE_POINTS = 1000;
+const HINT_PENALTY = 250;
+
+let allSongsByYear = [];  // array of arrays, index 0 = DJ1
+let rounds = [];          // chosen songs for this game
+let roundIdx = 0;
+let totalScore = 0;
+let hintsUsed = 0;
+let answered = false;
+let eliminated = new Set();
+let history = [];         // {song, yearNum, guessedYear, points}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const arrays = await Promise.all([1,2,3,4,5,6,7,8].map(y =>
+      fetch(`songs-dj${y}.json`)
+        .then(r => r.text())
+        .then(txt => { if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); return JSON.parse(txt); })
+    ));
+    allSongsByYear = arrays;
+    document.getElementById('loading-state').style.display = 'none';
+    startGame();
+  } catch(e) {
+    document.getElementById('loading-state').textContent = 'Failed to load catalog.';
+  }
+}
+
+// ── START / RESTART ────────────────────────────────────────────────────────────
+function startGame() {
+  rounds = pickRounds();
+  roundIdx = 0;
+  totalScore = 0;
+  history = [];
+  document.getElementById('score-display').textContent = '0';
+  buildPips();
+  document.getElementById('summary-state').style.display = 'none';
+  document.getElementById('game-state').style.display = 'flex';
+  loadRound();
+}
+
+function restartGame() {
+  startGame();
+}
+
+function pickRounds() {
+  // Pick one song from each of the 8 years, then 2 more random from any year = 10
+  const selected = [];
+  const usedIndices = Array(8).fill(null).map(() => new Set());
+
+  // One from each year
+  for (let y = 0; y < 8; y++) {
+    const pool = allSongsByYear[y];
+    const idx = Math.floor(Math.random() * pool.length);
+    usedIndices[y].add(idx);
+    selected.push({ song: pool[idx], yearNum: y + 1 });
+  }
+
+  // 2 more from random years (avoid duplicates)
+  for (let extra = 0; extra < 2; extra++) {
+    let y, idx;
+    do {
+      y = Math.floor(Math.random() * 8);
+      idx = Math.floor(Math.random() * allSongsByYear[y].length);
+    } while (usedIndices[y].has(idx));
+    usedIndices[y].add(idx);
+    selected.push({ song: allSongsByYear[y][idx], yearNum: y + 1 });
+  }
+
+  // Shuffle
+  return selected.sort(() => Math.random() - 0.5);
+}
+
+// ── PIPS ───────────────────────────────────────────────────────────────────────
+function buildPips() {
+  const container = document.getElementById('pips');
+  container.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'pip' + (i === 0 ? ' current' : '');
+    pip.id = `pip-${i}`;
+    container.appendChild(pip);
+  }
+}
+
+function updatePip(idx, result) {
+  const pip = document.getElementById(`pip-${idx}`);
+  if (!pip) return;
+  pip.className = 'pip ' + result;
+  const next = document.getElementById(`pip-${idx + 1}`);
+  if (next) next.classList.add('current');
+}
+
+// ── ROUND ──────────────────────────────────────────────────────────────────────
+function loadRound() {
+  hintsUsed = 0;
+  answered = false;
+  eliminated = new Set();
+
+  const { song, yearNum } = rounds[roundIdx];
+
+  // Song display
+  document.getElementById('song-title').textContent = song[2];
+  const artistEl = document.getElementById('song-artist');
+  artistEl.textContent = song[3];
+  artistEl.className = 'song-artist';
+
+  const seasonEl = document.getElementById('song-season');
+  seasonEl.textContent = '';
+  seasonEl.className = 'song-season';
+
+  // Result area
+  const resultArea = document.getElementById('result-area');
+  resultArea.style.display = 'none';
+  resultArea.className = 'result-area';
+
+  // Reset lifelines
+  resetLifelineBtns();
+
+  // Build year buttons
+  buildYearGrid(yearNum);
+}
+
+function buildYearGrid(correctYear) {
+  const grid = document.getElementById('year-grid');
+  grid.innerHTML = '';
+  DJ_YEARS.forEach(yr => {
+    const btn = document.createElement('button');
+    btn.className = 'year-btn';
+    btn.style.setProperty('--btn-color', yr.color);
+    btn.id = `yr-btn-${yr.num}`;
+    btn.innerHTML = `<span>${yr.label}</span><span class="year-label">Year ${yr.num}</span>`;
+    btn.onclick = () => guess(yr.num);
+    grid.appendChild(btn);
+  });
+}
+
+// ── LIFELINES ─────────────────────────────────────────────────────────────────
+function resetLifelineBtns() {
+  [1, 2, 3].forEach(n => {
+    const btn = document.getElementById(`hint${n}-btn`);
+    btn.disabled = false;
+    btn.classList.remove('used');
+  });
+}
+
+function useHint(n) {
+  if (answered) return;
+  const btn = document.getElementById(`hint${n}-btn`);
+  btn.disabled = true;
+  btn.classList.add('used');
+  hintsUsed++;
+
+  const { song, yearNum } = rounds[roundIdx];
+
+  if (n === 1) {
+    // Eliminate 4 wrong options, leaving 4 remaining (including correct)
+    const wrongYears = DJ_YEARS.map(y => y.num).filter(y => y !== yearNum);
+    // shuffle and pick 4 to eliminate
+    const toEliminate = wrongYears.sort(() => Math.random() - 0.5).slice(0, 4);
+    toEliminate.forEach(y => {
+      eliminated.add(y);
+      const yBtn = document.getElementById(`yr-btn-${y}`);
+      if (yBtn) { yBtn.classList.add('eliminated'); yBtn.disabled = true; }
+    });
+  } else if (n === 2) {
+    // Reveal artist
+    document.getElementById('song-artist').classList.add('visible');
+  } else if (n === 3) {
+    // Reveal season from the song's date string (index 5: e.g. "October 5, 2021")
+    const dateStr = song[5];
+    const season = getSeason(dateStr);
+    const seasonEl = document.getElementById('song-season');
+    seasonEl.textContent = `Added in ${season}`;
+    seasonEl.classList.add('visible');
+  }
+}
+
+function getSeason(dateStr) {
+  const d = new Date(dateStr);
+  const month = d.getMonth() + 1; // 1-12
+  for (const s of SEASONS) {
+    if (s.months.includes(month)) return s.name;
+  }
+  return 'Unknown';
+}
+
+// ── GUESS ──────────────────────────────────────────────────────────────────────
+function guess(yearNum) {
+  if (answered) return;
+  answered = true;
+
+  const { song, yearNum: correct } = rounds[roundIdx];
+  const isCorrect = yearNum === correct;
+
+  // Points: base minus penalty per hint used
+  const points = isCorrect ? Math.max(0, BASE_POINTS - hintsUsed * HINT_PENALTY) : 0;
+  totalScore += points;
+
+  history.push({ song, yearNum: correct, guessedYear: yearNum, points });
+
+  // Update score display
+  document.getElementById('score-display').textContent = totalScore.toLocaleString();
+
+  // Visual feedback on buttons
+  DJ_YEARS.forEach(yr => {
+    const btn = document.getElementById(`yr-btn-${yr.num}`);
+    if (!btn) return;
+    btn.disabled = true;
+    if (yr.num === correct) btn.classList.add('reveal-correct');
+    if (yr.num === yearNum && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Result area
+  const resultArea = document.getElementById('result-area');
+  const correctYr = DJ_YEARS.find(y => y.num === correct);
+  const guessedYr = DJ_YEARS.find(y => y.num === yearNum);
+
+  resultArea.className = 'result-area ' + (isCorrect ? 'correct' : 'wrong');
+  document.getElementById('result-headline').textContent = isCorrect ? 'Correct!' : 'Wrong!';
+
+  let detail = '';
+  if (isCorrect) {
+    detail = `"${song[2]}" is from ${correctYr.label}.`;
+    if (hintsUsed > 0) detail += ` (${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used)`;
+  } else {
+    detail = `That was ${correctYr.label}, not ${guessedYr.label}.`;
+  }
+  document.getElementById('result-detail').textContent = detail;
+  document.getElementById('result-points').textContent = `+${points.toLocaleString()}`;
+
+  // Update pip
+  updatePip(roundIdx, isCorrect ? 'correct' : 'wrong');
+
+  // Change next button label on last round
+  if (roundIdx === TOTAL_ROUNDS - 1) {
+    document.getElementById('next-btn').textContent = 'See Results →';
+  } else {
+    document.getElementById('next-btn').textContent = 'Next Round →';
+  }
+
+  resultArea.style.display = 'block';
+}
+
+// ── NEXT / SUMMARY ─────────────────────────────────────────────────────────────
+function nextRound() {
+  roundIdx++;
+  if (roundIdx >= TOTAL_ROUNDS) {
+    showSummary();
+  } else {
+    loadRound();
+  }
+}
+
+function showSummary() {
+  document.getElementById('game-state').style.display = 'none';
+  document.getElementById('summary-total').textContent = totalScore.toLocaleString();
+
+  const rowsEl = document.getElementById('summary-rows');
+  rowsEl.innerHTML = '';
+
+  history.forEach((h, i) => {
+    const yr = DJ_YEARS.find(y => y.num === h.yearNum);
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+    row.innerHTML = `
+      <div class="summary-rnum">${i + 1}</div>
+      <div class="summary-song">
+        <div class="summary-song-title">${h.song[2]}</div>
+        <div class="summary-song-artist">${h.song[3]}</div>
+      </div>
+      <div class="summary-year-pill" style="color:${yr.color}; border-color:${yr.color}">${yr.label}</div>
+      <div class="summary-pts ${h.points === 0 ? 'zero' : ''}">+${h.points.toLocaleString()}</div>
+    `;
+    rowsEl.appendChild(row);
+  });
+
+  document.getElementById('summary-state').style.display = 'flex';
+}
+
+loadData();
+</script>
+</body>
+</html>
