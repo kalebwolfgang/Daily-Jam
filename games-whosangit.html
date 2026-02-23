@@ -55,33 +55,46 @@
   .round-bar-fill { height: 100%; background: var(--cc); transition: width 0.4s ease; width: 0%; }
 
   /* ── MAIN LAYOUT ─────────────────────────────────────────── */
-  .game-body { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 40px 40px 80px; display: flex; flex-direction: column; gap: 32px; }
+  .game-body { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 40px 40px 80px; display: flex; flex-direction: column; gap: 28px; }
 
-  /* ── SONG CARD ───────────────────────────────────────────── */
-  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 28px 32px; display: flex; flex-direction: column; gap: 6px; }
+  /* Song title spans full width at top */
+  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 28px 36px; display: flex; flex-direction: column; gap: 6px; }
   .song-card-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 4vw, 40px); font-weight: 900; line-height: 1.1; color: var(--text); }
+  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 4vw, 52px); font-weight: 900; line-height: 1.1; color: var(--text); }
+
+  /* 2-col row: embed left, choices right */
+  .main-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
   /* ── SPOTIFY EMBED ───────────────────────────────────────── */
-  .embed-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .embed-col { display: flex; flex-direction: column; gap: 12px; }
   .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-  .embed-frame-wrap { position: relative; overflow: hidden; border: 1px solid var(--border); }
-  /* Overlay covers ONLY the track name / artist text area (middle section).
-     Left ~72px = album art (unblocked), right ~90px = playback controls (unblocked).
-     pointer-events: none so clicks pass through to the iframe on both sides. */
-  .embed-overlay { position: absolute; top: 0; left: 72px; right: 90px; bottom: 0; background: var(--surface); pointer-events: none; z-index: 2; }
+  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; }
+  /* The Spotify compact embed at 152px height layout:
+       ~0–80px left  = album art square
+       ~80–320px mid = track name + artist text  ← hide this
+       ~320px–end right = play/pause + scrubber  ← leave clickable
+     pointer-events: none so the overlay never captures clicks */
+  .embed-overlay {
+    position: absolute; top: 0; bottom: 0;
+    left: 80px; right: 112px;
+    background: var(--surface);
+    pointer-events: none;
+    z-index: 2;
+  }
   .embed-frame-wrap iframe { display: block; border: none; }
-  .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.6; }
+  .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.7; }
 
-  /* ── ANSWER CHOICES ──────────────────────────────────────── */
+  /* ── CHOICES COLUMN ──────────────────────────────────────── */
+  .choices-col { display: flex; flex-direction: column; gap: 12px; }
   .choices-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
   .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .choice-btn {
     background: var(--surface); border: 2px solid var(--border); color: var(--text);
-    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px;
-    padding: 16px 20px; text-align: left; cursor: pointer;
+    font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    padding: 20px 18px; text-align: left; cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
     display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden;
+    min-height: 72px;
   }
   .choice-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
   .choice-btn:hover:not(:disabled) { border-color: var(--cc); background: var(--surface2); }
@@ -93,7 +106,7 @@
   .choice-btn.wrong::after { display: none; }
   .choice-btn.reveal   { border-color: var(--green); background: rgba(93,186,127,0.08); color: var(--green); }
   .choice-btn.reveal::after { background: var(--green); transform: scaleX(1); }
-  .choice-letter { font-size: 9px; letter-spacing: 2px; color: var(--text-muted); flex-shrink: 0; min-width: 14px; }
+  .choice-letter { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); flex-shrink: 0; min-width: 16px; }
   .choice-btn.correct .choice-letter,
   .choice-btn.wrong   .choice-letter,
   .choice-btn.reveal  .choice-letter { color: inherit; opacity: 0.7; }
@@ -112,7 +125,7 @@
 
   /* ── NEXT BUTTON ─────────────────────────────────────────── */
   .next-row { display: flex; justify-content: center; }
-  .next-btn { display: none; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 14px 40px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .next-btn { display: none; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 14px 48px; border: none; cursor: pointer; transition: opacity 0.15s; }
   .next-btn:hover { opacity: 0.85; }
 
   /* ── SUMMARY SCREEN ──────────────────────────────────────── */
@@ -138,10 +151,13 @@
   .sum-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
   .sum-btn:hover { opacity: 0.8; }
 
+  @media (max-width: 860px) {
+    .main-row { grid-template-columns: 1fr; }
+  }
   @media (max-width: 700px) {
     .site-nav { padding: 0 16px; }
     .game-header { padding: 12px 16px; }
-    .game-body { padding: 24px 16px 60px; gap: 24px; }
+    .game-body { padding: 24px 16px 60px; gap: 20px; }
     .choices-grid { grid-template-columns: 1fr; }
     .summary-screen { padding: 40px 16px 60px; }
     .pips { display: none; }
@@ -184,28 +200,34 @@
 <!-- GAME BODY -->
 <div class="game-body" id="game-body">
 
-  <!-- Song title card -->
+  <!-- Song title — full width -->
   <div class="song-card">
     <span class="song-card-eyebrow">Song Title</span>
     <span class="song-title" id="song-title">Loading…</span>
   </div>
 
-  <!-- Spotify embed -->
-  <div class="embed-wrap">
-    <span class="embed-label">Listen for a clue</span>
-    <div class="embed-frame-wrap" id="embed-frame-wrap">
-      <!-- iframe injected by JS -->
-      <!-- Overlay hides the track name / artist shown in the embed -->
-      <div class="embed-overlay" id="embed-overlay"></div>
+  <!-- 2-col row: embed left, choices right -->
+  <div class="main-row">
+
+    <!-- LEFT: Spotify embed -->
+    <div class="embed-col">
+      <span class="embed-label">Listen for a clue</span>
+      <div class="embed-frame-wrap" id="embed-frame-wrap">
+        <!-- iframe injected by JS -->
+        <div class="embed-overlay" id="embed-overlay"></div>
+      </div>
+      <span class="embed-hint">Hit play for a 30-second preview — the artist name is hidden until you answer.</span>
     </div>
-    <span class="embed-hint">Hit play for a 30-second preview — the artist name is hidden until you answer.</span>
+
+    <!-- RIGHT: answer choices -->
+    <div class="choices-col">
+      <span class="choices-label">Who sang this song?</span>
+      <div class="choices-grid" id="choices-grid"></div>
+    </div>
+
   </div>
 
-  <!-- Answer choices -->
-  <div class="choices-label">Who sang this song?</div>
-  <div class="choices-grid" id="choices-grid"></div>
-
-  <!-- Result banner -->
+  <!-- Result banner — full width -->
   <div class="result-banner" id="result-banner">
     <span class="result-verdict" id="result-verdict"></span>
     <span class="result-pts"     id="result-pts"></span>
@@ -347,7 +369,7 @@ function renderRound() {
   const iframe = document.createElement('iframe');
   iframe.src    = `https://open.spotify.com/embed/track/${r.song[1]}?utm_source=generator&theme=0`;
   iframe.width  = '100%';
-  iframe.height = '80';
+  iframe.height = '152';
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   iframe.setAttribute('loading', 'lazy');
