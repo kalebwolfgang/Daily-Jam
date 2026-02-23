@@ -158,6 +158,34 @@
   }
   body.is-spinning .reel-card.placeholder { animation: card-rattle 0.1s infinite; }
 
+  /* REEL PREVIEW BUTTON + EMBED */
+  .reel-preview-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--reel-color, var(--border));
+    color: var(--reel-color, var(--text-dim));
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .reel-preview-btn svg { width: 8px; height: 10px; flex-shrink: 0; }
+  .reel-preview-btn:hover { background: var(--reel-glow, rgba(245,166,35,0.1)); }
+  .reel-preview-btn.active { background: var(--reel-color, var(--amber)); color: #000; }
+  .reel-card.has-song .reel-preview-btn { display: inline-flex; }
+  .reel-embed-panel { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+  .reel-embed-panel.open { max-height: 100px; }
+
+  /* REVEAL PANEL EMBED */
+  .reveal-embed-wrap { margin-bottom: 32px; }
+  .reveal-embed-wrap iframe { display: block; border: none; }
+
   @media (max-width: 800px) {
     .reels-row { grid-template-columns: 1fr; gap: 8px; }
     .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; }
@@ -218,8 +246,13 @@
         <div class="reel-album"  id="album-0">—</div>
         <div class="reel-footer">
           <div class="reel-meta" id="meta-0">—</div>
+          <button class="reel-preview-btn" id="preview-btn-0" onclick="toggleReelEmbed(0, event)">
+            <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12" fill="currentColor"/></svg>
+            Preview
+          </button>
           <div class="reel-select-hint" id="hint-0"></div>
         </div>
+        <div class="reel-embed-panel" id="reel-embed-0"></div>
       </div>
     </div>
     <!-- Reel 2 -->
@@ -238,8 +271,13 @@
         <div class="reel-album"  id="album-1">—</div>
         <div class="reel-footer">
           <div class="reel-meta" id="meta-1">—</div>
+          <button class="reel-preview-btn" id="preview-btn-1" onclick="toggleReelEmbed(1, event)">
+            <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12" fill="currentColor"/></svg>
+            Preview
+          </button>
           <div class="reel-select-hint" id="hint-1"></div>
         </div>
+        <div class="reel-embed-panel" id="reel-embed-1"></div>
       </div>
     </div>
     <!-- Reel 3 -->
@@ -258,8 +296,13 @@
         <div class="reel-album"  id="album-2">—</div>
         <div class="reel-footer">
           <div class="reel-meta" id="meta-2">—</div>
+          <button class="reel-preview-btn" id="preview-btn-2" onclick="toggleReelEmbed(2, event)">
+            <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12" fill="currentColor"/></svg>
+            Preview
+          </button>
           <div class="reel-select-hint" id="hint-2"></div>
         </div>
+        <div class="reel-embed-panel" id="reel-embed-2"></div>
       </div>
     </div>
   </div>
@@ -273,6 +316,7 @@
         <div class="reveal-song" id="reveal-song-name"></div>
         <div class="reveal-artist" id="reveal-artist"></div>
         <div class="reveal-album" id="reveal-album"></div>
+        <div class="reveal-embed-wrap" id="reveal-embed-wrap"></div>
         <div class="reveal-meta-row">
           <div class="reveal-meta-item">
             <div class="reveal-meta-num" id="reveal-day"></div>
@@ -442,10 +486,55 @@ function setReelSong(i, song) {
   card.querySelector('.reel-top-bar').style.background = color;
 }
 
+// ── Reel preview embeds ───────────────────────────────────────────────────
+function toggleReelEmbed(i, e) {
+  e.stopPropagation();
+  const btn   = document.getElementById(`preview-btn-${i}`);
+  const panel = document.getElementById(`reel-embed-${i}`);
+  const song  = finalSongs[i];
+  if (!song) return;
+
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    btn.classList.remove('active');
+    return;
+  }
+
+  // Close any other open reel previews first
+  for (let j = 0; j < 3; j++) {
+    if (j === i) continue;
+    const op = document.getElementById(`reel-embed-${j}`);
+    const ob = document.getElementById(`preview-btn-${j}`);
+    if (op.classList.contains('open')) {
+      op.classList.remove('open');
+      op.innerHTML = '';
+      ob.classList.remove('active');
+    }
+  }
+
+  panel.classList.add('open');
+  btn.classList.add('active');
+  panel.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${song[1]}?utm_source=generator&theme=0&autoplay=1" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="display:block;margin-top:12px;border:none;"></iframe>`;
+}
+
+function clearReelEmbeds() {
+  for (let i = 0; i < 3; i++) {
+    const panel = document.getElementById(`reel-embed-${i}`);
+    const btn   = document.getElementById(`preview-btn-${i}`);
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    btn.classList.remove('active');
+  }
+}
+
 function showReels() {
   document.getElementById('reels-row').style.display = '';
   document.getElementById('controls').style.display = '';
   document.getElementById('reveal-panel').classList.remove('visible');
+  // Clear reveal embed
+  const rw = document.getElementById('reveal-embed-wrap');
+  rw.innerHTML = '';
 }
 
 function clearSelection() {
@@ -486,6 +575,11 @@ function selectReel(i) {
   document.getElementById('reveal-year-pill').textContent = `DJ ${yr}`;
   document.getElementById('reveal-year-pill').style.color = color;
   document.getElementById('btn-spotify').href = `https://open.spotify.com/track/${song[1]}`;
+
+  // Inject autoplay embed
+  const embedWrap = document.getElementById('reveal-embed-wrap');
+  embedWrap.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${song[1]}?utm_source=generator&theme=0&autoplay=1" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="display:block;border:none;"></iframe>`;
+
   panel.classList.add('visible');
 }
 
@@ -499,6 +593,8 @@ async function doShuffle() {
   document.getElementById('controls').style.display = '';
   selectedReel = -1;
   finalSongs = [null, null, null];
+  clearReelEmbeds();
+  document.getElementById('reveal-embed-wrap').innerHTML = '';
 
   const btn = document.getElementById('shuffle-btn');
   btn.disabled = true;
