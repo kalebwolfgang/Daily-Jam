@@ -48,6 +48,7 @@
   .round-pips { display: flex; gap: 6px; }
   .pip { width: 10px; height: 10px; border: 1px solid var(--border); background: var(--surface2); transition: background 0.2s, border-color 0.2s; }
   .pip.correct { background: var(--green); border-color: var(--green); }
+  .pip.close   { background: var(--y4);   border-color: var(--y4); }
   .pip.wrong   { background: var(--red);   border-color: var(--red); }
   .pip.current { border-color: var(--text-dim); }
 
@@ -101,9 +102,11 @@
   /* RESULT AREA */
   .result-area { display: none; background: var(--surface); border: 1px solid var(--border); padding: 24px 32px; text-align: center; }
   .result-area.correct { border-color: var(--green); background: rgba(93,186,127,0.07); }
+  .result-area.close   { border-color: var(--y4);    background: rgba(232,164,93,0.07); }
   .result-area.wrong   { border-color: var(--red);   background: rgba(232,93,74,0.07); }
   .result-headline { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
   .result-area.correct .result-headline { color: var(--green); }
+  .result-area.close   .result-headline { color: var(--y4); }
   .result-area.wrong   .result-headline { color: var(--red); }
   .result-detail { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 20px; }
   .result-points { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); margin-bottom: 4px; }
@@ -126,7 +129,8 @@
   .summary-song-artist { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
   .summary-year-pill { font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border: 1px solid currentColor; white-space: nowrap; }
   .summary-pts { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--amber); text-align: right; min-width: 60px; }
-  .summary-pts.zero { color: var(--red); }
+  .summary-pts.zero  { color: var(--red); }
+  .summary-pts.close { color: var(--y4); }
   .summary-footer { padding: 32px 40px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 16px; }
   .restart-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--amber); color: var(--amber); background: transparent; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .restart-btn:hover { background: var(--amber); color: #0a0810; }
@@ -448,6 +452,23 @@ function getSeason(dateStr) {
   return 'Unknown';
 }
 
+// ── SCORING ────────────────────────────────────────────────────────────────────
+// Tiered by how many years off the guess is:
+//   0 years off (bullseye) = 1000 pts
+//   ±1 year off            =  500 pts
+//   ±2 years off           =  200 pts
+//   anything else          =    0 pts
+// Each hint used deducts HINT_PENALTY from the base.
+function calcPoints(correctYearNum, guessedYearNum) {
+  const diff = Math.abs(correctYearNum - guessedYearNum);
+  let base;
+  if      (diff === 0) base = 1000;
+  else if (diff === 1) base = 500;
+  else if (diff === 2) base = 200;
+  else                 base = 0;
+  return Math.max(0, base - hintsUsed * HINT_PENALTY);
+}
+
 // ── GUESS ──────────────────────────────────────────────────────────────────────
 function guess(yearNum) {
   if (answered) return;
@@ -455,9 +476,8 @@ function guess(yearNum) {
 
   const { song, yearNum: correct } = rounds[roundIdx];
   const isCorrect = yearNum === correct;
-
-  // Points: base minus penalty per hint used
-  const points = isCorrect ? Math.max(0, BASE_POINTS - hintsUsed * HINT_PENALTY) : 0;
+  const diff = Math.abs(correct - yearNum);
+  const points = calcPoints(correct, yearNum);
   totalScore += points;
 
   history.push({ song, yearNum: correct, guessedYear: yearNum, points });
@@ -479,23 +499,29 @@ function guess(yearNum) {
   const correctYr = DJ_YEARS.find(y => y.num === correct);
   const guessedYr = DJ_YEARS.find(y => y.num === yearNum);
 
-  resultArea.className = 'result-area ' + (isCorrect ? 'correct' : 'wrong');
-  document.getElementById('result-headline').textContent = isCorrect ? 'Correct!' : 'Wrong!';
+  // Determine result tier for styling
+  const isClose = !isCorrect && points > 0;
+  const resultClass = isCorrect ? 'correct' : (isClose ? 'close' : 'wrong');
+  resultArea.className = 'result-area ' + resultClass;
+
+  let headline = isCorrect ? 'Correct!' : (isClose ? 'Close!' : 'Wrong!');
+  document.getElementById('result-headline').textContent = headline;
 
   let detail = '';
   if (isCorrect) {
     detail = `"${song[2]}" is from ${correctYr.label}.`;
     if (hintsUsed > 0) detail += ` (${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used)`;
+  } else if (isClose) {
+    detail = `That was ${correctYr.label} — you were ${diff} year${diff === 1 ? '' : 's'} off.`;
   } else {
     detail = `That was ${correctYr.label}, not ${guessedYr.label}.`;
   }
   document.getElementById('result-detail').textContent = detail;
   document.getElementById('result-points').textContent = `+${points.toLocaleString()}`;
 
-  // Update pip
-  updatePip(roundIdx, isCorrect ? 'correct' : 'wrong');
+  // Update pip — close gets its own colour via partial class
+  updatePip(roundIdx, isCorrect ? 'correct' : (isClose ? 'close' : 'wrong'));
 
-  // Change next button label on last round
   if (roundIdx === TOTAL_ROUNDS - 1) {
     document.getElementById('next-btn').textContent = 'See Results →';
   } else {
@@ -533,7 +559,7 @@ function showSummary() {
         <div class="summary-song-artist">${h.song[3]}</div>
       </div>
       <div class="summary-year-pill" style="color:${yr.color}; border-color:${yr.color}">${yr.label}</div>
-      <div class="summary-pts ${h.points === 0 ? 'zero' : ''}">+${h.points.toLocaleString()}</div>
+      <div class="summary-pts ${h.points === 0 ? 'zero' : (h.yearNum !== h.guessedYear && h.points > 0 ? 'close' : '')}">+${h.points.toLocaleString()}</div>
     `;
     rowsEl.appendChild(row);
   });
