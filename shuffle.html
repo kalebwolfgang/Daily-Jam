@@ -660,10 +660,11 @@ const BG = (function() {
 
     // Wave position — NEVER multiply by e. Speed and amplitude are constant
     // so the sine argument advances smoothly with no jumps when e changes.
-    const slices = 80;
+    // Use fewer slices for a smoother path drawn as a single filled polygon
+    const slices = 40; // reduced from 80 — still smooth, half the work
     const sliceW = W / slices;
 
-    // Pre-compute all cy values once (same formula used for both ribbon + core)
+    // Pre-compute all cy values once
     const drift = Math.sin(now * r.driftSpeed + r.driftPhase) * 0.06;
     const yCenter = (r.yBase + drift) * H;
     const cyArr = new Float32Array(slices + 1);
@@ -674,38 +675,64 @@ const BG = (function() {
     // e only affects thickness and brightness — no position math
     const thick = r.thickness * H * (1 + e * 0.5);
     const alpha = Math.min(r.baseAlpha + e * 0.35, 1);
-    const peak  = alpha;
 
+    // Draw the ribbon as a single filled path with a vertical gradient
+    // Use ONE gradient per ribbon (not per slice) — massive speedup
+    // The gradient covers the full canvas height so it's correct everywhere
+    const grd = ctx.createLinearGradient(0, 0, 0, H);
+    // Find approximate center y for gradient anchoring
+    const midCy = cyArr[Math.floor(slices / 2)];
+    const t0 = Math.max(0, (midCy - thick) / H);
+    const t1 = Math.max(0, (midCy - thick * 0.3) / H);
+    const t2 = midCy / H;
+    const t3 = Math.min(1, (midCy + thick * 0.3) / H);
+    const t4 = Math.min(1, (midCy + thick) / H);
+
+    // Clamp stops so they're always in ascending order
+    const s = [
+      Math.max(0, t0),
+      Math.max(t0 + 0.001, t1),
+      Math.max(t1 + 0.001, t2),
+      Math.max(t2 + 0.001, t3),
+      Math.min(1, Math.max(t3 + 0.001, t4)),
+    ];
+    grd.addColorStop(s[0], `rgba(${rc},${gc},${bc},0)`);
+    grd.addColorStop(s[1], `rgba(${rc},${gc},${bc},${alpha * 0.4})`);
+    grd.addColorStop(s[2], `rgba(${rc},${gc},${bc},${alpha})`);
+    grd.addColorStop(s[3], `rgba(${rc},${gc},${bc},${alpha * 0.4})`);
+    grd.addColorStop(s[4], `rgba(${rc},${gc},${bc},0)`);
+
+    // Build top and bottom edges of ribbon as a single closed path
     ctx.save();
-    for (let i = 0; i <= slices; i++) {
-      const x      = i * sliceW;
-      const cy     = cyArr[i];
-      const top    = cy - thick / 2;
-      const bottom = cy + thick / 2;
-      const grd = ctx.createLinearGradient(0, top, 0, bottom);
-      grd.addColorStop(0,   `rgba(${rc},${gc},${bc},0)`);
-      grd.addColorStop(0.2, `rgba(${rc},${gc},${bc},${peak * 0.4})`);
-      grd.addColorStop(0.5, `rgba(${rc},${gc},${bc},${peak})`);
-      grd.addColorStop(0.8, `rgba(${rc},${gc},${bc},${peak * 0.4})`);
-      grd.addColorStop(1,   `rgba(${rc},${gc},${bc},0)`);
-      ctx.fillStyle = grd;
-      ctx.fillRect(x, top, sliceW + 1, bottom - top);
+    ctx.beginPath();
+    // Top edge (left to right)
+    ctx.moveTo(0, cyArr[0] - thick / 2);
+    for (let i = 1; i <= slices; i++) {
+      ctx.lineTo(i * sliceW, cyArr[i] - thick / 2);
     }
+    // Bottom edge (right to left)
+    for (let i = slices; i >= 0; i--) {
+      ctx.lineTo(i * sliceW, cyArr[i] + thick / 2);
+    }
+    ctx.closePath();
+    ctx.fillStyle = grd;
+    ctx.fill();
 
-    // White core appears during spin — position from same cyArr, no speed change
+    // White core during spin — single path, no per-slice gradients
     if (e > 0.05) {
-      const coreAlpha = e * 0.3;
+      const coreAlpha = e * 0.28;
       const coreThick = thick * 0.15;
-      for (let i = 0; i <= slices; i++) {
-        const x  = i * sliceW;
-        const cy = cyArr[i];
-        const grd = ctx.createLinearGradient(0, cy - coreThick, 0, cy + coreThick);
-        grd.addColorStop(0,   `rgba(255,255,255,0)`);
-        grd.addColorStop(0.5, `rgba(255,255,255,${coreAlpha})`);
-        grd.addColorStop(1,   `rgba(255,255,255,0)`);
-        ctx.fillStyle = grd;
-        ctx.fillRect(x, cy - coreThick, sliceW + 1, coreThick * 2);
+      ctx.beginPath();
+      ctx.moveTo(0, cyArr[0] - coreThick);
+      for (let i = 1; i <= slices; i++) {
+        ctx.lineTo(i * sliceW, cyArr[i] - coreThick);
       }
+      for (let i = slices; i >= 0; i--) {
+        ctx.lineTo(i * sliceW, cyArr[i] + coreThick);
+      }
+      ctx.closePath();
+      ctx.fillStyle = `rgba(255,255,255,${coreAlpha})`;
+      ctx.fill();
     }
     ctx.restore();
   }
@@ -767,6 +794,8 @@ const BG = (function() {
     }
   }
   function updateParticles(dt) {
+    // Batch all particles in one path per color group is complex; instead just skip shadowBlur
+    // and fake glow with a large semi-transparent circle behind a bright small one
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.x += p.vx * dt * 0.06;
@@ -774,15 +803,17 @@ const BG = (function() {
       p.vy += 0.08 * dt * 0.06; // gravity
       p.life -= p.decay;
       if (p.life <= 0) { particles.splice(i, 1); continue; }
-      ctx.save();
-      ctx.globalAlpha = p.life * e; // fade with e so they vanish when spin ends
+      const a = p.life * e;
+      // Outer soft glow (large, semi-transparent) — no shadowBlur needed
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${a * 0.18})`;
+      ctx.fill();
+      // Bright core
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
-      ctx.shadowColor = `rgb(${p.r},${p.g},${p.b})`;
-      ctx.shadowBlur = 12;
+      ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${a})`;
       ctx.fill();
-      ctx.restore();
     }
   }
 
@@ -800,15 +831,17 @@ const BG = (function() {
       rg.life = Math.max(0, 1 - rg.radius / rg.maxR);
       if (rg.life <= 0) { rings.splice(i, 1); continue; }
       const op = rg.life * e * 0.7;
-      ctx.save();
+      // Fake glow: draw a thick faint ring + thin bright ring — no shadowBlur
+      ctx.beginPath();
+      ctx.arc(rg.cx, rg.cy, rg.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${rg.r},${rg.g},${rg.b},${op * 0.3})`;
+      ctx.lineWidth = 14 * rg.life;
+      ctx.stroke();
       ctx.beginPath();
       ctx.arc(rg.cx, rg.cy, rg.radius, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(${rg.r},${rg.g},${rg.b},${op})`;
-      ctx.lineWidth = 3 * rg.life;
-      ctx.shadowColor = `rgba(${rg.r},${rg.g},${rg.b},${op})`;
-      ctx.shadowBlur = 20;
+      ctx.lineWidth = 2 * rg.life;
       ctx.stroke();
-      ctx.restore();
     }
   }
 
@@ -839,21 +872,27 @@ const BG = (function() {
       b.life -= b.decay;
       if (b.life <= 0) { bolts.splice(i, 1); continue; }
       const op = b.life * e;
-      ctx.save();
+      // Outer glow pass (thick, faint) — no shadowBlur
+      ctx.beginPath();
+      ctx.moveTo(b.pts[0].x, b.pts[0].y);
+      for (let j = 1; j < b.pts.length; j++) ctx.lineTo(b.pts[j].x, b.pts[j].y);
+      ctx.strokeStyle = `rgba(${b.r},${b.g},${b.b},${op * 0.25})`;
+      ctx.lineWidth = 10 + b.life * 8;
+      ctx.stroke();
+      // Color core
       ctx.beginPath();
       ctx.moveTo(b.pts[0].x, b.pts[0].y);
       for (let j = 1; j < b.pts.length; j++) ctx.lineTo(b.pts[j].x, b.pts[j].y);
       ctx.strokeStyle = `rgba(${b.r},${b.g},${b.b},${op})`;
-      ctx.lineWidth = 2 + b.life * 3;
-      ctx.shadowColor = `rgba(${b.r},${b.g},${b.b},1)`;
-      ctx.shadowBlur = 20 + b.life * 20;
+      ctx.lineWidth = 2 + b.life * 2;
       ctx.stroke();
-      // bright white core
-      ctx.strokeStyle = `rgba(255,255,255,${op * b.life})`;
+      // Bright white core
+      ctx.beginPath();
+      ctx.moveTo(b.pts[0].x, b.pts[0].y);
+      for (let j = 1; j < b.pts.length; j++) ctx.lineTo(b.pts[j].x, b.pts[j].y);
+      ctx.strokeStyle = `rgba(255,255,255,${op * b.life * 0.8})`;
       ctx.lineWidth = 1;
-      ctx.shadowBlur = 0;
       ctx.stroke();
-      ctx.restore();
     }
   }
 
@@ -917,31 +956,31 @@ const BG = (function() {
     if (e > 0.02) {
       // Spawn new effects proportional to e
       spawnTimer += dt;
-      const spawnRate = 120 - e * 100; // at full e: every ~20ms
-      if (spawnTimer > spawnRate) {
+      const spawnRate = Math.max(40, 140 - e * 100); // at full e: every ~40ms (was ~20ms)
+      if (spawnTimer > spawnRate && particles.length < 180) { // hard cap on particle count
         spawnTimer = 0;
-        // Particle burst from random edge point
+        // Particle burst from random edge point — fewer particles, still looks great
         const edgePt = Math.random() < 0.5
           ? { x: Math.random() * W, y: Math.random() < 0.5 ? 0 : H }
           : { x: Math.random() < 0.5 ? 0 : W, y: Math.random() * H };
         const c = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
-        spawnParticleBurst(edgePt.x, edgePt.y, Math.floor(8 + e * 20), c);
+        spawnParticleBurst(edgePt.x, edgePt.y, Math.floor(5 + e * 8), c);
 
         // Occasional center burst
-        if (Math.random() < 0.3 * e) {
+        if (Math.random() < 0.25 * e) {
           const c2 = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
           spawnParticleBurst(W/2 + (Math.random()-0.5)*200, H/2 + (Math.random()-0.5)*200,
-            Math.floor(15 + e * 30), c2);
+            Math.floor(8 + e * 12), c2);
         }
 
         // Shockwave ring from center
-        if (Math.random() < 0.25 * e) {
+        if (Math.random() < 0.2 * e) {
           const c3 = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
           spawnRing(W/2, H/2, c3);
         }
 
         // Lightning bolt
-        if (Math.random() < 0.4 * e) spawnBolt();
+        if (Math.random() < 0.35 * e) spawnBolt();
       }
 
       // Draw all spin-only effects
