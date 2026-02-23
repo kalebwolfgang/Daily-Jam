@@ -370,9 +370,10 @@ function spinReel(reelIndex, songPool, delay, finalSong) {
         tape.appendChild(div);
       });
 
-      // Start at top
+      // Force reset: kill any transition, force reflow, then set position
       tape.style.transition = 'none';
-      tape.style.transform = 'translateY(0)';
+      tape.style.transform   = 'translateY(0)';
+      void tape.offsetHeight; // force reflow so browser commits the reset before animating
 
       // The center of the window is at 40px (items 0,1,2 visible; item 1 is center)
       // We want item (count-2) to be in center = offset = (count-2 - 1) * 40 = (count-3)*40
@@ -586,16 +587,16 @@ const BG = (function() {
   let e = 0; // 0 = calm, 1 = full flare — lerped smoothly
 
   // ── Aurora ribbons ────────────────────────────────────────────────────────
-  // DJ year colors + classic aurora tones
+  // DJ year colors at full vibrance (+50% saturation boost)
   const RIBBON_COLORS = [
-    [93,  143, 232],  // DJ1 blue
-    [93,  186, 127],  // DJ2 green
-    [232, 93,  143],  // DJ3 pink
-    [232, 164, 93 ],  // DJ4 amber
-    [164, 93,  232],  // DJ5 purple
-    [93,  232, 232],  // DJ6 cyan
-    [232, 232, 93 ],  // DJ7 yellow
-    [255, 107, 107],  // DJ8 red
+    [40,  120, 255],  // DJ1 vivid blue
+    [30,  220, 100],  // DJ2 vivid green
+    [255, 40,  140],  // DJ3 vivid pink
+    [255, 160, 20 ],  // DJ4 vivid amber
+    [160, 40,  255],  // DJ5 vivid purple
+    [0,   230, 230],  // DJ6 vivid cyan
+    [240, 230, 0  ],  // DJ7 vivid yellow
+    [255, 60,  60 ],  // DJ8 vivid red
   ];
 
   let ribbons = [];
@@ -603,15 +604,17 @@ const BG = (function() {
     const c = RIBBON_COLORS[colorIndex % RIBBON_COLORS.length];
     return {
       color: c,
-      yBase: yHint !== undefined ? yHint : Math.random(),
-      waveAmp:   0.025 + Math.random() * 0.04,
-      waveSpeed: 0.00012 + Math.random() * 0.00018,
+      // yBase clusters in the middle 20–80% so ribbons naturally cross each other
+      yBase: yHint !== undefined ? yHint : 0.2 + Math.random() * 0.6,
+      // Large wave amplitude so ribbons sweep far and overlap
+      waveAmp:   0.12 + Math.random() * 0.10,
+      waveSpeed: 0.00010 + Math.random() * 0.00016,
       wavePhase: Math.random() * Math.PI * 2,
-      // Thinner than before — 4–7% of screen height
-      thickness: 0.04 + Math.random() * 0.03,
-      driftSpeed: 0.00002 + Math.random() * 0.00003,
+      // Thin crisp ribbons
+      thickness: 0.03 + Math.random() * 0.025,
+      driftSpeed: 0.000015 + Math.random() * 0.000025,
       driftPhase: Math.random() * Math.PI * 2,
-      baseAlpha: 0.28 + Math.random() * 0.2,
+      baseAlpha: 0.55 + Math.random() * 0.25,
     };
   }
 
@@ -717,16 +720,16 @@ const BG = (function() {
     initScene();
   }
   function initScene() {
-    // All 8 DJ year colors, evenly spaced across screen height
+    // All 8 DJ year colors — y-bases clustered so their large wave amplitudes cause them to cross
     ribbons = [
-      mkRibbon(0.06, 0),
-      mkRibbon(0.19, 1),
-      mkRibbon(0.32, 2),
-      mkRibbon(0.45, 3),
-      mkRibbon(0.58, 4),
-      mkRibbon(0.71, 5),
-      mkRibbon(0.84, 6),
-      mkRibbon(0.94, 7),
+      mkRibbon(0.25, 0),
+      mkRibbon(0.35, 1),
+      mkRibbon(0.40, 2),
+      mkRibbon(0.50, 3),
+      mkRibbon(0.55, 4),
+      mkRibbon(0.60, 5),
+      mkRibbon(0.70, 6),
+      mkRibbon(0.75, 7),
     ];
     // ~120 stars scattered
     stars = Array.from({length: 120}, mkStar);
@@ -752,8 +755,10 @@ const BG = (function() {
     // Stars first (behind aurora)
     drawStars(t);
 
-    // Aurora ribbons
+    // Aurora ribbons — screen blend so overlaps mix colors instead of just stacking
+    ctx.globalCompositeOperation = 'screen';
     ribbons.forEach(r => drawRibbon(r, t));
+    ctx.globalCompositeOperation = 'source-over';
 
     requestAnimationFrame(draw);
   }
