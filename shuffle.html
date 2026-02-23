@@ -655,16 +655,19 @@ const BG = (function() {
     };
   }
 
+  // Pre-built reusable gradient cache keyed by "r,g,b,alpha,thick" — avoids
+  // creating a new gradient object every slice, but still keeps per-slice
+  // vertical positioning correct.
+  let _gradCache = {};
+  let _gradCacheFrame = 0;
+
   function drawRibbon(r, now) {
     const [rc, gc, bc] = r.color;
 
-    // Wave position — NEVER multiply by e. Speed and amplitude are constant
-    // so the sine argument advances smoothly with no jumps when e changes.
-    // Use fewer slices for a smoother path drawn as a single filled polygon
-    const slices = 40; // reduced from 80 — still smooth, half the work
+    // Wave position — NEVER multiply by e. Speed and amplitude are constant.
+    const slices = 60;
     const sliceW = W / slices;
 
-    // Pre-compute all cy values once
     const drift = Math.sin(now * r.driftSpeed + r.driftPhase) * 0.06;
     const yCenter = (r.yBase + drift) * H;
     const cyArr = new Float32Array(slices + 1);
@@ -675,64 +678,35 @@ const BG = (function() {
     // e only affects thickness and brightness — no position math
     const thick = r.thickness * H * (1 + e * 0.5);
     const alpha = Math.min(r.baseAlpha + e * 0.35, 1);
+    const coreAlpha = e > 0.05 ? e * 0.28 : 0;
+    const coreThick = thick * 0.15;
 
-    // Draw the ribbon as a single filled path with a vertical gradient
-    // Use ONE gradient per ribbon (not per slice) — massive speedup
-    // The gradient covers the full canvas height so it's correct everywhere
-    const grd = ctx.createLinearGradient(0, 0, 0, H);
-    // Find approximate center y for gradient anchoring
-    const midCy = cyArr[Math.floor(slices / 2)];
-    const t0 = Math.max(0, (midCy - thick) / H);
-    const t1 = Math.max(0, (midCy - thick * 0.3) / H);
-    const t2 = midCy / H;
-    const t3 = Math.min(1, (midCy + thick * 0.3) / H);
-    const t4 = Math.min(1, (midCy + thick) / H);
-
-    // Clamp stops so they're always in ascending order
-    const s = [
-      Math.max(0, t0),
-      Math.max(t0 + 0.001, t1),
-      Math.max(t1 + 0.001, t2),
-      Math.max(t2 + 0.001, t3),
-      Math.min(1, Math.max(t3 + 0.001, t4)),
-    ];
-    grd.addColorStop(s[0], `rgba(${rc},${gc},${bc},0)`);
-    grd.addColorStop(s[1], `rgba(${rc},${gc},${bc},${alpha * 0.4})`);
-    grd.addColorStop(s[2], `rgba(${rc},${gc},${bc},${alpha})`);
-    grd.addColorStop(s[3], `rgba(${rc},${gc},${bc},${alpha * 0.4})`);
-    grd.addColorStop(s[4], `rgba(${rc},${gc},${bc},0)`);
-
-    // Build top and bottom edges of ribbon as a single closed path
     ctx.save();
-    ctx.beginPath();
-    // Top edge (left to right)
-    ctx.moveTo(0, cyArr[0] - thick / 2);
-    for (let i = 1; i <= slices; i++) {
-      ctx.lineTo(i * sliceW, cyArr[i] - thick / 2);
-    }
-    // Bottom edge (right to left)
-    for (let i = slices; i >= 0; i--) {
-      ctx.lineTo(i * sliceW, cyArr[i] + thick / 2);
-    }
-    ctx.closePath();
-    ctx.fillStyle = grd;
-    ctx.fill();
+    for (let i = 0; i < slices; i++) {
+      // Average cy between this slice and next for a smooth per-column gradient
+      const cy = (cyArr[i] + cyArr[i + 1]) * 0.5;
+      const top    = cy - thick / 2;
+      const bottom = cy + thick / 2;
+      const x = i * sliceW;
 
-    // White core during spin — single path, no per-slice gradients
-    if (e > 0.05) {
-      const coreAlpha = e * 0.28;
-      const coreThick = thick * 0.15;
-      ctx.beginPath();
-      ctx.moveTo(0, cyArr[0] - coreThick);
-      for (let i = 1; i <= slices; i++) {
-        ctx.lineTo(i * sliceW, cyArr[i] - coreThick);
+      const grd = ctx.createLinearGradient(0, top, 0, bottom);
+      grd.addColorStop(0,   `rgba(${rc},${gc},${bc},0)`);
+      grd.addColorStop(0.25,`rgba(${rc},${gc},${bc},${alpha * 0.45})`);
+      grd.addColorStop(0.5, `rgba(${rc},${gc},${bc},${alpha})`);
+      grd.addColorStop(0.75,`rgba(${rc},${gc},${bc},${alpha * 0.45})`);
+      grd.addColorStop(1,   `rgba(${rc},${gc},${bc},0)`);
+      ctx.fillStyle = grd;
+      ctx.fillRect(x, top, sliceW + 1, bottom - top);
+
+      // White core during spin
+      if (coreAlpha > 0) {
+        const cg = ctx.createLinearGradient(0, cy - coreThick, 0, cy + coreThick);
+        cg.addColorStop(0,   `rgba(255,255,255,0)`);
+        cg.addColorStop(0.5, `rgba(255,255,255,${coreAlpha})`);
+        cg.addColorStop(1,   `rgba(255,255,255,0)`);
+        ctx.fillStyle = cg;
+        ctx.fillRect(x, cy - coreThick, sliceW + 1, coreThick * 2);
       }
-      for (let i = slices; i >= 0; i--) {
-        ctx.lineTo(i * sliceW, cyArr[i] + coreThick);
-      }
-      ctx.closePath();
-      ctx.fillStyle = `rgba(255,255,255,${coreAlpha})`;
-      ctx.fill();
     }
     ctx.restore();
   }
