@@ -410,7 +410,8 @@ function spinReel(reelIndex, songPool, delay, finalSong) {
           card.style.transition = 'transform 0.25s cubic-bezier(.34,1.56,.64,1)';
           card.style.transform = 'translateY(-4px)';
           setTimeout(() => {
-            card.style.transform = '';
+            card.style.transform  = '';
+            card.style.transition = ''; // clear inline override so CSS rules take over cleanly
             resolve();
           }, 250);
         }
@@ -490,43 +491,70 @@ function selectReel(i) {
 async function doShuffle() {
   if (spinning || pool.length < 3) return;
   spinning = true;
-  clearSelection();
+
+  // Hide reveal, show reels
+  document.getElementById('reveal-panel').classList.remove('visible');
+  document.getElementById('reels-row').style.display = '';
+  document.getElementById('controls').style.display = '';
+  selectedReel = -1;
   finalSongs = [null, null, null];
-  BG.spinStart();
 
   const btn = document.getElementById('shuffle-btn');
   btn.disabled = true;
   btn.textContent = 'Spinning…';
 
-  // Pick 3 distinct songs
-  const picked = new Set();
-  while (picked.size < 3) picked.add(Math.floor(Math.random() * pool.length));
-  const picks = [...picked].map(i => pool[i]);
-  finalSongs = picks;
-
-  // Reset cards to spinning state
+  // ── Hard-reset every card with ALL transitions suppressed ──
+  // Jam transition:none onto everything so nothing animates during the reset,
+  // then force a reflow to commit, then clear inline styles so CSS takes over again.
   for (let i = 0; i < 3; i++) {
     const card = document.getElementById(`reel-${i}`);
-    card.classList.remove('has-song', 'selected', 'dimmed');
-    card.classList.add('placeholder');
-    card.style.transform = '';
-    card.style.transition = '';
-
-    // Reset tape content first so old song title is gone before window expands
+    const win  = card.querySelector('.reel-window');
     const tape = document.getElementById(`tape-${i}`);
+
+    // Suppress every transition and snap positions instantly
+    card.style.transition = 'none';
+    card.style.transform  = '';
+    win.style.transition  = 'none';
     tape.style.transition = 'none';
     tape.style.transform  = 'translateY(0)';
-    tape.innerHTML = '<div class="reel-tape-item"></div><div class="reel-tape-item center">—</div><div class="reel-tape-item"></div>';
-    void tape.offsetHeight; // force reflow
 
-    // Now remove settled — height expands with empty placeholder content, no snapback
-    card.querySelector('.reel-window').classList.remove('settled');
+    // Reset classes — with transition:none these happen instantly
+    card.classList.remove('has-song', 'selected', 'dimmed');
+    card.classList.add('placeholder');
+    win.classList.remove('settled');
+
+    // Blank tape
+    tape.innerHTML = '<div class="reel-tape-item"></div><div class="reel-tape-item center">—</div><div class="reel-tape-item"></div>';
 
     document.getElementById(`artist-${i}`).textContent = '—';
     document.getElementById(`album-${i}`).textContent  = '—';
     document.getElementById(`meta-${i}`).textContent   = '—';
     document.getElementById(`hint-${i}`).textContent   = '';
   }
+
+  // Commit everything above to the browser before touching anything else
+  void document.getElementById('reels-row').offsetHeight;
+
+  // Re-enable transitions by clearing the inline overrides
+  for (let i = 0; i < 3; i++) {
+    const card = document.getElementById(`reel-${i}`);
+    const win  = card.querySelector('.reel-window');
+    const tape = document.getElementById(`tape-${i}`);
+    card.style.transition = '';
+    win.style.transition  = '';
+    tape.style.transition = '';
+  }
+
+  // One more reflow so the transition restoration is committed
+  void document.getElementById('reels-row').offsetHeight;
+
+  BG.spinStart();
+
+  // Pick 3 distinct songs
+  const picked = new Set();
+  while (picked.size < 3) picked.add(Math.floor(Math.random() * pool.length));
+  const picks = [...picked].map(i => pool[i]);
+  finalSongs = picks;
 
   // Spin all 3 reels, staggered by 180ms each
   await Promise.all([
@@ -535,7 +563,6 @@ async function doShuffle() {
     spinReel(2, pool, 360, picks[2]),
   ]);
 
-  // After all settled, fill in the details
   BG.spinStop();
   for (let i = 0; i < 3; i++) {
     setReelSong(i, finalSongs[i]);
