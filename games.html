@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Quiz Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
+    --text: #e8e0d0; --text-dim: #7a7060; --text-muted: #3a3530;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
+  body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  /* NAV */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
+
+  /* HERO */
+  .hero { padding: 64px 40px 48px; border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+  .hero-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(40px, 6vw, 84px); font-weight: 900; line-height: 0.92; letter-spacing: -2px; }
+  .hero h1 em { color: var(--amber); font-style: italic; }
+  .hero-sub { margin-top: 20px; font-size: 12px; color: var(--text-dim); letter-spacing: 2px; line-height: 1.8; max-width: 520px; }
+
+  /* GAME GRID */
+  .games-section { padding: 56px 40px 80px; position: relative; z-index: 1; }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px; }
+  .games-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+
+  .game-card { background: var(--surface); padding: 36px 32px 32px; text-decoration: none; color: var(--text); display: flex; flex-direction: column; gap: 0; position: relative; overflow: hidden; transition: background 0.15s; }
+  .game-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--card-color, var(--amber)); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease; }
+  .game-card:hover { background: var(--surface2); }
+  .game-card:hover::after { transform: scaleX(1); }
+
+  .game-num { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--card-color, var(--amber)); opacity: 0.6; margin-bottom: 12px; }
+  .game-icon { font-size: 28px; margin-bottom: 18px; line-height: 1; }
+  .game-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--card-color, var(--amber)); line-height: 1.1; margin-bottom: 12px; }
+  .game-desc { font-size: 11px; color: var(--text-dim); line-height: 1.8; flex: 1; margin-bottom: 28px; }
+  .game-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+  .tag { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--border); color: var(--text-muted); }
+  .game-play { display: inline-block; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--card-color, var(--amber)); padding: 10px 20px; border: 1px solid var(--card-color, var(--amber)); transition: background 0.15s, color 0.15s; align-self: flex-start; }
+  .game-card:hover .game-play { background: var(--card-color, var(--amber)); color: #0a0810; }
+
+  /* wide card spans 2 columns on large screens */
+  .game-card.wide { grid-column: span 2; }
+
+  @media (max-width: 1000px) {
+    .games-grid { grid-template-columns: repeat(2, 1fr); }
+    .game-card.wide { grid-column: span 1; }
+  }
+  @media (max-width: 900px) {
+    .site-nav { padding: 0 16px; }
+    .hero { padding: 40px 16px 32px; }
+    .games-section { padding: 40px 16px 60px; }
+  }
+  @media (max-width: 600px) {
+    .games-grid { grid-template-columns: 1fr; }
+    .nav-links .nav-link { padding: 8px 8px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link active" href="games.html">Games</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <p class="hero-eyebrow">Quiz Hub</p>
+  <h1>Test Your<br><em>Jam</em> Knowledge</h1>
+  <p class="hero-sub">Five games built from 8 years of daily songs. How well do you know the catalog?</p>
+</div>
+
+<div class="games-section">
+  <p class="section-label">Choose a game</p>
+  <div class="games-grid">
+
+    <a class="game-card" href="games-headtohead.html" style="--card-color: #5d8fe8">
+      <div class="game-num">Game 01</div>
+      <div class="game-icon">⚔</div>
+      <div class="game-title">Head to Head</div>
+      <div class="game-desc">Two artists go head to head. Guess which one has more songs in the full catalog. Fast-fire format — keep your streak alive.</div>
+      <div class="game-tags">
+        <span class="tag">Streak</span>
+        <span class="tag">Fast-fire</span>
+      </div>
+      <div class="game-play">Play →</div>
+    </a>
+
+    <a class="game-card" href="games-matchyear.html" style="--card-color: #5dba7f">
+      <div class="game-num">Game 02</div>
+      <div class="game-icon">◉</div>
+      <div class="game-title">Match the Song</div>
+      <div class="game-desc">A song title appears — pick which DJ year (1–8) it belongs to. Use up to 3 lifeline hints: eliminate options, reveal the artist, or get a seasonal clue.</div>
+      <div class="game-tags">
+        <span class="tag">10 Rounds</span>
+        <span class="tag">Lifelines</span>
+        <span class="tag">Scored</span>
+      </div>
+      <div class="game-play">Play →</div>
+    </a>
+
+    <a class="game-card" href="games-chrono.html" style="--card-color: #e85d8f">
+      <div class="game-num">Game 03</div>
+      <div class="game-icon">↕</div>
+      <div class="game-title">Chronological Order</div>
+      <div class="game-desc">Five songs, one correct timeline. Drag and drop them into order from oldest to newest. Partial credit for close guesses.</div>
+      <div class="game-tags">
+        <span class="tag">Drag &amp; Drop</span>
+        <span class="tag">Partial Scoring</span>
+      </div>
+      <div class="game-play">Play →</div>
+    </a>
+
+    <a class="game-card" href="games-dayguesser.html" style="--card-color: #e8a45d">
+      <div class="game-num">Game 04</div>
+      <div class="game-icon">◎</div>
+      <div class="game-title">Day Guesser</div>
+      <div class="game-desc">Song title and artist are shown — guess the exact date it was added. Pick a DJ year to zoom in, then drag the slider to your best guess. 10 rounds, up to 1000 points each.</div>
+      <div class="game-tags">
+        <span class="tag">10 Rounds</span>
+        <span class="tag">Slider</span>
+        <span class="tag">Calendar Scoring</span>
+      </div>
+      <div class="game-play">Play →</div>
+    </a>
+
+    <a class="game-card wide" href="games-bracket.html" style="--card-color: #FF6B6B">
+      <div class="game-num">Game 05</div>
+      <div class="game-icon">⬡</div>
+      <div class="game-title">March Madness Bracket</div>
+      <div class="game-desc">64 songs seeded into a tournament bracket. Vote head to head each round until one song is crowned champion. Filter by DJ year, resume between sessions — your bracket persists in localStorage.</div>
+      <div class="game-tags">
+        <span class="tag">64 Songs</span>
+        <span class="tag">Tournament</span>
+        <span class="tag">Saves Progress</span>
+      </div>
+      <div class="game-play">Play →</div>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>
