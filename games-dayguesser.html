@@ -178,7 +178,9 @@
   .summary-dates strong { display: block; color: var(--text-dim); font-size: 11px; }
   .summary-pts { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--amber); text-align: right; }
   .summary-pts.zero  { color: var(--red); }
-  .summary-pts.close { color: var(--y4); }
+  .summary-pts.low   { color: var(--text-dim); }
+  .summary-pts.mid   { color: var(--y4); }
+  .summary-pts.close { color: var(--y2); }
   .summary-footer { padding: 32px 40px; border-top: 1px solid var(--border); display: flex; justify-content: center; gap: 16px; }
   .restart-btn { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 14px 32px; border: 1px solid var(--amber); color: var(--amber); background: transparent; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .restart-btn:hover { background: var(--amber); color: #0a0810; }
@@ -338,32 +340,36 @@ function daysBetween(d1, d2) {
 }
 
 // ── Scoring ────────────────────────────────────────────────────────────────────
-// 1000 pts for exact, sliding down to 0 at 60+ days off
-// Tiers: 0 days = 1000, 1-3 = 900, 4-7 = 800, 8-14 = 650, 15-30 = 400, 31-60 = 150, 61+ = 0
+// Scoring tiers (days off from actual date):
+//   0 days        = 1000 pts  (Bullseye)
+//   1–30 days     = 750 pts   (Within a month)
+//   31–182 days   = 500 pts   (Within 6 months)
+//   183–365 days  = 250 pts   (Within a year)
+//   366+ days     = 0 pts     (Wrong year / too far off)
+//
+// Picking the wrong DJ year is an automatic 0 ONLY if the guessed date is
+// more than 365 days from the actual date. Fringe dates near year boundaries
+// (e.g. Sep 25 guessed in the year before) can still score if within 365 days.
 function calcPoints(daysOff) {
-  if (daysOff === 0)       return 1000;
-  if (daysOff <= 3)        return 900;
-  if (daysOff <= 7)        return 800;
-  if (daysOff <= 14)       return 650;
-  if (daysOff <= 30)       return 400;
-  if (daysOff <= 60)       return 150;
+  if (daysOff === 0)         return 1000;
+  if (daysOff <= 30)         return 750;
+  if (daysOff <= 182)        return 500;
+  if (daysOff <= 365)        return 250;
   return 0;
 }
 
 function tierFromDaysOff(daysOff) {
-  if (daysOff === 0)  return 'bullseye';
-  if (daysOff <= 14)  return 'close';
+  if (daysOff === 0)    return 'bullseye';
+  if (daysOff <= 182)   return 'close';
   return 'off';
 }
 
 function headlineFromDaysOff(daysOff) {
-  if (daysOff === 0)  return 'Bullseye! 🎯';
-  if (daysOff <= 3)   return 'Incredibly Close!';
-  if (daysOff <= 7)   return 'Very Close!';
-  if (daysOff <= 14)  return 'Close!';
-  if (daysOff <= 30)  return 'In the Ballpark';
-  if (daysOff <= 60)  return 'Getting Warmer';
-  return 'Way Off';
+  if (daysOff === 0)    return 'Bullseye! 🎯';
+  if (daysOff <= 30)    return 'Within a Month!';
+  if (daysOff <= 182)   return 'Within 6 Months';
+  if (daysOff <= 365)   return 'Within a Year';
+  return 'Wrong Year';
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -485,7 +491,10 @@ function selectYear(num) {
   const yr = DJ_YEARS[num - 1];
   const activeColor = yr.color;
 
-  // Build date array for the year — one entry per day from start to end
+  // Build date array for the selected DJ year only — one entry per day from start to end.
+  // This keeps the slider manageable (365–366 positions).
+  // Scoring is based purely on days off from the actual date regardless of year chosen,
+  // so picking the wrong year naturally results in 0 pts (>365 days off).
   const start = new Date(yr.start);
   const end   = new Date(yr.end);
   sliderDates = [];
@@ -498,7 +507,7 @@ function selectYear(num) {
   const slider = document.getElementById('date-slider');
   slider.min = 0;
   slider.max = sliderDates.length - 1;
-  slider.value = Math.floor(sliderDates.length / 2); // default to middle
+  slider.value = Math.floor(sliderDates.length / 2); // default to middle of year
   currentSliderIdx = parseInt(slider.value);
 
   // Update colors
@@ -545,7 +554,8 @@ function loadRound() {
     if (btn) { btn.classList.remove('selected'); btn.disabled = false; }
   });
 
-  // Reset slider section
+  // Reset slider section — sliderDates will be rebuilt when a year is selected
+  sliderDates = [];
   const sliderSection = document.getElementById('slider-section');
   sliderSection.style.opacity = '0.3';
   sliderSection.style.pointerEvents = 'none';
@@ -612,8 +622,10 @@ function submitGuess() {
   document.getElementById('result-headline').textContent    = headlineFromDaysOff(daysOff);
   document.getElementById('result-guess-date').textContent  = formatDateFull(guessedDate);
   document.getElementById('result-actual-date').textContent = formatDateFull(actualDate);
-  document.getElementById('result-distance').textContent    =
-    daysOff === 0 ? 'Exact match!' : `${daysOff} day${daysOff !== 1 ? 's' : ''} off`;
+  const distMsg = daysOff === 0
+    ? 'Exact match!'
+    : `${daysOff} day${daysOff !== 1 ? 's' : ''} off`;
+  document.getElementById('result-distance').textContent = distMsg;
   document.getElementById('result-points').textContent      = `+${pts.toLocaleString()}`;
 
   // Disable inputs
@@ -657,7 +669,7 @@ function showSummary() {
     const row = document.createElement('div');
     row.className = 'summary-row';
 
-    const ptsClass = h.pts === 0 ? 'zero' : h.tier === 'close' ? 'close' : '';
+    const ptsClass = h.pts === 0 ? 'zero' : h.pts === 250 ? 'low' : h.pts === 500 ? 'mid' : h.pts === 750 ? 'close' : '';
     const djYr = getDJYearNum(h.actualDate);
     const yrColor = DJ_YEARS[djYr - 1] ? DJ_YEARS[djYr - 1].color : 'var(--text)';
 
