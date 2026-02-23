@@ -66,8 +66,10 @@
   .embed-wrap { display: flex; flex-direction: column; gap: 10px; }
   .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
   .embed-frame-wrap { position: relative; overflow: hidden; border: 1px solid var(--border); }
-  /* Overlay covers the Spotify title/artist text in the embed to prevent spoilers */
-  .embed-overlay { position: absolute; top: 0; left: 72px; right: 0; bottom: 0; background: var(--surface); pointer-events: none; z-index: 2; }
+  /* Overlay covers ONLY the track name / artist text area (middle section).
+     Left ~72px = album art (unblocked), right ~90px = playback controls (unblocked).
+     pointer-events: none so clicks pass through to the iframe on both sides. */
+  .embed-overlay { position: absolute; top: 0; left: 72px; right: 90px; bottom: 0; background: var(--surface); pointer-events: none; z-index: 2; }
   .embed-frame-wrap iframe { display: block; border: none; }
   .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.6; }
 
@@ -196,7 +198,7 @@
       <!-- Overlay hides the track name / artist shown in the embed -->
       <div class="embed-overlay" id="embed-overlay"></div>
     </div>
-    <span class="embed-hint">The embed shows album art and a 30-second preview — artist name is hidden until you answer.</span>
+    <span class="embed-hint">Hit play for a 30-second preview — the artist name is hidden until you answer.</span>
   </div>
 
   <!-- Answer choices -->
