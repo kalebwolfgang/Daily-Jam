@@ -93,10 +93,15 @@
 
   .vs-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: stretch; }
 
-  .song-card { background: var(--surface); border: 2px solid var(--border); padding: 28px 24px 24px; cursor: pointer; transition: border-color 0.15s, background 0.15s; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
+  .song-card { background: var(--surface); border: 2px solid var(--border); padding: 28px 24px 24px; cursor: pointer; transition: border-color 0.15s, background 0.15s, opacity 0.15s; display: flex; flex-direction: column; gap: 8px; position: relative; overflow: hidden; }
   .song-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
   .song-card:hover { border-color: var(--cc); background: var(--surface2); }
   .song-card:hover::after { transform: scaleX(1); }
+  /* selected = pending confirmation */
+  .song-card.selected { border-color: var(--cc); background: rgba(255,107,107,0.06); cursor: pointer; }
+  .song-card.selected::after { transform: scaleX(1); }
+  .song-card.unselected { opacity: 0.45; }
+  /* picked = confirmed winner */
   .song-card.picked  { border-color: var(--green); cursor: default; background: rgba(93,186,127,0.05); }
   .song-card.picked::after { background: var(--green); transform: scaleX(1); }
   .song-card.dropped { border-color: var(--border); opacity: 0.35; cursor: default; }
@@ -111,10 +116,16 @@
   .vs-word { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--text-muted); user-select: none; }
 
   .vote-msg { text-align: center; font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; min-height: 18px; }
+  .vote-msg.selected-state { color: var(--cc); }
   .vote-msg.confirmed { color: var(--green); }
 
-  .next-btn { align-self: center; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 13px 32px; border: none; cursor: pointer; transition: opacity 0.15s; display: none; }
-  .next-btn:hover { opacity: 0.85; }
+  .action-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  /* Single action button — label and colour change based on state */
+  .action-btn { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 13px 32px; border: none; cursor: pointer; transition: background 0.2s, opacity 0.15s; display: none; }
+  .action-btn.state-confirm { background: var(--cc);   color: #0a0810; }
+  .action-btn.state-next    { background: var(--green); color: #0a0810; }
+  .action-btn:hover { opacity: 0.85; }
+
 
   /* ── ROUND COMPLETE ──────────────────────────────────────── */
   .round-complete { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 60px 40px; text-align: center; }
@@ -259,14 +270,14 @@
   <div class="matchup-screen" id="matchup-screen" style="display:none">
     <div class="matchup-tag" id="matchup-tag"></div>
     <div class="vs-grid">
-      <div class="song-card" id="card-a" onclick="castVote(0)">
+      <div class="song-card" id="card-a" onclick="selectCard(0)">
         <span class="card-seed" id="seed-a"></span>
         <span class="card-title" id="title-a"></span>
         <span class="card-artist" id="artist-a"></span>
         <span class="card-yr" id="yr-a"></span>
       </div>
       <div class="vs-mid"><span class="vs-word">VS</span></div>
-      <div class="song-card" id="card-b" onclick="castVote(1)">
+      <div class="song-card" id="card-b" onclick="selectCard(1)">
         <span class="card-seed" id="seed-b"></span>
         <span class="card-title" id="title-b"></span>
         <span class="card-artist" id="artist-b"></span>
@@ -274,7 +285,9 @@
       </div>
     </div>
     <p class="vote-msg" id="vote-msg">Click a song to vote →</p>
-    <button class="next-btn" id="next-btn" onclick="advanceMatchup()">Next Matchup →</button>
+    <div class="action-row">
+      <button class="action-btn" id="action-btn" onclick="handleActionBtn()"></button>
+    </div>
   </div>
 
   <!-- ROUND COMPLETE -->
@@ -406,10 +419,22 @@ function pickSeeds(filter) {
 }
 
 function buildRound0(seeds) {
-  // 1 vs 64, 2 vs 63 … 32 vs 33
+  // NCAA-style bracket layout — top seeds are placed on opposite sides of the
+  // bracket so seeds 1 and 2 can only meet in the Championship.
+  // Each consecutive pair in BRACKET_ORDER is a first-round matchup.
+  // If all favourites win: R2 → 1v32, 16v17, 8v25, 9v24 … 2v31, 15v18, 7v26, 10v23
+  //                        Final Four → 1v4 / 2v3, Championship → 1v2
+  const BRACKET_ORDER = [
+     1,64, 32,33, 16,49, 17,48,  8,57, 25,40,  9,56, 24,41,
+     4,61, 29,36, 13,52, 20,45,  5,60, 28,37, 12,53, 21,44,
+     2,63, 31,34, 15,50, 18,47,  7,58, 26,39, 10,55, 23,42,
+     3,62, 30,35, 14,51, 19,46,  6,59, 27,38, 11,54, 22,43,
+  ];
   const matchups = [];
-  for (let i = 0; i < 32; i++) {
-    matchups.push({ songA: seeds[i], songB: seeds[63 - i], seedA: i + 1, seedB: 64 - i, winner: null });
+  for (let i = 0; i < BRACKET_ORDER.length; i += 2) {
+    const seedA = BRACKET_ORDER[i];
+    const seedB = BRACKET_ORDER[i + 1];
+    matchups.push({ songA: seeds[seedA - 1], songB: seeds[seedB - 1], seedA, seedB, winner: null });
   }
   return matchups;
 }
@@ -489,15 +514,18 @@ function renderMatchup() {
   fillCard('b', matchup.songB, matchup.seedB);
 
   // Reset state
+  pendingSide = null;
   const ca = document.getElementById('card-a');
   const cb = document.getElementById('card-b');
-  ca.className = 'song-card'; ca.onclick = () => castVote(0);
-  cb.className = 'song-card'; cb.onclick = () => castVote(1);
-  document.getElementById('vote-msg').textContent  = 'Click a song to vote →';
-  document.getElementById('vote-msg').className    = 'vote-msg';
-  document.getElementById('next-btn').style.display = 'none';
+  ca.className = 'song-card'; ca.onclick = () => selectCard(0);
+  cb.className = 'song-card'; cb.onclick = () => selectCard(1);
+  document.getElementById('vote-msg').textContent = 'Click a song to vote →';
+  document.getElementById('vote-msg').className   = 'vote-msg';
+  const btn = document.getElementById('action-btn');
+  btn.style.display = 'none';
+  btn.className     = 'action-btn';
 
-  // If this matchup already has a vote (resume scenario)
+  // If this matchup already has a vote (resume scenario), show confirmed state
   if (matchup.winner !== null) applyVoteUI(matchup.winner, matchup.winner === 0 ? matchup.songA : matchup.songB);
 }
 
@@ -513,16 +541,60 @@ function fillCard(side, song, seed) {
 }
 
 // ── VOTING ────────────────────────────────────────────────────────────────────
-function castVote(side) {
+// Two-stage flow:
+//   Stage 1 — card click → "selected" highlight, button shows "Confirm Pick →"
+//             Clicking the other card switches selection; button stays visible
+//   Stage 2 — button click → vote locked, button becomes "Next Matchup →"
+//
+let pendingSide = null; // side highlighted but not yet confirmed
+
+// Card click: highlight selection, show confirm button
+function selectCard(side) {
   const round   = bracket.rounds[bracket.currentRound];
   const matchup = round[bracket.currentMatchup];
-  if (matchup.winner !== null) return;
+  if (matchup.winner !== null) return; // already locked
 
-  matchup.winner = side;
-  save();
-  applyVoteUI(side, side === 0 ? matchup.songA : matchup.songB);
+  pendingSide = side;
+  const ca   = document.getElementById('card-a');
+  const cb   = document.getElementById('card-b');
+  const song = side === 0 ? matchup.songA : matchup.songB;
+
+  if (side === 0) { ca.className = 'song-card selected'; cb.className = 'song-card unselected'; }
+  else            { ca.className = 'song-card unselected'; cb.className = 'song-card selected'; }
+
+  // Keep both cards clickable so player can switch before confirming
+  ca.onclick = () => selectCard(0);
+  cb.onclick = () => selectCard(1);
+
+  const msg = document.getElementById('vote-msg');
+  msg.textContent = `"${song[2]}" — confirm or pick the other`;
+  msg.className   = 'vote-msg selected-state';
+
+  const btn = document.getElementById('action-btn');
+  btn.textContent = 'Confirm Pick →';
+  btn.className   = 'action-btn state-confirm';
+  btn.style.display = 'block';
 }
 
+// Button click handler — does different things depending on stage
+function handleActionBtn() {
+  const round   = bracket.rounds[bracket.currentRound];
+  const matchup = round[bracket.currentMatchup];
+
+  if (matchup.winner === null) {
+    // Stage 1 → 2: lock in the vote
+    if (pendingSide === null) return;
+    matchup.winner = pendingSide;
+    pendingSide    = null;
+    save();
+    applyVoteUI(matchup.winner, matchup.winner === 0 ? matchup.songA : matchup.songB);
+  } else {
+    // Stage 2 → advance
+    advanceMatchup();
+  }
+}
+
+// applyVoteUI: final confirmed state — lock cards, flip button to "Next Matchup"
 function applyVoteUI(side, winner) {
   const ca = document.getElementById('card-a');
   const cb = document.getElementById('card-b');
@@ -533,9 +605,13 @@ function applyVoteUI(side, winner) {
   else            { ca.className = 'song-card dropped'; cb.className = 'song-card picked'; }
 
   const msg = document.getElementById('vote-msg');
-  msg.textContent = `✓ You picked "${winner[2]}"`;
+  msg.textContent = `✓ Locked in — "${winner[2]}"`;
   msg.className   = 'vote-msg confirmed';
-  document.getElementById('next-btn').style.display = 'block';
+
+  const btn = document.getElementById('action-btn');
+  btn.textContent = 'Next Matchup →';
+  btn.className   = 'action-btn state-next';
+  btn.style.display = 'block';
 }
 
 function advanceMatchup() {
@@ -586,16 +662,22 @@ function showRoundComplete(winners) {
 }
 
 function startNextRound() {
-  const prevRound = bracket.rounds[bracket.currentRound];
-  const winners   = prevRound.map(m => m.winner === 0 ? m.songA : m.songB);
+  const prevMatchups = bracket.rounds[bracket.currentRound];
 
   bracket.currentRound++;
   bracket.currentMatchup = 0;
 
-  // Pair winners: 1 vs 2, 3 vs 4, …
-  const newMatchups = [];
-  for (let i = 0; i < winners.length; i += 2) {
-    newMatchups.push({ songA: winners[i], songB: winners[i+1], seedA: i+1, seedB: i+2, winner: null });
+  // Pair winners sequentially: slots 0&1 meet, slots 2&3 meet, etc.
+  // Seed numbers are preserved from the previous round (not reassigned).
+  const newMatchups  = [];
+  for (let i = 0; i < prevMatchups.length; i += 2) {
+    const mA   = prevMatchups[i];
+    const mB   = prevMatchups[i + 1];
+    const songA = mA.winner === 0 ? mA.songA : mA.songB;
+    const songB = mB.winner === 0 ? mB.songA : mB.songB;
+    const seedA = mA.winner === 0 ? mA.seedA : mA.seedB;
+    const seedB = mB.winner === 0 ? mB.seedA : mB.seedB;
+    newMatchups.push({ songA, songB, seedA, seedB, winner: null });
   }
   bracket.rounds.push(newMatchups);
   save();

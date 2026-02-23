@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Jam — Who Sang It?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0f; --surface: #161418; --surface2: #1e1b21; --border: #272330;
+    --amber: #9b6dff; --amber-glow: rgba(155,109,255,0.12);
+    --text: #e8e0d0; --text-dim: #9e9080; --text-muted: #6a6460;
+    --green: #5dba7f; --red: #e85d4a;
+    --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
+    --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+    --cc: #a45de8; /* Game 06 colour — purple */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 5%  0%,   rgba(155,109,255,0.38) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 95% 100%,  rgba(93,143,232,0.28)  0%, transparent 60%),
+      radial-gradient(ellipse 55% 45% at 88% 5%,    rgba(232,93,143,0.18)  0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 3%  95%,   rgba(93,186,127,0.18)  0%, transparent 55%); }
+  body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.4; }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+  .site-nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 56px; background: rgba(14,12,15,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+  .site-logo { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; }
+  .site-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-link { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 8px 14px; transition: color 0.15s; }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { color: var(--amber); }
+
+  /* ── GAME HEADER ─────────────────────────────────────────── */
+  .game-header { position: relative; z-index: 1; padding: 16px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .game-title-row { display: flex; flex-direction: column; gap: 3px; }
+  .game-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--cc); }
+  .game-title-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .score-display { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .score-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--amber); line-height: 1; }
+  .pips { display: flex; gap: 5px; align-items: center; }
+  .pip { width: 10px; height: 10px; background: var(--surface2); border: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; }
+  .pip.correct  { background: var(--green);  border-color: var(--green); }
+  .pip.wrong    { background: var(--red);    border-color: var(--red); }
+  .pip.current  { border-color: var(--text-dim); }
+
+  /* ── PROGRESS BAR ────────────────────────────────────────── */
+  .round-bar { height: 3px; background: var(--surface2); position: relative; z-index: 1; }
+  .round-bar-fill { height: 100%; background: var(--cc); transition: width 0.4s ease; width: 0%; }
+
+  /* ── MAIN LAYOUT ─────────────────────────────────────────── */
+  .game-body { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 40px 40px 80px; display: flex; flex-direction: column; gap: 32px; }
+
+  /* ── SONG CARD ───────────────────────────────────────────── */
+  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 28px 32px; display: flex; flex-direction: column; gap: 6px; }
+  .song-card-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 4vw, 40px); font-weight: 900; line-height: 1.1; color: var(--text); }
+
+  /* ── SPOTIFY EMBED ───────────────────────────────────────── */
+  .embed-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .embed-frame-wrap { position: relative; overflow: hidden; border: 1px solid var(--border); }
+  /* Overlay covers the Spotify title/artist text in the embed to prevent spoilers */
+  .embed-overlay { position: absolute; top: 0; left: 72px; right: 0; bottom: 0; background: var(--surface); pointer-events: none; z-index: 2; }
+  .embed-frame-wrap iframe { display: block; border: none; }
+  .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.6; }
+
+  /* ── ANSWER CHOICES ──────────────────────────────────────── */
+  .choices-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice-btn {
+    background: var(--surface); border: 2px solid var(--border); color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    padding: 16px 20px; text-align: left; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden;
+  }
+  .choice-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
+  .choice-btn:hover:not(:disabled) { border-color: var(--cc); background: var(--surface2); }
+  .choice-btn:hover:not(:disabled)::after { transform: scaleX(1); }
+  .choice-btn:disabled { cursor: default; }
+  .choice-btn.correct  { border-color: var(--green); background: rgba(93,186,127,0.08); color: var(--green); }
+  .choice-btn.correct::after { background: var(--green); transform: scaleX(1); }
+  .choice-btn.wrong    { border-color: var(--red); background: rgba(232,93,74,0.08); color: var(--red); opacity: 0.7; }
+  .choice-btn.wrong::after { display: none; }
+  .choice-btn.reveal   { border-color: var(--green); background: rgba(93,186,127,0.08); color: var(--green); }
+  .choice-btn.reveal::after { background: var(--green); transform: scaleX(1); }
+  .choice-letter { font-size: 9px; letter-spacing: 2px; color: var(--text-muted); flex-shrink: 0; min-width: 14px; }
+  .choice-btn.correct .choice-letter,
+  .choice-btn.wrong   .choice-letter,
+  .choice-btn.reveal  .choice-letter { color: inherit; opacity: 0.7; }
+
+  /* ── RESULT BANNER ───────────────────────────────────────── */
+  .result-banner { display: none; flex-direction: column; gap: 6px; padding: 20px 24px; border: 1px solid var(--border); }
+  .result-banner.correct { border-color: var(--green); background: rgba(93,186,127,0.05); }
+  .result-banner.wrong   { border-color: var(--red);   background: rgba(232,93,74,0.05); }
+  .result-verdict { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+  .result-banner.correct .result-verdict { color: var(--green); }
+  .result-banner.wrong   .result-verdict { color: var(--red); }
+  .result-detail { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .result-pts { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; }
+  .result-banner.correct .result-pts { color: var(--green); }
+  .result-banner.wrong   .result-pts  { color: var(--red); }
+
+  /* ── NEXT BUTTON ─────────────────────────────────────────── */
+  .next-row { display: flex; justify-content: center; }
+  .next-btn { display: none; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 14px 40px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .next-btn:hover { opacity: 0.85; }
+
+  /* ── SUMMARY SCREEN ──────────────────────────────────────── */
+  .summary-screen { display: none; position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 60px 40px 80px; flex-direction: column; gap: 32px; align-items: center; text-align: center; }
+  .sum-eye   { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+  .sum-head  { font-family: 'Playfair Display', serif; font-size: clamp(36px, 6vw, 72px); font-weight: 900; color: var(--cc); line-height: 0.95; }
+  .sum-score { font-family: 'Playfair Display', serif; font-size: clamp(48px, 8vw, 96px); font-weight: 900; color: var(--amber); line-height: 1; }
+  .sum-sub   { font-size: 12px; color: var(--text-dim); line-height: 1.9; max-width: 420px; }
+  .sum-rows  { width: 100%; display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); text-align: left; }
+  .sum-row   { background: var(--surface); display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px; padding: 14px 18px; }
+  .sum-title { font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sum-artist-ans { font-size: 10px; color: var(--text-muted); }
+  .sum-pts   { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+  .sum-pts.p1000 { color: var(--green); }
+  .sum-pts.p0    { color: var(--red); }
+  .sum-pips  { display: flex; gap: 5px; justify-content: center; }
+  .sum-pip   { width: 12px; height: 12px; }
+  .sum-pip.correct { background: var(--green); }
+  .sum-pip.wrong   { background: var(--red); }
+  .sum-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .sum-btn { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 13px 28px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .sum-btn.primary   { background: var(--cc); color: #0a0810; }
+  .sum-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+  .sum-btn:hover { opacity: 0.8; }
+
+  @media (max-width: 700px) {
+    .site-nav { padding: 0 16px; }
+    .game-header { padding: 12px 16px; }
+    .game-body { padding: 24px 16px 60px; gap: 24px; }
+    .choices-grid { grid-template-columns: 1fr; }
+    .summary-screen { padding: 40px 16px 60px; }
+    .pips { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Daily <span>Jam</span></a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="catalog.html">Catalog</a>
+    <a class="nav-link" href="calendar.html">Calendar</a>
+    <a class="nav-link" href="stats.html">Stats</a>
+    <a class="nav-link" href="shuffle.html">Shuffle</a>
+    <a class="nav-link active" href="games.html">Games</a>
+    <a class="nav-link" href="daily-jam-links.html">Links</a>
+  </div>
+</nav>
+
+<!-- GAME HEADER -->
+<div class="game-header">
+  <div class="game-title-row">
+    <span class="game-eyebrow">Game 06 · Who Sang It?</span>
+    <span class="game-title-text">Who Sang It?</span>
+  </div>
+  <div class="pips" id="pips"></div>
+  <div class="header-right">
+    <div class="score-display">
+      <span class="score-label">Score</span>
+      <span class="score-val" id="score-val">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="round-bar"><div class="round-bar-fill" id="bar-fill"></div></div>
+
+<!-- GAME BODY -->
+<div class="game-body" id="game-body">
+
+  <!-- Song title card -->
+  <div class="song-card">
+    <span class="song-card-eyebrow">Song Title</span>
+    <span class="song-title" id="song-title">Loading…</span>
+  </div>
+
+  <!-- Spotify embed -->
+  <div class="embed-wrap">
+    <span class="embed-label">Listen for a clue</span>
+    <div class="embed-frame-wrap" id="embed-frame-wrap">
+      <!-- iframe injected by JS -->
+      <!-- Overlay hides the track name / artist shown in the embed -->
+      <div class="embed-overlay" id="embed-overlay"></div>
+    </div>
+    <span class="embed-hint">The embed shows album art and a 30-second preview — artist name is hidden until you answer.</span>
+  </div>
+
+  <!-- Answer choices -->
+  <div class="choices-label">Who sang this song?</div>
+  <div class="choices-grid" id="choices-grid"></div>
+
+  <!-- Result banner -->
+  <div class="result-banner" id="result-banner">
+    <span class="result-verdict" id="result-verdict"></span>
+    <span class="result-pts"     id="result-pts"></span>
+    <span class="result-detail"  id="result-detail"></span>
+  </div>
+
+  <!-- Next button -->
+  <div class="next-row">
+    <button class="next-btn" id="next-btn" onclick="nextRound()"></button>
+  </div>
+
+</div>
+
+<!-- SUMMARY SCREEN -->
+<div class="summary-screen" id="summary-screen">
+  <p class="sum-eye">Game Over</p>
+  <h2 class="sum-head">Who<br>Sang It?</h2>
+  <div class="sum-score" id="sum-score"></div>
+  <p class="sum-sub" id="sum-sub"></p>
+  <div class="sum-pips" id="sum-pips"></div>
+  <div class="sum-rows" id="sum-rows"></div>
+  <div class="sum-actions">
+    <button class="sum-btn primary" onclick="restartGame()">Play Again →</button>
+    <a class="sum-btn secondary" href="games.html">All Games</a>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const DJ_YEARS = [
+  { num:1, label:'DJ1', color:'#5d8fe8', start:'2018-09-24', end:'2019-09-23' },
+  { num:2, label:'DJ2', color:'#5dba7f', start:'2019-09-24', end:'2020-09-23' },
+  { num:3, label:'DJ3', color:'#e85d8f', start:'2020-09-24', end:'2021-09-23' },
+  { num:4, label:'DJ4', color:'#e8a45d', start:'2021-09-24', end:'2022-09-23' },
+  { num:5, label:'DJ5', color:'#a45de8', start:'2022-09-24', end:'2023-09-23' },
+  { num:6, label:'DJ6', color:'#5de8e8', start:'2023-09-24', end:'2024-09-23' },
+  { num:7, label:'DJ7', color:'#e8e85d', start:'2024-09-24', end:'2025-09-23' },
+  { num:8, label:'DJ8', color:'#FF6B6B', start:'2025-09-24', end:'2026-09-23' },
+];
+const TOTAL_ROUNDS = 10;
+const CHOICES      = 4;
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let allSongs   = [];
+let rounds     = [];   // array of round objects
+let roundIdx   = 0;
+let totalScore = 0;
+let answered   = false;
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(async function init() {
+  const arrays = await Promise.all([1,2,3,4,5,6,7,8].map(y =>
+    fetch(`songs-dj${y}.json`)
+      .then(r => r.text())
+      .then(txt => { if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); return JSON.parse(txt); })
+  ));
+  allSongs = arrays.flat();
+  buildGame();
+  buildPips();
+  renderRound();
+})();
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getDJYear(dateStr) {
+  return DJ_YEARS.find(y => dateStr >= y.start && dateStr <= y.end) || DJ_YEARS[0];
+}
+
+// Pick N distinct items from arr using a filter to avoid repeats
+function pickRandom(arr, n, exclude = []) {
+  const pool = arr.filter(x => !exclude.includes(x));
+  return shuffle(pool).slice(0, n);
+}
+
+// ── BUILD GAME ────────────────────────────────────────────────────────────────
+function buildGame() {
+  // Pick 10 distinct songs as the correct answers
+  const correctSongs = shuffle(allSongs).slice(0, TOTAL_ROUNDS);
+
+  rounds = correctSongs.map(correct => {
+    // Collect all unique artists in the catalog
+    const allArtists = [...new Set(allSongs.map(s => s[3]))];
+
+    // Build wrong choices: other artists (not the correct one)
+    const wrongs = shuffle(allArtists.filter(a => a !== correct[3])).slice(0, CHOICES - 1);
+
+    // Combine + shuffle choices; store correct index
+    const choiceArtists = shuffle([correct[3], ...wrongs]);
+    const correctIndex  = choiceArtists.indexOf(correct[3]);
+
+    return { song: correct, choices: choiceArtists, correctIndex, result: null };
+  });
+}
+
+// ── PIPS ──────────────────────────────────────────────────────────────────────
+function buildPips() {
+  const container = document.getElementById('pips');
+  container.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'pip' + (i === 0 ? ' current' : '');
+    pip.id = `pip-${i}`;
+    container.appendChild(pip);
+  }
+}
+
+function updatePip(idx, state) {
+  const pip = document.getElementById(`pip-${idx}`);
+  if (pip) pip.className = `pip ${state}`;
+  // Mark next as current
+  const next = document.getElementById(`pip-${idx + 1}`);
+  if (next) next.className = 'pip current';
+}
+
+// ── RENDER ROUND ──────────────────────────────────────────────────────────────
+function renderRound() {
+  answered = false;
+  const r = rounds[roundIdx];
+
+  // Progress bar
+  document.getElementById('bar-fill').style.width = (roundIdx / TOTAL_ROUNDS * 100) + '%';
+
+  // Song title
+  document.getElementById('song-title').textContent = r.song[2];
+
+  // Spotify embed — inject iframe fresh each round (avoids stale audio)
+  const wrap = document.getElementById('embed-frame-wrap');
+  // Remove old iframe if present
+  const old = wrap.querySelector('iframe');
+  if (old) old.remove();
+  const iframe = document.createElement('iframe');
+  iframe.src    = `https://open.spotify.com/embed/track/${r.song[1]}?utm_source=generator&theme=0`;
+  iframe.width  = '100%';
+  iframe.height = '80';
+  iframe.setAttribute('frameborder', '0');
+  iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+  iframe.setAttribute('loading', 'lazy');
+  // Insert before the overlay so overlay stays on top
+  wrap.insertBefore(iframe, document.getElementById('embed-overlay'));
+
+  // Choices
+  const grid = document.getElementById('choices-grid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  r.choices.forEach((artist, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${escHtml(artist)}`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  // Reset result + next btn
+  const rb = document.getElementById('result-banner');
+  rb.style.display = 'none';
+  rb.className     = 'result-banner';
+  document.getElementById('next-btn').style.display = 'none';
+}
+
+// ── ANSWER ────────────────────────────────────────────────────────────────────
+function selectAnswer(choiceIdx) {
+  if (answered) return;
+  answered = true;
+
+  const r       = rounds[roundIdx];
+  const correct = choiceIdx === r.correctIndex;
+  const pts     = correct ? 1000 : 0;
+  r.result      = { choiceIdx, correct, pts };
+  totalScore   += pts;
+
+  // Update score display
+  document.getElementById('score-val').textContent = totalScore;
+
+  // Style all buttons
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === r.correctIndex) {
+      btn.classList.add(correct && i === choiceIdx ? 'correct' : 'reveal');
+    } else if (i === choiceIdx) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  // Pip
+  updatePip(roundIdx, correct ? 'correct' : 'wrong');
+
+  // Remove embed overlay — reveal album art fully after answer
+  const overlay = document.getElementById('embed-overlay');
+  if (overlay) overlay.style.display = 'none';
+
+  // Result banner
+  const yr   = getDJYear(r.song[5]);
+  const rb   = document.getElementById('result-banner');
+  rb.className = `result-banner ${correct ? 'correct' : 'wrong'}`;
+  rb.style.display = 'flex';
+  document.getElementById('result-verdict').textContent = correct ? '✓ Correct!' : '✗ Wrong';
+  document.getElementById('result-pts').textContent     = correct ? '+1000' : '+0';
+  document.getElementById('result-detail').innerHTML    =
+    `<strong>${escHtml(r.song[2])}</strong> is by <strong>${escHtml(r.song[3])}</strong>`
+    + ` &mdash; from <span style="color:${yr.color}">${yr.label}</span> (${r.song[5]})`;
+
+  // Next button
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.display = 'block';
+  nextBtn.textContent = roundIdx < TOTAL_ROUNDS - 1 ? 'Next Song →' : 'See Results →';
+}
+
+// ── NEXT ROUND ────────────────────────────────────────────────────────────────
+function nextRound() {
+  roundIdx++;
+  if (roundIdx >= TOTAL_ROUNDS) {
+    showSummary();
+    return;
+  }
+
+  // Restore overlay for new round
+  const overlay = document.getElementById('embed-overlay');
+  if (overlay) overlay.style.display = 'block';
+
+  renderRound();
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function showSummary() {
+  document.getElementById('game-body').style.display  = 'none';
+  document.getElementById('summary-screen').style.display = 'flex';
+  document.getElementById('bar-fill').style.width = '100%';
+
+  const correct = rounds.filter(r => r.result && r.result.correct).length;
+
+  document.getElementById('sum-score').textContent = totalScore.toLocaleString();
+  document.getElementById('sum-sub').textContent   =
+    `${correct} of ${TOTAL_ROUNDS} correct — ${totalScore.toLocaleString()} / ${(TOTAL_ROUNDS * 1000).toLocaleString()} pts`;
+
+  // Summary pips
+  const spips = document.getElementById('sum-pips');
+  spips.innerHTML = '';
+  rounds.forEach(r => {
+    const p = document.createElement('div');
+    p.className = `sum-pip ${r.result && r.result.correct ? 'correct' : 'wrong'}`;
+    spips.appendChild(p);
+  });
+
+  // Summary rows
+  const rows = document.getElementById('sum-rows');
+  rows.innerHTML = '';
+  rounds.forEach((r, i) => {
+    const yr    = getDJYear(r.song[5]);
+    const isOk  = r.result && r.result.correct;
+    const row   = document.createElement('div');
+    row.className = 'sum-row';
+    row.innerHTML = `
+      <div>
+        <div class="sum-title">${escHtml(r.song[2])}</div>
+        <div class="sum-artist-ans" style="color:${yr.color}">${escHtml(r.song[3])} · ${yr.label}</div>
+      </div>
+      <div class="sum-artist-ans">${isOk ? '✓' : `✗ You said: ${escHtml(r.choices[r.result.choiceIdx])}`}</div>
+      <div class="sum-pts ${isOk ? 'p1000' : 'p0'}">${isOk ? '+1000' : '0'}</div>
+    `;
+    rows.appendChild(row);
+  });
+}
+
+// ── RESTART ───────────────────────────────────────────────────────────────────
+function restartGame() {
+  roundIdx   = 0;
+  totalScore = 0;
+  answered   = false;
+  document.getElementById('score-val').textContent           = '0';
+  document.getElementById('summary-screen').style.display   = 'none';
+  document.getElementById('game-body').style.display        = 'flex';
+  document.getElementById('bar-fill').style.width           = '0%';
+  buildGame();
+  buildPips();
+  // Restore overlay
+  const overlay = document.getElementById('embed-overlay');
+  if (overlay) overlay.style.display = 'block';
+  renderRound();
+}
+
+// ── UTIL ──────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
