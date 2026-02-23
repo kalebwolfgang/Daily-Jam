@@ -14,6 +14,7 @@
     --green: #5dba7f; --red: #e85d4a;
     --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
+    --hot-scorch: #ff4400; --hot-warm: #e8a45d; --cold-cold: #5d8fe8; --cold-freeze: #a0d4ff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
@@ -61,28 +62,42 @@
   .loading { display: flex; align-items: center; justify-content: center; flex: 1; font-size: 11px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
 
   /* MAIN GAME AREA */
-  .game-body { flex: 1; display: flex; flex-direction: column; padding: 40px; gap: 32px; max-width: 860px; margin: 0 auto; width: 100%; }
+  .game-body { flex: 1; display: flex; flex-direction: column; padding: 40px; gap: 28px; max-width: 860px; margin: 0 auto; width: 100%; }
 
   /* SONG DISPLAY */
-  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 36px 40px; text-align: center; position: relative; }
-  .song-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; }
-  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(22px, 3.5vw, 40px); font-weight: 900; line-height: 1.15; color: var(--text); }
-  .song-artist { margin-top: 12px; font-size: 14px; color: var(--text-dim); display: none; }
-  .song-artist.visible { display: block; }
-  .song-season { margin-top: 8px; font-size: 12px; color: var(--text-muted); letter-spacing: 1px; display: none; }
-  .song-season.visible { display: block; }
+  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 32px 40px; text-align: center; }
+  .song-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(20px, 3.5vw, 38px); font-weight: 900; line-height: 1.15; color: var(--text); }
+  .song-artist { margin-top: 10px; font-size: 15px; color: var(--text-dim); }
+  .song-extra { margin-top: 8px; font-size: 12px; color: var(--text-muted); letter-spacing: 1px; min-height: 18px; }
 
-  /* LIFELINES */
-  .lifelines-row { display: flex; gap: 10px; justify-content: center; align-items: center; }
-  .lifeline-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-right: 4px; }
-  .lifeline-btn { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 16px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
-  .lifeline-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
-  .lifeline-btn:disabled { opacity: 0.3; cursor: default; }
-  .lifeline-btn.used { opacity: 0.25; cursor: default; text-decoration: line-through; }
-  .lifeline-num { font-size: 9px; opacity: 0.6; }
+  /* ── LIFELINES ─────────────────────────────────────────── */
+  .lifelines-section { display: flex; flex-direction: column; gap: 12px; }
+  .lifelines-header { display: flex; align-items: center; justify-content: space-between; }
+  .lifelines-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .lifelines-note  { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
 
-  /* YEAR BUTTONS GRID */
-  .year-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .lifelines-row { display: flex; gap: 8px; }
+
+  /* each lifeline card */
+  .lifeline-card { flex: 1; border: 1px solid var(--border); background: var(--surface); padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+  .lifeline-card:hover:not(.used):not(.disabled) { border-color: var(--lc-color, var(--amber)); background: var(--surface2); }
+  .lifeline-card.used     { opacity: 0.28; cursor: default; pointer-events: none; }
+  .lifeline-card.disabled { opacity: 0.4;  cursor: default; pointer-events: none; }
+
+  .lc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .lc-name { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--lc-color, var(--amber)); }
+  .lc-icon { font-size: 18px; line-height: 1; }
+  .lc-desc { font-size: 10px; color: var(--text-dim); line-height: 1.5; letter-spacing: 0.5px; }
+  .lc-used-stamp { position: absolute; top: 6px; right: 8px; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); }
+
+  /* Safety active state */
+  .lifeline-card.safety-active { border-color: var(--green) !important; background: rgba(93,186,127,0.07) !important; }
+  .lifeline-card.safety-active .lc-name { color: var(--green); }
+
+  /* YEAR GRID */
+  .year-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; position: relative; }
+
   .year-btn {
     font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700;
     letter-spacing: 1px; padding: 20px 12px;
@@ -90,14 +105,43 @@
     background: transparent; cursor: pointer;
     transition: background 0.15s, color 0.15s, transform 0.1s, opacity 0.2s;
     display: flex; flex-direction: column; align-items: center; gap: 4px;
+    position: relative; overflow: hidden;
   }
   .year-btn:hover:not(:disabled):not(.eliminated) { background: var(--btn-color); color: #0a0810; }
   .year-btn:active:not(:disabled) { transform: scale(0.97); }
-  .year-btn.eliminated { opacity: 0.12; cursor: default; border-style: dashed; }
-  .year-btn.correct { background: var(--green) !important; border-color: var(--green) !important; color: #0a0810 !important; }
-  .year-btn.wrong   { background: var(--red)   !important; border-color: var(--red)   !important; color: #0a0810 !important; }
+  .year-btn.eliminated { opacity: 0.12; cursor: default; border-style: dashed; pointer-events: none; }
   .year-btn.reveal-correct { background: var(--green) !important; border-color: var(--green) !important; color: #0a0810 !important; }
+  .year-btn.wrong-guess    { background: var(--red)   !important; border-color: var(--red)   !important; color: #0a0810 !important; }
   .year-label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; font-weight: 400; }
+
+  /* Hot/Cold overlay on individual button */
+  .year-btn .hc-overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px;
+    font-size: 22px; line-height: 1; pointer-events: none;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .year-btn.hc-shown .hc-overlay { opacity: 1; }
+  .year-btn.hc-shown .yr-main { opacity: 0.15; }
+  .hc-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+
+  /* tier colours */
+  .hc-scorching .hc-overlay { background: rgba(255,68,0,0.18); color: #ff6622; }
+  .hc-scorching .hc-label   { color: #ff6622; }
+  .hc-warm      .hc-overlay { background: rgba(232,164,93,0.18); color: var(--y4); }
+  .hc-warm      .hc-label   { color: var(--y4); }
+  .hc-cold      .hc-overlay { background: rgba(93,143,232,0.18); color: var(--y1); }
+  .hc-cold      .hc-label   { color: var(--y1); }
+  .hc-freezing  .hc-overlay { background: rgba(160,212,255,0.18); color: #a0d4ff; }
+  .hc-freezing  .hc-label   { color: #a0d4ff; }
+
+  /* HOT/COLD result strip below grid */
+  .hc-result { margin-top: 4px; min-height: 28px; text-align: center; font-size: 12px; letter-spacing: 1px; color: var(--text-dim); display: none; }
+  .hc-result.visible { display: block; }
+
+  /* SAFETY banner */
+  .safety-banner { display: none; background: rgba(93,186,127,0.1); border: 1px solid var(--green); padding: 10px 16px; text-align: center; font-size: 11px; color: var(--green); letter-spacing: 1px; }
+  .safety-banner.visible { display: block; }
 
   /* RESULT AREA */
   .result-area { display: none; background: var(--surface); border: 1px solid var(--border); padding: 24px 32px; text-align: center; }
@@ -108,13 +152,13 @@
   .result-area.correct .result-headline { color: var(--green); }
   .result-area.close   .result-headline { color: var(--y4); }
   .result-area.wrong   .result-headline { color: var(--red); }
-  .result-detail { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 20px; }
+  .result-detail { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 16px; }
   .result-points { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 900; color: var(--amber); margin-bottom: 4px; }
   .result-points-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
   .next-btn { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 12px 28px; border: 1px solid var(--border); color: var(--text); background: transparent; cursor: pointer; transition: background 0.15s; }
   .next-btn:hover { background: var(--surface2); }
 
-  /* SUMMARY SCREEN */
+  /* SUMMARY */
   .summary { display: none; flex-direction: column; gap: 0; flex: 1; }
   .summary-header { padding: 40px 40px 24px; border-bottom: 1px solid var(--border); text-align: center; }
   .summary-title { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; }
@@ -140,17 +184,18 @@
   @media (max-width: 900px) {
     .site-nav { padding: 0 16px; }
     .game-header { padding: 16px; flex-wrap: wrap; }
-    .game-body { padding: 24px 16px; }
+    .game-body { padding: 20px 16px; gap: 20px; }
     .summary-row { padding: 12px 16px; grid-template-columns: 24px 1fr auto auto; gap: 10px; }
     .summary-header { padding: 28px 16px 20px; }
     .summary-footer { padding: 24px 16px; }
   }
-  @media (max-width: 600px) {
+  @media (max-width: 640px) {
     .year-grid { grid-template-columns: repeat(2, 1fr); }
+    .lifelines-row { flex-direction: column; }
     .round-pips { gap: 4px; }
     .pip { width: 8px; height: 8px; }
     .nav-links .nav-link { padding: 8px 8px; font-size: 10px; }
-    .song-card { padding: 24px 20px; }
+    .song-card { padding: 24px 16px; }
   }
 </style>
 </head>
@@ -191,33 +236,62 @@
   <div id="game-state" style="display:none; flex-direction:column; flex:1;">
     <div class="game-body">
 
+      <!-- Song card -->
       <div class="song-card">
         <div class="song-label">Which DJ Year is this song from?</div>
         <div class="song-title" id="song-title">—</div>
         <div class="song-artist" id="song-artist"></div>
-        <div class="song-season" id="song-season"></div>
+        <div class="song-extra" id="song-extra"></div>
       </div>
 
-      <div class="lifelines-row">
-        <span class="lifeline-label">Lifelines:</span>
-        <button class="lifeline-btn" id="hint1-btn" onclick="useHint(1)">
-          <span>Eliminate 4</span>
-          <span class="lifeline-num">①</span>
-        </button>
-        <button class="lifeline-btn" id="hint2-btn" onclick="useHint(2)">
-          <span>Reveal Artist</span>
-          <span class="lifeline-num">②</span>
-        </button>
-        <button class="lifeline-btn" id="hint3-btn" onclick="useHint(3)">
-          <span>Reveal Season</span>
-          <span class="lifeline-num">③</span>
-        </button>
+      <!-- Lifelines -->
+      <div class="lifelines-section">
+        <div class="lifelines-header">
+          <span class="lifelines-label">Lifelines — one use each per game</span>
+          <span class="lifelines-note" id="hints-used-note"></span>
+        </div>
+        <div class="lifelines-row">
+
+          <!-- Slice -->
+          <div class="lifeline-card" id="lc-slice" style="--lc-color:#e85d8f" onclick="useLifeline('slice')">
+            <div class="lc-top">
+              <span class="lc-name">Slice</span>
+              <span class="lc-icon">✂</span>
+            </div>
+            <div class="lc-desc">Cuts 4 random wrong answers, leaving just 4 to choose from.</div>
+          </div>
+
+          <!-- Safety -->
+          <div class="lifeline-card" id="lc-safety" style="--lc-color:#5dba7f" onclick="useLifeline('safety')">
+            <div class="lc-top">
+              <span class="lc-name">Safety</span>
+              <span class="lc-icon">🛡</span>
+            </div>
+            <div class="lc-desc">Protects one wrong guess. If you pick wrong it won't count — try again.</div>
+          </div>
+
+          <!-- Hot/Cold -->
+          <div class="lifeline-card" id="lc-hotcold" style="--lc-color:#ff6622" onclick="useLifeline('hotcold')">
+            <div class="lc-top">
+              <span class="lc-name">Hot / Cold</span>
+              <span class="lc-icon">🌡</span>
+            </div>
+            <div class="lc-desc">Picks a random year and rates it: Scorching 🔥, Warm, Cold, or Freezing ❄.</div>
+          </div>
+
+        </div>
       </div>
 
-      <div class="year-grid" id="year-grid">
-        <!-- filled by JS -->
-      </div>
+      <!-- Safety active banner -->
+      <div class="safety-banner" id="safety-banner">🛡 Safety active — your next wrong guess won't count</div>
 
+      <!-- Year buttons -->
+      <div class="year-grid" id="year-grid"></div>
+
+      <!-- Hot/Cold result strip -->
+      <div class="hc-result" id="hc-result"></div>
+
+      <!-- Result area -->
       <div class="result-area" id="result-area">
         <div class="result-headline" id="result-headline"></div>
         <div class="result-detail" id="result-detail"></div>
@@ -247,37 +321,42 @@
 
 <script>
 const DJ_YEARS = [
-  { num: 1, label: 'DJ1', color: '#5d8fe8', start: '2018-09-24', end: '2019-09-23' },
-  { num: 2, label: 'DJ2', color: '#5dba7f', start: '2019-09-24', end: '2020-09-23' },
-  { num: 3, label: 'DJ3', color: '#e85d8f', start: '2020-09-24', end: '2021-09-23' },
-  { num: 4, label: 'DJ4', color: '#e8a45d', start: '2021-09-24', end: '2022-09-23' },
-  { num: 5, label: 'DJ5', color: '#a45de8', start: '2022-09-24', end: '2023-09-23' },
-  { num: 6, label: 'DJ6', color: '#5de8e8', start: '2023-09-24', end: '2024-09-23' },
-  { num: 7, label: 'DJ7', color: '#e8e85d', start: '2024-09-24', end: '2025-09-23' },
-  { num: 8, label: 'DJ8', color: '#FF6B6B', start: '2025-09-24', end: '2026-09-23' },
+  { num:1, label:'DJ1', color:'#5d8fe8', start:'2018-09-24', end:'2019-09-23' },
+  { num:2, label:'DJ2', color:'#5dba7f', start:'2019-09-24', end:'2020-09-23' },
+  { num:3, label:'DJ3', color:'#e85d8f', start:'2020-09-24', end:'2021-09-23' },
+  { num:4, label:'DJ4', color:'#e8a45d', start:'2021-09-24', end:'2022-09-23' },
+  { num:5, label:'DJ5', color:'#a45de8', start:'2022-09-24', end:'2023-09-23' },
+  { num:6, label:'DJ6', color:'#5de8e8', start:'2023-09-24', end:'2024-09-23' },
+  { num:7, label:'DJ7', color:'#e8e85d', start:'2024-09-24', end:'2025-09-23' },
+  { num:8, label:'DJ8', color:'#FF6B6B', start:'2025-09-24', end:'2026-09-23' },
 ];
 
-const SEASONS = [
-  { name: 'Fall',   months: [9, 10, 11] },
-  { name: 'Winter', months: [12, 1, 2] },
-  { name: 'Spring', months: [3, 4, 5] },
-  { name: 'Summer', months: [6, 7, 8] },
+const HC_TIERS = [
+  { diff:0, cls:'hc-scorching', emoji:'🔥🔥', label:'Scorching', desc:'This IS the year!' },
+  { diff:1, cls:'hc-warm',      emoji:'🌤',   label:'Warm',      desc:'One year away' },
+  { diff:2, cls:'hc-cold',      emoji:'🌨',   label:'Cold',      desc:'Two years away' },
+  { diff:null, cls:'hc-freezing', emoji:'❄❄', label:'Freezing',  desc:'Way off' },
 ];
 
 const TOTAL_ROUNDS = 10;
-const BASE_POINTS = 1000;
+const BASE_POINTS  = 1000;
 const HINT_PENALTY = 250;
 
-let allSongsByYear = [];  // array of arrays, index 0 = DJ1
-let rounds = [];          // chosen songs for this game
+// ── Game state ─────────────────────────────────────────────────────────────────
+let allSongsByYear = [];
+let rounds = [];
 let roundIdx = 0;
 let totalScore = 0;
-let hintsUsed = 0;
 let answered = false;
 let eliminated = new Set();
-let history = [];         // {song, yearNum, guessedYear, points}
+let history = [];
 
-// ── LOAD ──────────────────────────────────────────────────────────────────────
+// Per-game lifeline state (reset on startGame, never on nextRound)
+let lifelines = { slice: false, safety: false, hotcold: false };
+let safetyActive = false;  // safety has been activated and not yet consumed
+let hintsUsedThisRound = 0; // tracks how many lifelines used this round for point penalty
+
+// ── LOAD ───────────────────────────────────────────────────────────────────────
 async function loadData() {
   try {
     const arrays = await Promise.all([1,2,3,4,5,6,7,8].map(y =>
@@ -299,96 +378,96 @@ function startGame() {
   roundIdx = 0;
   totalScore = 0;
   history = [];
+  lifelines = { slice: false, safety: false, hotcold: false };
+  safetyActive = false;
+  hintsUsedThisRound = 0;
+
   document.getElementById('score-display').textContent = '0';
-  buildPips();
   document.getElementById('summary-state').style.display = 'none';
   document.getElementById('game-state').style.display = 'flex';
+  buildPips();
+  renderLifelineCards();
   loadRound();
 }
 
-function restartGame() {
-  startGame();
-}
+function restartGame() { startGame(); }
 
 function pickRounds() {
-  // Pick one song from each of the 8 years, then 2 more random from any year = 10
   const selected = [];
-  const usedIndices = Array(8).fill(null).map(() => new Set());
-
-  // One from each year
+  const used = Array(8).fill(null).map(() => new Set());
   for (let y = 0; y < 8; y++) {
     const pool = allSongsByYear[y];
-    const idx = Math.floor(Math.random() * pool.length);
-    usedIndices[y].add(idx);
+    const idx  = Math.floor(Math.random() * pool.length);
+    used[y].add(idx);
     selected.push({ song: pool[idx], yearNum: y + 1 });
   }
-
-  // 2 more from random years (avoid duplicates)
-  for (let extra = 0; extra < 2; extra++) {
+  for (let i = 0; i < 2; i++) {
     let y, idx;
-    do {
-      y = Math.floor(Math.random() * 8);
-      idx = Math.floor(Math.random() * allSongsByYear[y].length);
-    } while (usedIndices[y].has(idx));
-    usedIndices[y].add(idx);
+    do { y = Math.floor(Math.random() * 8); idx = Math.floor(Math.random() * allSongsByYear[y].length); }
+    while (used[y].has(idx));
+    used[y].add(idx);
     selected.push({ song: allSongsByYear[y][idx], yearNum: y + 1 });
   }
-
-  // Shuffle
   return selected.sort(() => Math.random() - 0.5);
 }
 
 // ── PIPS ───────────────────────────────────────────────────────────────────────
 function buildPips() {
-  const container = document.getElementById('pips');
-  container.innerHTML = '';
+  const c = document.getElementById('pips');
+  c.innerHTML = '';
   for (let i = 0; i < TOTAL_ROUNDS; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'pip' + (i === 0 ? ' current' : '');
-    pip.id = `pip-${i}`;
-    container.appendChild(pip);
+    const p = document.createElement('div');
+    p.className = 'pip' + (i === 0 ? ' current' : '');
+    p.id = `pip-${i}`;
+    c.appendChild(p);
   }
 }
-
 function updatePip(idx, result) {
-  const pip = document.getElementById(`pip-${idx}`);
-  if (!pip) return;
-  pip.className = 'pip ' + result;
-  const next = document.getElementById(`pip-${idx + 1}`);
-  if (next) next.classList.add('current');
+  const p = document.getElementById(`pip-${idx}`);
+  if (p) p.className = 'pip ' + result;
+  const n = document.getElementById(`pip-${idx + 1}`);
+  if (n) n.classList.add('current');
+}
+
+// ── LIFELINE CARDS ─────────────────────────────────────────────────────────────
+function renderLifelineCards() {
+  ['slice','safety','hotcold'].forEach(key => {
+    const card = document.getElementById(`lc-${key}`);
+    card.classList.toggle('used', lifelines[key]);
+    card.classList.remove('disabled');
+    // Safety: disable if answered or already consumed this round via safetyActive
+    if (key === 'safety' && safetyActive) card.classList.add('disabled');
+  });
+  // Update safety card style when active
+  const sc = document.getElementById('lc-safety');
+  sc.classList.toggle('safety-active', safetyActive);
 }
 
 // ── ROUND ──────────────────────────────────────────────────────────────────────
 function loadRound() {
-  hintsUsed = 0;
   answered = false;
   eliminated = new Set();
+  hintsUsedThisRound = 0;
+  safetyActive = lifelines.safety && false; // safety persists as used=true but active resets
 
-  const { song, yearNum } = rounds[roundIdx];
-
-  // Song display
+  const { song } = rounds[roundIdx];
   document.getElementById('song-title').textContent = song[2];
-  const artistEl = document.getElementById('song-artist');
-  artistEl.textContent = song[3];
-  artistEl.className = 'song-artist';
+  document.getElementById('song-artist').textContent = song[3];
+  document.getElementById('song-extra').textContent = '';
 
-  const seasonEl = document.getElementById('song-season');
-  seasonEl.textContent = '';
-  seasonEl.className = 'song-season';
-
-  // Result area
   const resultArea = document.getElementById('result-area');
   resultArea.style.display = 'none';
   resultArea.className = 'result-area';
 
-  // Reset lifelines
-  resetLifelineBtns();
+  document.getElementById('hc-result').className = 'hc-result';
+  document.getElementById('hc-result').textContent = '';
+  document.getElementById('safety-banner').className = 'safety-banner';
 
-  // Build year buttons
-  buildYearGrid(yearNum);
+  renderLifelineCards();
+  buildYearGrid();
 }
 
-function buildYearGrid(correctYear) {
+function buildYearGrid() {
   const grid = document.getElementById('year-grid');
   grid.innerHTML = '';
   DJ_YEARS.forEach(yr => {
@@ -396,69 +475,77 @@ function buildYearGrid(correctYear) {
     btn.className = 'year-btn';
     btn.style.setProperty('--btn-color', yr.color);
     btn.id = `yr-btn-${yr.num}`;
-    btn.innerHTML = `<span>${yr.label}</span><span class="year-label">Year ${yr.num}</span>`;
+    btn.innerHTML = `
+      <span class="yr-main">${yr.label}</span>
+      <span class="year-label">Year ${yr.num}</span>
+      <div class="hc-overlay"><span class="hc-emoji"></span><span class="hc-label"></span></div>
+    `;
     btn.onclick = () => guess(yr.num);
     grid.appendChild(btn);
   });
 }
 
-// ── LIFELINES ─────────────────────────────────────────────────────────────────
-function resetLifelineBtns() {
-  [1, 2, 3].forEach(n => {
-    const btn = document.getElementById(`hint${n}-btn`);
-    btn.disabled = false;
-    btn.classList.remove('used');
-  });
-}
-
-function useHint(n) {
+// ── LIFELINES ──────────────────────────────────────────────────────────────────
+function useLifeline(key) {
+  if (lifelines[key]) return; // already used for this game
   if (answered) return;
-  const btn = document.getElementById(`hint${n}-btn`);
-  btn.disabled = true;
-  btn.classList.add('used');
-  hintsUsed++;
 
-  const { song, yearNum } = rounds[roundIdx];
+  const { yearNum: correct } = rounds[roundIdx];
 
-  if (n === 1) {
-    // Eliminate 4 wrong options, leaving 4 remaining (including correct)
-    const wrongYears = DJ_YEARS.map(y => y.num).filter(y => y !== yearNum);
-    // shuffle and pick 4 to eliminate
-    const toEliminate = wrongYears.sort(() => Math.random() - 0.5).slice(0, 4);
-    toEliminate.forEach(y => {
+  if (key === 'slice') {
+    lifelines.slice = true;
+    hintsUsedThisRound++;
+    // Eliminate 4 random wrong years — always from non-eliminated pool
+    const pool = DJ_YEARS.map(y => y.num).filter(y => y !== correct && !eliminated.has(y));
+    const toElim = pool.sort(() => Math.random() - 0.5).slice(0, 4);
+    toElim.forEach(y => {
       eliminated.add(y);
-      const yBtn = document.getElementById(`yr-btn-${y}`);
-      if (yBtn) { yBtn.classList.add('eliminated'); yBtn.disabled = true; }
+      const btn = document.getElementById(`yr-btn-${y}`);
+      if (btn) { btn.classList.add('eliminated'); btn.disabled = true; }
     });
-  } else if (n === 2) {
-    // Reveal artist
-    document.getElementById('song-artist').classList.add('visible');
-  } else if (n === 3) {
-    // Reveal season from the song's date string (index 5: e.g. "October 5, 2021")
-    const dateStr = song[5];
-    const season = getSeason(dateStr);
-    const seasonEl = document.getElementById('song-season');
-    seasonEl.textContent = `Added in ${season}`;
-    seasonEl.classList.add('visible');
   }
-}
 
-function getSeason(dateStr) {
-  const d = new Date(dateStr);
-  const month = d.getMonth() + 1; // 1-12
-  for (const s of SEASONS) {
-    if (s.months.includes(month)) return s.name;
+  else if (key === 'safety') {
+    lifelines.safety = true;
+    safetyActive = true;
+    hintsUsedThisRound++;
+    document.getElementById('safety-banner').className = 'safety-banner visible';
   }
-  return 'Unknown';
+
+  else if (key === 'hotcold') {
+    lifelines.hotcold = true;
+    hintsUsedThisRound++;
+    // Pick a random year from those NOT eliminated (and not already hc-shown)
+    const pool = DJ_YEARS.filter(y => !eliminated.has(y.num));
+    if (!pool.length) return;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    const diff   = Math.abs(picked.num - correct);
+
+    // Determine tier
+    let tier;
+    if      (diff === 0) tier = HC_TIERS[0];
+    else if (diff === 1) tier = HC_TIERS[1];
+    else if (diff === 2) tier = HC_TIERS[2];
+    else                 tier = HC_TIERS[3];
+
+    // Apply overlay to that button
+    const btn = document.getElementById(`yr-btn-${picked.num}`);
+    if (btn) {
+      btn.classList.add('hc-shown', tier.cls);
+      btn.querySelector('.hc-emoji').textContent = tier.emoji;
+      btn.querySelector('.hc-label').textContent = tier.label;
+    }
+
+    // Result strip
+    const strip = document.getElementById('hc-result');
+    strip.textContent = `${picked.label} → ${tier.emoji} ${tier.label} — ${tier.desc}`;
+    strip.className = 'hc-result visible';
+  }
+
+  renderLifelineCards();
 }
 
 // ── SCORING ────────────────────────────────────────────────────────────────────
-// Tiered by how many years off the guess is:
-//   0 years off (bullseye) = 1000 pts
-//   ±1 year off            =  500 pts
-//   ±2 years off           =  200 pts
-//   anything else          =    0 pts
-// Each hint used deducts HINT_PENALTY from the base.
 function calcPoints(correctYearNum, guessedYearNum) {
   const diff = Math.abs(correctYearNum - guessedYearNum);
   let base;
@@ -466,67 +553,77 @@ function calcPoints(correctYearNum, guessedYearNum) {
   else if (diff === 1) base = 500;
   else if (diff === 2) base = 200;
   else                 base = 0;
-  return Math.max(0, base - hintsUsed * HINT_PENALTY);
+  return Math.max(0, base - hintsUsedThisRound * HINT_PENALTY);
 }
 
 // ── GUESS ──────────────────────────────────────────────────────────────────────
 function guess(yearNum) {
   if (answered) return;
-  answered = true;
 
   const { song, yearNum: correct } = rounds[roundIdx];
   const isCorrect = yearNum === correct;
-  const diff = Math.abs(correct - yearNum);
-  const points = calcPoints(correct, yearNum);
-  totalScore += points;
 
+  // Safety net: wrong guess absorbed
+  if (!isCorrect && safetyActive) {
+    safetyActive = false;
+    document.getElementById('safety-banner').className = 'safety-banner';
+    // Flash the wrong button briefly then reset
+    const wrongBtn = document.getElementById(`yr-btn-${yearNum}`);
+    if (wrongBtn) {
+      wrongBtn.classList.add('wrong-guess');
+      setTimeout(() => wrongBtn.classList.remove('wrong-guess'), 600);
+    }
+    renderLifelineCards();
+    return; // don't lock in the answer
+  }
+
+  answered = true;
+
+  const diff   = Math.abs(correct - yearNum);
+  const points = calcPoints(correct, yearNum);
+  totalScore  += points;
   history.push({ song, yearNum: correct, guessedYear: yearNum, points });
 
-  // Update score display
   document.getElementById('score-display').textContent = totalScore.toLocaleString();
 
-  // Visual feedback on buttons
+  // Lock all buttons, reveal correct + wrong
   DJ_YEARS.forEach(yr => {
     const btn = document.getElementById(`yr-btn-${yr.num}`);
     if (!btn) return;
     btn.disabled = true;
-    if (yr.num === correct) btn.classList.add('reveal-correct');
-    if (yr.num === yearNum && !isCorrect) btn.classList.add('wrong');
+    btn.onclick  = null;
+    if (yr.num === correct)                  btn.classList.add('reveal-correct');
+    if (yr.num === yearNum && !isCorrect)    btn.classList.add('wrong-guess');
   });
 
   // Result area
-  const resultArea = document.getElementById('result-area');
-  const correctYr = DJ_YEARS.find(y => y.num === correct);
-  const guessedYr = DJ_YEARS.find(y => y.num === yearNum);
-
-  // Determine result tier for styling
-  const isClose = !isCorrect && points > 0;
+  const resultArea  = document.getElementById('result-area');
+  const correctYr   = DJ_YEARS.find(y => y.num === correct);
+  const guessedYr   = DJ_YEARS.find(y => y.num === yearNum);
+  const isClose     = !isCorrect && points > 0;
   const resultClass = isCorrect ? 'correct' : (isClose ? 'close' : 'wrong');
-  resultArea.className = 'result-area ' + resultClass;
 
-  let headline = isCorrect ? 'Correct!' : (isClose ? 'Close!' : 'Wrong!');
-  document.getElementById('result-headline').textContent = headline;
+  resultArea.className = 'result-area ' + resultClass;
+  document.getElementById('result-headline').textContent =
+    isCorrect ? 'Correct!' : (isClose ? 'Close!' : 'Wrong!');
 
   let detail = '';
   if (isCorrect) {
     detail = `"${song[2]}" is from ${correctYr.label}.`;
-    if (hintsUsed > 0) detail += ` (${hintsUsed} hint${hintsUsed > 1 ? 's' : ''} used)`;
+    if (hintsUsedThisRound > 0) detail += ` (${hintsUsedThisRound} lifeline${hintsUsedThisRound > 1 ? 's' : ''} used)`;
   } else if (isClose) {
     detail = `That was ${correctYr.label} — you were ${diff} year${diff === 1 ? '' : 's'} off.`;
   } else {
     detail = `That was ${correctYr.label}, not ${guessedYr.label}.`;
   }
+
   document.getElementById('result-detail').textContent = detail;
   document.getElementById('result-points').textContent = `+${points.toLocaleString()}`;
 
-  // Update pip — close gets its own colour via partial class
   updatePip(roundIdx, isCorrect ? 'correct' : (isClose ? 'close' : 'wrong'));
 
-  if (roundIdx === TOTAL_ROUNDS - 1) {
-    document.getElementById('next-btn').textContent = 'See Results →';
-  } else {
-    document.getElementById('next-btn').textContent = 'Next Round →';
-  }
+  document.getElementById('next-btn').textContent =
+    roundIdx === TOTAL_ROUNDS - 1 ? 'See Results →' : 'Next Round →';
 
   resultArea.style.display = 'block';
 }
@@ -534,11 +631,8 @@ function guess(yearNum) {
 // ── NEXT / SUMMARY ─────────────────────────────────────────────────────────────
 function nextRound() {
   roundIdx++;
-  if (roundIdx >= TOTAL_ROUNDS) {
-    showSummary();
-  } else {
-    loadRound();
-  }
+  if (roundIdx >= TOTAL_ROUNDS) showSummary();
+  else loadRound();
 }
 
 function showSummary() {
@@ -547,11 +641,11 @@ function showSummary() {
 
   const rowsEl = document.getElementById('summary-rows');
   rowsEl.innerHTML = '';
-
   history.forEach((h, i) => {
-    const yr = DJ_YEARS.find(y => y.num === h.yearNum);
+    const yr  = DJ_YEARS.find(y => y.num === h.yearNum);
     const row = document.createElement('div');
     row.className = 'summary-row';
+    const ptsClass = h.points === 0 ? 'zero' : (h.yearNum !== h.guessedYear && h.points > 0 ? 'close' : '');
     row.innerHTML = `
       <div class="summary-rnum">${i + 1}</div>
       <div class="summary-song">
@@ -559,7 +653,7 @@ function showSummary() {
         <div class="summary-song-artist">${h.song[3]}</div>
       </div>
       <div class="summary-year-pill" style="color:${yr.color}; border-color:${yr.color}">${yr.label}</div>
-      <div class="summary-pts ${h.points === 0 ? 'zero' : (h.yearNum !== h.guessedYear && h.points > 0 ? 'close' : '')}">+${h.points.toLocaleString()}</div>
+      <div class="summary-pts ${ptsClass}">+${h.points.toLocaleString()}</div>
     `;
     rowsEl.appendChild(row);
   });
