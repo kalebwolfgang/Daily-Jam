@@ -35,11 +35,42 @@
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--amber); }
 
+  /* ── SETUP SCREEN ─────────────────────────────────────────── */
+  .setup-screen { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 60px 48px 80px; }
+  .setup-eye   { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; }
+  .setup-head  { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 64px); font-weight: 900; line-height: 1; margin-bottom: 12px; }
+  .setup-head em { color: var(--cc); font-style: italic; }
+  .setup-sub   { font-size: 12px; color: var(--text-dim); letter-spacing: 1px; line-height: 1.9; max-width: 540px; margin-bottom: 48px; }
+
+  .diff-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 32px; }
+  .diff-card {
+    background: var(--surface); padding: 28px 24px 24px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 0; position: relative; overflow: hidden;
+    transition: background 0.15s; border: 2px solid transparent;
+  }
+  .diff-card:hover { background: var(--surface2); }
+  .diff-card.selected { background: var(--surface2); border-color: var(--diff-color, var(--cc)); }
+  .diff-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--diff-color, var(--cc)); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
+  .diff-card:hover::after, .diff-card.selected::after { transform: scaleX(1); }
+
+  .diff-name  { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--diff-color, var(--cc)); margin-bottom: 14px; }
+  .diff-icon  { font-size: 24px; margin-bottom: 14px; line-height: 1; }
+  .diff-rules { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; flex: 1; }
+  .diff-rule  { font-size: 10px; letter-spacing: 0.5px; color: var(--text-dim); line-height: 1.6; display: flex; align-items: flex-start; gap: 7px; }
+  .diff-rule::before { content: '—'; color: var(--diff-color, var(--cc)); flex-shrink: 0; }
+  .diff-badge { display: inline-block; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--diff-color, var(--cc)); color: var(--diff-color, var(--cc)); align-self: flex-start; margin-top: auto; }
+
+  .setup-start-row { display: flex; justify-content: flex-start; }
+  .setup-start-btn { background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 16px 56px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .setup-start-btn:hover { opacity: 0.85; }
+  .setup-start-btn:disabled { opacity: 0.35; cursor: default; }
+
   /* ── GAME HEADER ─────────────────────────────────────────── */
   .game-header { position: relative; z-index: 1; padding: 16px 48px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
   .game-title-row { display: flex; flex-direction: column; gap: 4px; }
   .game-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--cc); }
   .game-title-text { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; }
+  .game-diff-badge { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 10px; border: 1px solid var(--cc); color: var(--cc); margin-top: 4px; align-self: flex-start; }
   .header-stats { display: flex; align-items: center; gap: 36px; }
   .stat-block { display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
@@ -55,6 +86,7 @@
   .song-card { background: var(--surface); border: 1px solid var(--border); padding: 36px 48px; display: flex; flex-direction: column; gap: 8px; }
   .song-card-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
   .song-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4.5vw, 64px); font-weight: 900; line-height: 1.05; color: var(--text); }
+  .song-title.hidden-title { color: var(--text-muted); font-style: italic; }
 
   /* 2-col row: embed left, choices right */
   .main-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 24px; align-items: start; }
@@ -74,6 +106,17 @@
     z-index: 3;
   }
   .text-blocker.hidden { display: none; }
+
+  /* Album art blocker — covers left side (album art area) for Medium/Hard/Expert */
+  .art-blocker {
+    position: absolute; top: 0; bottom: 0; left: 0; width: 108px;
+    background: var(--surface);
+    pointer-events: none;
+    z-index: 4;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .art-blocker.hidden { display: none; }
+  .art-blocker-icon { font-size: 28px; opacity: 0.25; }
 
   /* Full-cover play button shown before first click */
   .play-btn-wrap {
@@ -105,6 +148,7 @@
   .choices-col { display: flex; flex-direction: column; gap: 14px; }
   .choices-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
   .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .choices-grid.six-up { grid-template-columns: 1fr 1fr 1fr; }
   .choice-btn {
     background: var(--surface); border: 2px solid var(--border); color: var(--text);
     font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
@@ -113,6 +157,7 @@
     display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden;
     min-height: 88px; line-height: 1.4;
   }
+  .choices-grid.six-up .choice-btn { min-height: 72px; font-size: 12px; padding: 18px 16px; }
   .choice-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
   .choice-btn:hover:not(:disabled) { border-color: var(--cc); background: var(--surface2); }
   .choice-btn:hover:not(:disabled)::after { transform: scaleX(1); }
@@ -170,8 +215,12 @@
   .sum-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
   .sum-btn:hover { opacity: 0.8; }
 
+  @media (max-width: 1000px) {
+    .diff-grid { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 960px) {
     .main-row { grid-template-columns: 1fr; }
+    .choices-grid.six-up { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 700px) {
     .site-nav { padding: 0 16px; }
@@ -181,9 +230,15 @@
     .game-body { padding: 24px 16px 60px; gap: 24px; }
     .song-card { padding: 24px 20px; }
     .choices-grid { grid-template-columns: 1fr; }
+    .choices-grid.six-up { grid-template-columns: 1fr; }
     .result-banner { flex-direction: column; gap: 12px; }
     .result-pts { font-size: 36px; }
     .summary-screen { padding: 40px 16px 60px; }
+    .setup-screen { padding: 40px 16px 60px; }
+    .diff-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .diff-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -202,11 +257,75 @@
   </div>
 </nav>
 
-<!-- GAME HEADER -->
-<div class="game-header">
+<!-- ════════════════════════════════════════════════════════════
+     SETUP SCREEN
+════════════════════════════════════════════════════════════ -->
+<div class="setup-screen" id="setup-screen">
+  <p class="setup-eye">Game 06 — Who Sang It?</p>
+  <h1 class="setup-head">Choose Your<br><em>Difficulty</em></h1>
+  <p class="setup-sub">Pick how hard you want to work for it. All modes are endless streak — play until you get one wrong.</p>
+
+  <div class="diff-grid" id="diff-grid">
+
+    <div class="diff-card" style="--diff-color:#5dba7f" data-diff="easy" onclick="selectDiff(this)">
+      <div class="diff-icon">🎵</div>
+      <div class="diff-name">Easy</div>
+      <div class="diff-rules">
+        <div class="diff-rule">Song title shown</div>
+        <div class="diff-rule">Album art visible</div>
+        <div class="diff-rule">4 answer choices</div>
+      </div>
+      <div class="diff-badge">4 Choices</div>
+    </div>
+
+    <div class="diff-card" style="--diff-color:#5d8fe8" data-diff="medium" onclick="selectDiff(this)">
+      <div class="diff-icon">🎧</div>
+      <div class="diff-name">Medium</div>
+      <div class="diff-rules">
+        <div class="diff-rule">Song title shown</div>
+        <div class="diff-rule">Album art hidden</div>
+        <div class="diff-rule">4 answer choices</div>
+      </div>
+      <div class="diff-badge">4 Choices</div>
+    </div>
+
+    <div class="diff-card" style="--diff-color:#e8a45d" data-diff="hard" onclick="selectDiff(this)">
+      <div class="diff-icon">🔥</div>
+      <div class="diff-name">Hard</div>
+      <div class="diff-rules">
+        <div class="diff-rule">Song title shown</div>
+        <div class="diff-rule">Album art hidden</div>
+        <div class="diff-rule">6 answer choices</div>
+      </div>
+      <div class="diff-badge">6 Choices</div>
+    </div>
+
+    <div class="diff-card" style="--diff-color:#e85d8f" data-diff="expert" onclick="selectDiff(this)">
+      <div class="diff-icon">💀</div>
+      <div class="diff-name">Expert</div>
+      <div class="diff-rules">
+        <div class="diff-rule">Song title hidden until answer</div>
+        <div class="diff-rule">Album art hidden</div>
+        <div class="diff-rule">6 answer choices</div>
+      </div>
+      <div class="diff-badge">6 Choices · Blind</div>
+    </div>
+
+  </div>
+
+  <div class="setup-start-row">
+    <button class="setup-start-btn" id="setup-start-btn" onclick="startGame()" disabled>Select a difficulty →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     GAME HEADER
+════════════════════════════════════════════════════════════ -->
+<div class="game-header" id="game-header" style="display:none">
   <div class="game-title-row">
     <span class="game-eyebrow">Game 06</span>
     <span class="game-title-text">Who Sang It?</span>
+    <span class="game-diff-badge" id="game-diff-badge">Easy</span>
   </div>
   <div class="header-stats">
     <div class="stat-block">
@@ -224,12 +343,14 @@
   </div>
 </div>
 
-<!-- GAME BODY -->
-<div class="game-body" id="game-body">
+<!-- ════════════════════════════════════════════════════════════
+     GAME BODY
+════════════════════════════════════════════════════════════ -->
+<div class="game-body" id="game-body" style="display:none">
 
   <!-- Song title — full width -->
   <div class="song-card">
-    <span class="song-card-eyebrow">Song Title</span>
+    <span class="song-card-eyebrow" id="song-card-eyebrow">Song Title</span>
     <span class="song-title" id="song-title">Loading…</span>
   </div>
 
@@ -242,12 +363,15 @@
       <div class="embed-frame-wrap" id="embed-frame-wrap">
         <!-- iframe injected by JS -->
         <div class="text-blocker" id="text-blocker"></div>
+        <div class="art-blocker" id="art-blocker">
+          <span class="art-blocker-icon">🖼</span>
+        </div>
         <div class="play-btn-wrap" id="play-btn-wrap" onclick="revealEmbed()">
           <div class="play-circle"><div class="play-triangle"></div></div>
           <span class="play-btn-label">Play Preview</span>
         </div>
       </div>
-      <span class="embed-hint">30-second preview — artist name hidden until you answer.</span>
+      <span class="embed-hint" id="embed-hint">30-second preview — artist name hidden until you answer.</span>
     </div>
 
     <!-- RIGHT: answer choices -->
@@ -274,7 +398,9 @@
 
 </div>
 
-<!-- SUMMARY SCREEN -->
+<!-- ════════════════════════════════════════════════════════════
+     SUMMARY SCREEN
+════════════════════════════════════════════════════════════ -->
 <div class="summary-screen" id="summary-screen">
   <p class="sum-eye">Game Over — Wrong Answer</p>
   <h2 class="sum-head">Streak<br>Broken</h2>
@@ -283,7 +409,8 @@
   <p class="sum-sub" id="sum-sub"></p>
   <div class="sum-rows" id="sum-rows"></div>
   <div class="sum-actions">
-    <button class="sum-btn primary" onclick="restartGame()">Play Again →</button>
+    <button class="sum-btn primary" onclick="goToSetup()">Change Difficulty →</button>
+    <button class="sum-btn primary" style="background:var(--green)" onclick="restartGame()">Play Again →</button>
     <a class="sum-btn secondary" href="games.html">All Games</a>
   </div>
 </div>
@@ -300,17 +427,26 @@ const DJ_YEARS = [
   { num:7, label:'DJ7', color:'#e8e85d', start:'2024-09-24', end:'2025-09-23' },
   { num:8, label:'DJ8', color:'#FF6B6B', start:'2025-09-24', end:'2026-09-23' },
 ];
-const CHOICES = 4;
+
+// Difficulty configs
+const DIFFICULTIES = {
+  easy:   { label:'Easy',   numChoices: 4, hideAlbumArt: false, hideSongTitle: false, color:'#5dba7f' },
+  medium: { label:'Medium', numChoices: 4, hideAlbumArt: true,  hideSongTitle: false, color:'#5d8fe8' },
+  hard:   { label:'Hard',   numChoices: 6, hideAlbumArt: true,  hideSongTitle: false, color:'#e8a45d' },
+  expert: { label:'Expert', numChoices: 6, hideAlbumArt: true,  hideSongTitle: true,  color:'#e85d8f' },
+};
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let allSongs   = [];
-let usedSongs  = new Set(); // avoid repeating songs in a session
-let history    = [];        // all rounds played this run
-let streak     = 0;
-let bestStreak = 0;
-let totalScore = 0;
-let answered   = false;
-let currentRound = null;
+let allSongs      = [];
+let usedSongs     = new Set();
+let history       = [];
+let streak        = 0;
+let bestStreak    = 0;
+let totalScore    = 0;
+let answered      = false;
+let currentRound  = null;
+let currentDiff   = null;  // key into DIFFICULTIES
+let selectedDiffEl = null; // DOM element for selected diff card
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 (async function init() {
@@ -320,9 +456,54 @@ let currentRound = null;
       .then(txt => { if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); return JSON.parse(txt); })
   ));
   allSongs = arrays.flat();
+  // Stay on setup screen — loaded and ready
+})();
+
+// ── SETUP — SELECT DIFFICULTY ─────────────────────────────────────────────────
+function selectDiff(el) {
+  // Deselect previous
+  if (selectedDiffEl) selectedDiffEl.classList.remove('selected');
+  el.classList.add('selected');
+  selectedDiffEl = el;
+  currentDiff = el.dataset.diff;
+
+  // Update start button
+  const btn = document.getElementById('setup-start-btn');
+  const cfg = DIFFICULTIES[currentDiff];
+  btn.textContent = `Start ${cfg.label} →`;
+  btn.disabled = false;
+}
+
+// ── SETUP — START GAME ────────────────────────────────────────────────────────
+function startGame() {
+  if (!currentDiff || allSongs.length === 0) return;
+
+  // Reset game state
+  streak     = 0;
+  totalScore = 0;
+  answered   = false;
+  history    = [];
+  usedSongs  = new Set();
+
+  // Update header badge + colors
+  const cfg = DIFFICULTIES[currentDiff];
+  document.getElementById('game-diff-badge').textContent = cfg.label;
+  document.getElementById('game-diff-badge').style.borderColor = cfg.color;
+  document.getElementById('game-diff-badge').style.color = cfg.color;
+
+  document.getElementById('streak-val').textContent = '0';
+  document.getElementById('score-val').textContent  = '0';
+  // bestStreak persists across restarts
+
+  // Show game, hide setup
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-header').style.display  = 'flex';
+  document.getElementById('game-body').style.display    = 'flex';
+  document.getElementById('summary-screen').style.display = 'none';
+
   buildRound();
   renderRound();
-})();
+}
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function shuffle(arr) {
@@ -339,13 +520,14 @@ function getDJYear(dateStr) {
 
 // ── BUILD ONE ROUND ───────────────────────────────────────────────────────────
 function buildRound() {
-  // Pick a song not yet used this session
+  const cfg = DIFFICULTIES[currentDiff];
+
   const pool = allSongs.filter(s => !usedSongs.has(s[1]));
-  const song = shuffle(pool.length ? pool : allSongs)[0]; // if all used, allow repeats
+  const song = shuffle(pool.length ? pool : allSongs)[0];
   usedSongs.add(song[1]);
 
   const allArtists = [...new Set(allSongs.map(s => s[3]))];
-  const wrongs     = shuffle(allArtists.filter(a => a !== song[3])).slice(0, CHOICES - 1);
+  const wrongs     = shuffle(allArtists.filter(a => a !== song[3])).slice(0, cfg.numChoices - 1);
   const choices    = shuffle([song[3], ...wrongs]);
 
   currentRound = { song, choices, correctIndex: choices.indexOf(song[3]), result: null };
@@ -354,10 +536,21 @@ function buildRound() {
 // ── RENDER ROUND ──────────────────────────────────────────────────────────────
 function renderRound() {
   answered = false;
-  const r  = currentRound;
+  const r   = currentRound;
+  const cfg = DIFFICULTIES[currentDiff];
 
-  // Song title
-  document.getElementById('song-title').textContent = r.song[2];
+  // Song title (hidden for Expert until answer)
+  const titleEl = document.getElementById('song-title');
+  const eyebrowEl = document.getElementById('song-card-eyebrow');
+  if (cfg.hideSongTitle) {
+    titleEl.textContent = '???';
+    titleEl.classList.add('hidden-title');
+    eyebrowEl.textContent = 'Song Title — Hidden';
+  } else {
+    titleEl.textContent = r.song[2];
+    titleEl.classList.remove('hidden-title');
+    eyebrowEl.textContent = 'Song Title';
+  }
 
   // Spotify embed — load silently, play button covers it
   const wrap = document.getElementById('embed-frame-wrap');
@@ -371,13 +564,38 @@ function renderRound() {
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   iframe.setAttribute('loading', 'lazy');
   wrap.insertBefore(iframe, document.getElementById('text-blocker'));
+
+  // Text blocker (always on until answer)
   document.getElementById('text-blocker').classList.remove('hidden');
+
+  // Album art blocker (Medium/Hard/Expert only — stays until answer)
+  const artBlocker = document.getElementById('art-blocker');
+  if (cfg.hideAlbumArt) {
+    artBlocker.classList.remove('hidden');
+  } else {
+    artBlocker.classList.add('hidden');
+  }
+
+  // Play button (full cover, removed on click)
   document.getElementById('play-btn-wrap').classList.remove('hidden');
 
+  // Embed hint
+  const hint = document.getElementById('embed-hint');
+  if (cfg.hideAlbumArt) {
+    hint.textContent = '30-second preview — album art and artist name hidden until you answer.';
+  } else {
+    hint.textContent = '30-second preview — artist name hidden until you answer.';
+  }
+
   // Choices
-  const grid    = document.getElementById('choices-grid');
+  const grid = document.getElementById('choices-grid');
   grid.innerHTML = '';
-  const letters  = ['A', 'B', 'C', 'D'];
+  if (cfg.numChoices === 6) {
+    grid.classList.add('six-up');
+  } else {
+    grid.classList.remove('six-up');
+  }
+  const letters = ['A','B','C','D','E','F'];
   r.choices.forEach((artist, i) => {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
@@ -406,7 +624,10 @@ function revealEmbed() {
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   wrap.insertBefore(iframe, document.getElementById('text-blocker'));
+
+  // Hide full-cover play button
   document.getElementById('play-btn-wrap').classList.add('hidden');
+  // text-blocker and art-blocker stay until answer is submitted
 }
 
 // ── ANSWER ────────────────────────────────────────────────────────────────────
@@ -415,6 +636,7 @@ function selectAnswer(choiceIdx) {
   answered = true;
 
   const r       = currentRound;
+  const cfg     = DIFFICULTIES[currentDiff];
   const correct = choiceIdx === r.correctIndex;
   const pts     = correct ? 1000 : 0;
   r.result      = { choiceIdx, correct, pts };
@@ -423,8 +645,6 @@ function selectAnswer(choiceIdx) {
     streak++;
     if (streak > bestStreak) bestStreak = streak;
     totalScore += pts;
-  } else {
-    // Wrong — streak ends, record this round then show summary
   }
 
   // Update header stats
@@ -440,9 +660,18 @@ function selectAnswer(choiceIdx) {
     else if (i === choiceIdx)    btn.classList.add('wrong');
   });
 
-  // Reveal artist in embed
+  // Reveal artist in embed (remove text + art blocker)
   document.getElementById('play-btn-wrap').classList.add('hidden');
   document.getElementById('text-blocker').classList.add('hidden');
+  document.getElementById('art-blocker').classList.add('hidden');
+
+  // Reveal song title for Expert mode
+  if (cfg.hideSongTitle) {
+    const titleEl = document.getElementById('song-title');
+    titleEl.textContent = r.song[2];
+    titleEl.classList.remove('hidden-title');
+    document.getElementById('song-card-eyebrow').textContent = 'Song Title — Revealed';
+  }
 
   // Result banner
   const yr = getDJYear(r.song[5]);
@@ -483,13 +712,15 @@ function nextRound() {
 
 // ── SUMMARY ───────────────────────────────────────────────────────────────────
 function showSummary() {
-  document.getElementById('game-body').style.display     = 'none';
+  document.getElementById('game-header').style.display    = 'flex';
+  document.getElementById('game-body').style.display      = 'none';
   document.getElementById('summary-screen').style.display = 'flex';
 
   const finalStreak = history.filter(r => r.result.correct).length;
+  const cfg = DIFFICULTIES[currentDiff];
   document.getElementById('sum-streak').textContent = finalStreak;
   document.getElementById('sum-sub').textContent    =
-    `${finalStreak} correct in a row — ${totalScore.toLocaleString()} pts total`;
+    `${finalStreak} correct in a row on ${cfg.label} — ${totalScore.toLocaleString()} pts total`;
 
   const rows = document.getElementById('sum-rows');
   rows.innerHTML = '';
@@ -511,20 +742,27 @@ function showSummary() {
   });
 }
 
-// ── RESTART ───────────────────────────────────────────────────────────────────
+// ── GO TO SETUP ───────────────────────────────────────────────────────────────
+function goToSetup() {
+  document.getElementById('game-header').style.display    = 'none';
+  document.getElementById('game-body').style.display      = 'none';
+  document.getElementById('summary-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display   = 'block';
+  // Reset best streak display when going back to setup? No — keep it.
+  // Reset selected diff so user picks fresh
+  if (selectedDiffEl) selectedDiffEl.classList.remove('selected');
+  selectedDiffEl = null;
+  currentDiff    = null;
+  const btn = document.getElementById('setup-start-btn');
+  btn.textContent = 'Select a difficulty →';
+  btn.disabled = true;
+}
+
+// ── RESTART (same difficulty) ─────────────────────────────────────────────────
 function restartGame() {
-  streak     = 0;
-  totalScore = 0;
-  answered   = false;
-  history    = [];
-  usedSongs  = new Set();
-  document.getElementById('streak-val').textContent         = '0';
-  document.getElementById('score-val').textContent          = '0';
-  // best persists across restarts this session
-  document.getElementById('summary-screen').style.display   = 'none';
-  document.getElementById('game-body').style.display        = 'flex';
-  buildRound();
-  renderRound();
+  document.getElementById('summary-screen').style.display = 'none';
+  document.getElementById('game-body').style.display      = 'flex';
+  startGame();
 }
 
 // ── UTIL ──────────────────────────────────────────────────────────────────────
