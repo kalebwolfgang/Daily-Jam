@@ -71,6 +71,21 @@
   .song-artist { margin-top: 10px; font-size: 15px; color: var(--text-dim); }
   .song-extra { margin-top: 8px; font-size: 12px; color: var(--text-muted); letter-spacing: 1px; min-height: 18px; }
 
+  /* SPOTIFY EMBED */
+  .embed-wrap { margin-top: 20px; }
+  .embed-frame-wrap { position: relative; overflow: hidden; background: var(--surface2); height: 80px; border: 1px solid var(--border); }
+  .embed-frame-wrap iframe { display: block; border: none; }
+  .embed-play-cover {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    background: var(--surface2); cursor: pointer; transition: background 0.15s;
+  }
+  .embed-play-cover:hover { background: var(--surface); }
+  .embed-play-cover.hidden { display: none; }
+  .epc-circle { width: 36px; height: 36px; border-radius: 50%; background: var(--y2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .epc-triangle { width:0; height:0; border-top:7px solid transparent; border-bottom:7px solid transparent; border-left:12px solid #0a0810; margin-left:2px; }
+  .epc-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+
   /* ── LIFELINES ─────────────────────────────────────────── */
   .lifelines-section { display: flex; flex-direction: column; gap: 12px; }
   .lifelines-header { display: flex; align-items: center; justify-content: space-between; }
@@ -242,6 +257,14 @@
         <div class="song-title" id="song-title">—</div>
         <div class="song-artist" id="song-artist"></div>
         <div class="song-extra" id="song-extra"></div>
+        <div class="embed-wrap">
+          <div class="embed-frame-wrap" id="embed-frame-wrap">
+            <div class="embed-play-cover" id="embed-play-cover" onclick="revealEmbed()">
+              <div class="epc-circle"><div class="epc-triangle"></div></div>
+              <span class="epc-label">Preview Song</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Lifelines -->
@@ -443,6 +466,36 @@ function renderLifelineCards() {
   sc.classList.toggle('safety-active', safetyActive);
 }
 
+// ── SPOTIFY EMBED ──────────────────────────────────────────────────────────────
+function loadEmbed(trackId) {
+  const wrap = document.getElementById('embed-frame-wrap');
+  const old  = wrap.querySelector('iframe');
+  if (old) old.remove();
+  const iframe = document.createElement('iframe');
+  iframe.src    = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+  iframe.width  = '100%';
+  iframe.height = '80';
+  iframe.setAttribute('frameborder', '0');
+  iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+  iframe.setAttribute('loading', 'lazy');
+  wrap.insertBefore(iframe, document.getElementById('embed-play-cover'));
+}
+
+function revealEmbed() {
+  const trackId = rounds[roundIdx].song[1];
+  const wrap = document.getElementById('embed-frame-wrap');
+  const old  = wrap.querySelector('iframe');
+  if (old) old.remove();
+  const iframe = document.createElement('iframe');
+  iframe.src    = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0&autoplay=1`;
+  iframe.width  = '100%';
+  iframe.height = '80';
+  iframe.setAttribute('frameborder', '0');
+  iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
+  wrap.insertBefore(iframe, document.getElementById('embed-play-cover'));
+  document.getElementById('embed-play-cover').classList.add('hidden');
+}
+
 // ── ROUND ──────────────────────────────────────────────────────────────────────
 function loadRound() {
   answered = false;
@@ -454,6 +507,10 @@ function loadRound() {
   document.getElementById('song-title').textContent = song[2];
   document.getElementById('song-artist').textContent = song[3];
   document.getElementById('song-extra').textContent = '';
+
+  // Reset embed
+  loadEmbed(song[1]);
+  document.getElementById('embed-play-cover').classList.remove('hidden');
 
   const resultArea = document.getElementById('result-area');
   resultArea.style.display = 'none';

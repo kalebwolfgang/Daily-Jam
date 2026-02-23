@@ -112,6 +112,22 @@
   .card-artist { font-size: 11px; color: var(--text-dim); }
   .card-yr     { display: inline-block; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 8px; border: 1px solid; margin-top: 2px; }
 
+  /* Spotify preview on each bracket card */
+  .card-preview-btn {
+    align-self: flex-start; display: flex; align-items: center; gap: 8px;
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 12px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    margin-top: 10px;
+  }
+  .card-preview-btn:hover { border-color: var(--cc); color: var(--cc); }
+  .card-preview-btn.active { border-color: var(--green); color: var(--green); background: rgba(93,186,127,0.05); }
+  .card-preview-btn svg { width: 9px; height: 10px; fill: currentColor; flex-shrink: 0; }
+  .card-embed-panel { display: none; margin-top: 10px; border: 1px solid var(--border); overflow: hidden; }
+  .card-embed-panel.open { display: block; }
+  .card-embed-panel iframe { display: block; border: none; }
+
   .vs-mid { display: flex; align-items: center; justify-content: center; }
   .vs-word { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: var(--text-muted); user-select: none; }
 
@@ -275,6 +291,11 @@
         <span class="card-title" id="title-a"></span>
         <span class="card-artist" id="artist-a"></span>
         <span class="card-yr" id="yr-a"></span>
+        <button class="card-preview-btn" id="preview-btn-a" onclick="toggleCardEmbed('a', event)">
+          <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12"/></svg>
+          Preview
+        </button>
+        <div class="card-embed-panel" id="card-embed-a"></div>
       </div>
       <div class="vs-mid"><span class="vs-word">VS</span></div>
       <div class="song-card" id="card-b" onclick="selectCard(1)">
@@ -282,6 +303,11 @@
         <span class="card-title" id="title-b"></span>
         <span class="card-artist" id="artist-b"></span>
         <span class="card-yr" id="yr-b"></span>
+        <button class="card-preview-btn" id="preview-btn-b" onclick="toggleCardEmbed('b', event)">
+          <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12"/></svg>
+          Preview
+        </button>
+        <div class="card-embed-panel" id="card-embed-b"></div>
       </div>
     </div>
     <p class="vote-msg" id="vote-msg">Click a song to vote →</p>
@@ -538,6 +564,35 @@ function fillCard(side, song, seed) {
   yrEl.textContent          = yr.label;
   yrEl.style.color          = yr.color;
   yrEl.style.borderColor    = yr.color;
+
+  // Store track ID on preview button for embed
+  const previewBtn = document.getElementById(`preview-btn-${side}`);
+  previewBtn.dataset.trackid = song[1];
+
+  // Reset embed panel
+  const panel = document.getElementById(`card-embed-${side}`);
+  panel.classList.remove('open');
+  panel.innerHTML = '';
+  previewBtn.classList.remove('active');
+}
+
+function toggleCardEmbed(side, e) {
+  e.stopPropagation(); // don't trigger card vote selection
+  const btn   = document.getElementById(`preview-btn-${side}`);
+  const panel = document.getElementById(`card-embed-${side}`);
+  const trackId = btn.dataset.trackid;
+  if (!trackId) return;
+
+  if (panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    btn.classList.remove('active');
+    return;
+  }
+
+  panel.classList.add('open');
+  btn.classList.add('active');
+  panel.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0&autoplay=1" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
 }
 
 // ── VOTING ────────────────────────────────────────────────────────────────────

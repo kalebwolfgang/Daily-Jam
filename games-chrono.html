@@ -112,6 +112,26 @@
   .tile-title { font-size: 13px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tile-artist { font-size: 11px; color: var(--text-dim); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+  /* Spotify mini play button on each tile */
+  .tile-play-btn {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--y3); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.15s, background 0.15s;
+    z-index: 2;
+  }
+  .tile-play-btn:hover { opacity: 0.8; }
+  .tile-play-btn.active { background: var(--green); }
+  .tile-play-btn svg { width: 12px; height: 12px; fill: #0a0810; margin-left: 2px; }
+
+  /* Inline embed panel — hidden until play clicked */
+  .tile-embed-panel {
+    display: none; border-top: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .tile-embed-panel.open { display: block; }
+  .tile-embed-panel iframe { display: block; border: none; }
+
   /* result badge shown after reveal */
   .tile-badge {
     flex-shrink: 0; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
@@ -379,6 +399,8 @@ function updatePip(idx, result) {
 // ── ROUND ──────────────────────────────────────────────────────────────────────
 function loadRound() {
   submitted = false;
+  // Close any open embed panels from previous round
+  document.querySelectorAll('.tile-embed-panel.open').forEach(p => { p.classList.remove('open'); p.innerHTML = ''; });
   const correctOrder = rounds[roundIdx]; // already sorted oldest → newest
 
   // Shuffle for display
@@ -427,8 +449,9 @@ function buildDragList(songs) {
 function createTile(song, idx) {
   const tile = document.createElement('div');
   tile.className = 'song-tile';
-  tile.dataset.daynum = song[0];
-  tile.dataset.idx = idx;
+  tile.dataset.daynum  = song[0];
+  tile.dataset.trackid = song[1];
+  tile.dataset.idx     = idx;
   tile.draggable = true;
 
   tile.innerHTML = `
@@ -440,6 +463,10 @@ function createTile(song, idx) {
     </div>
     <div class="tile-badge"></div>
     <div class="tile-date-reveal">${song[5]}</div>
+    <button class="tile-play-btn" title="Preview song" onclick="toggleTileEmbed(this, event)">
+      <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12"/></svg>
+    </button>
+    <div class="tile-embed-panel"></div>
   `;
 
   // Desktop drag events
@@ -455,6 +482,36 @@ function createTile(song, idx) {
   tile.addEventListener('touchend',   onTouchEnd);
 
   return tile;
+}
+
+function toggleTileEmbed(btn, e) {
+  e.stopPropagation(); // don't trigger drag
+  const tile  = btn.closest('.song-tile');
+  const panel = tile.querySelector('.tile-embed-panel');
+  const trackId = tile.dataset.trackid;
+
+  if (panel.classList.contains('open')) {
+    // Close: remove iframe, collapse
+    panel.classList.remove('open');
+    panel.innerHTML = '';
+    btn.classList.remove('active');
+    tile.draggable = true;
+    return;
+  }
+
+  // Close any other open panels first
+  document.querySelectorAll('.tile-embed-panel.open').forEach(p => {
+    p.classList.remove('open');
+    p.innerHTML = '';
+    const pb = p.closest('.song-tile')?.querySelector('.tile-play-btn');
+    if (pb) pb.classList.remove('active');
+  });
+
+  // Open this one — inject iframe with autoplay
+  panel.classList.add('open');
+  btn.classList.add('active');
+  tile.draggable = false; // prevent accidental drag while interacting with embed
+  panel.innerHTML = `<iframe src="https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0&autoplay=1" width="100%" height="80" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
 }
 
 function escHtml(str) {
@@ -516,6 +573,7 @@ function swapTiles(fromIdx, toIdx) {
   // Extract song data from tiles
   const songData = tiles.map(t => ({
     daynum:  parseInt(t.dataset.daynum),
+    trackid: t.dataset.trackid,
     title:   t.querySelector('.tile-title').textContent,
     artist:  t.querySelector('.tile-artist').textContent,
     date:    t.querySelector('.tile-date-reveal').textContent,
@@ -538,8 +596,9 @@ function swapTiles(fromIdx, toIdx) {
     // Reconstruct tile
     const tile = document.createElement('div');
     tile.className = 'song-tile';
-    tile.dataset.daynum = data.daynum;
-    tile.dataset.idx = i;
+    tile.dataset.daynum  = data.daynum;
+    tile.dataset.trackid = data.trackid;
+    tile.dataset.idx     = i;
     tile.draggable = true;
     tile.innerHTML = `
       <div class="tile-handle">⠿</div>
@@ -550,6 +609,10 @@ function swapTiles(fromIdx, toIdx) {
       </div>
       <div class="tile-badge"></div>
       <div class="tile-date-reveal">${data.date}</div>
+      <button class="tile-play-btn" title="Preview song" onclick="toggleTileEmbed(this, event)">
+        <svg viewBox="0 0 10 12"><polygon points="0,0 10,6 0,12"/></svg>
+      </button>
+      <div class="tile-embed-panel"></div>
     `;
     tile.addEventListener('dragstart', onDragStart);
     tile.addEventListener('dragover',  onDragOver);
