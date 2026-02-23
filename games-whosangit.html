@@ -14,7 +14,7 @@
     --green: #5dba7f; --red: #e85d4a;
     --y1:#5d8fe8; --y2:#5dba7f; --y3:#e85d8f; --y4:#e8a45d;
     --y5:#a45de8; --y6:#5de8e8; --y7:#e8e85d; --y8:#FF6B6B;
-    --cc: #a45de8; /* Game 06 colour — purple */
+    --cc: #a45de8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0a0810; color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; overflow-x: hidden; }
@@ -36,60 +36,49 @@
   .nav-link.active { color: var(--amber); }
 
   /* ── GAME HEADER ─────────────────────────────────────────── */
-  .game-header { position: relative; z-index: 1; padding: 16px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .game-title-row { display: flex; flex-direction: column; gap: 3px; }
+  .game-header { position: relative; z-index: 1; padding: 16px 48px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .game-title-row { display: flex; flex-direction: column; gap: 4px; }
   .game-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--cc); }
-  .game-title-text { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
-  .header-right { display: flex; align-items: center; gap: 20px; }
-  .score-display { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-  .score-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
-  .score-val { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--amber); line-height: 1; }
-  .pips { display: flex; gap: 5px; align-items: center; }
-  .pip { width: 10px; height: 10px; background: var(--surface2); border: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; }
-  .pip.correct  { background: var(--green);  border-color: var(--green); }
-  .pip.wrong    { background: var(--red);    border-color: var(--red); }
-  .pip.current  { border-color: var(--text-dim); }
-
-  /* ── PROGRESS BAR ────────────────────────────────────────── */
-  .round-bar { height: 3px; background: var(--surface2); position: relative; z-index: 1; }
-  .round-bar-fill { height: 100%; background: var(--cc); transition: width 0.4s ease; width: 0%; }
+  .game-title-text { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; }
+  .header-stats { display: flex; align-items: center; gap: 36px; }
+  .stat-block { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .stat-val { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; line-height: 1; }
+  .stat-val.streak { color: var(--cc); }
+  .stat-val.best   { color: var(--amber); }
+  .stat-val.score  { color: var(--green); }
 
   /* ── MAIN LAYOUT ─────────────────────────────────────────── */
-  .game-body { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 40px 40px 80px; display: flex; flex-direction: column; gap: 28px; }
+  .game-body { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 48px 48px 80px; display: flex; flex-direction: column; gap: 32px; }
 
-  /* Song title spans full width at top */
-  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 28px 36px; display: flex; flex-direction: column; gap: 6px; }
-  .song-card-eyebrow { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 4vw, 52px); font-weight: 900; line-height: 1.1; color: var(--text); }
+  /* Song title — full width, big */
+  .song-card { background: var(--surface); border: 1px solid var(--border); padding: 36px 48px; display: flex; flex-direction: column; gap: 8px; }
+  .song-card-eyebrow { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+  .song-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4.5vw, 64px); font-weight: 900; line-height: 1.05; color: var(--text); }
 
   /* 2-col row: embed left, choices right */
-  .main-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .main-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 24px; align-items: start; }
 
   /* ── SPOTIFY EMBED ───────────────────────────────────────── */
-  .embed-col { display: flex; flex-direction: column; gap: 12px; }
+  .embed-col { display: flex; flex-direction: column; gap: 14px; }
   .embed-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-
-  /* Wrapper holds iframe + overlays */
-  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--surface); height: 152px; }
+  .embed-frame-wrap { position: relative; border: 1px solid var(--border); overflow: hidden; background: var(--surface); height: 200px; }
   .embed-frame-wrap iframe { display: block; border: none; }
 
-  /* Text blocker — covers only the song title / artist name area.
-     pointer-events: none so Spotify play controls (right side) stay clickable.
-     Hidden after answer is submitted. */
+  /* Text blocker — covers song title / artist text but not album art or controls */
   .text-blocker {
     position: absolute; top: 0; bottom: 0;
-    left: 80px; right: 96px;   /* album art left, controls right */
+    left: 104px; right: 120px;
     background: var(--surface);
     pointer-events: none;
     z-index: 3;
   }
   .text-blocker.hidden { display: none; }
 
-  /* Custom play button — covers everything before user first clicks.
-     On click: triggers autoplay iframe reload, then hides itself leaving text-blocker in place. */
+  /* Full-cover play button shown before first click */
   .play-btn-wrap {
     position: absolute; inset: 0; z-index: 10;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
     background: var(--surface);
     cursor: pointer;
     transition: background 0.15s;
@@ -97,39 +86,34 @@
   .play-btn-wrap:hover { background: var(--surface2); }
   .play-btn-wrap.hidden { display: none; }
   .play-circle {
-    width: 56px; height: 56px; border-radius: 50%;
+    width: 72px; height: 72px; border-radius: 50%;
     background: var(--cc); display: flex; align-items: center; justify-content: center;
     transition: opacity 0.15s;
   }
   .play-btn-wrap:hover .play-circle { opacity: 0.85; }
   .play-triangle {
     width: 0; height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 18px solid #0a0810;
-    margin-left: 4px;
+    border-top: 13px solid transparent;
+    border-bottom: 13px solid transparent;
+    border-left: 22px solid #0a0810;
+    margin-left: 5px;
   }
-  .play-btn-label {
-    position: absolute; bottom: 14px;
-    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
+  .play-btn-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
   .embed-hint { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; line-height: 1.7; }
 
   /* ── CHOICES COLUMN ──────────────────────────────────────── */
-  .choices-col { display: flex; flex-direction: column; gap: 12px; }
+  .choices-col { display: flex; flex-direction: column; gap: 14px; }
   .choices-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
-  .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .choice-btn {
     background: var(--surface); border: 2px solid var(--border); color: var(--text);
-    font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 1px;
-    padding: 20px 18px; text-align: left; cursor: pointer;
+    font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 24px 22px; text-align: left; cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
-    display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden;
-    min-height: 72px;
+    display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden;
+    min-height: 88px; line-height: 1.4;
   }
-  .choice-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
+  .choice-btn::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--cc); transform: scaleX(0); transform-origin: left; transition: transform 0.2s; }
   .choice-btn:hover:not(:disabled) { border-color: var(--cc); background: var(--surface2); }
   .choice-btn:hover:not(:disabled)::after { transform: scaleX(1); }
   .choice-btn:disabled { cursor: default; }
@@ -139,61 +123,67 @@
   .choice-btn.wrong::after { display: none; }
   .choice-btn.reveal   { border-color: var(--green); background: rgba(93,186,127,0.08); color: var(--green); }
   .choice-btn.reveal::after { background: var(--green); transform: scaleX(1); }
-  .choice-letter { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); flex-shrink: 0; min-width: 16px; }
+  .choice-letter { font-size: 11px; letter-spacing: 2px; color: var(--text-muted); flex-shrink: 0; min-width: 18px; }
   .choice-btn.correct .choice-letter,
   .choice-btn.wrong   .choice-letter,
   .choice-btn.reveal  .choice-letter { color: inherit; opacity: 0.7; }
 
   /* ── RESULT BANNER ───────────────────────────────────────── */
-  .result-banner { display: none; flex-direction: column; gap: 6px; padding: 20px 24px; border: 1px solid var(--border); }
+  .result-banner { display: none; flex-direction: row; align-items: center; gap: 24px; padding: 24px 32px; border: 1px solid var(--border); }
   .result-banner.correct { border-color: var(--green); background: rgba(93,186,127,0.05); }
   .result-banner.wrong   { border-color: var(--red);   background: rgba(232,93,74,0.05); }
+  .result-left { display: flex; flex-direction: column; gap: 5px; flex: 1; }
   .result-verdict { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
   .result-banner.correct .result-verdict { color: var(--green); }
   .result-banner.wrong   .result-verdict { color: var(--red); }
-  .result-detail { font-size: 12px; color: var(--text-dim); line-height: 1.7; }
-  .result-pts { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; }
+  .result-detail { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+  .result-pts { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 900; flex-shrink: 0; line-height: 1; }
   .result-banner.correct .result-pts { color: var(--green); }
   .result-banner.wrong   .result-pts  { color: var(--red); }
 
-  /* ── NEXT BUTTON ─────────────────────────────────────────── */
+  /* ── NEXT / GAME OVER BUTTON ─────────────────────────────── */
   .next-row { display: flex; justify-content: center; }
-  .next-btn { display: none; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 14px 48px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .next-btn { display: none; background: var(--cc); color: #0a0810; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 16px 56px; border: none; cursor: pointer; transition: opacity 0.15s; }
   .next-btn:hover { opacity: 0.85; }
+  .next-btn.game-over { background: var(--red); }
 
   /* ── SUMMARY SCREEN ──────────────────────────────────────── */
-  .summary-screen { display: none; position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 60px 40px 80px; flex-direction: column; gap: 32px; align-items: center; text-align: center; }
-  .sum-eye   { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
-  .sum-head  { font-family: 'Playfair Display', serif; font-size: clamp(36px, 6vw, 72px); font-weight: 900; color: var(--cc); line-height: 0.95; }
-  .sum-score { font-family: 'Playfair Display', serif; font-size: clamp(48px, 8vw, 96px); font-weight: 900; color: var(--amber); line-height: 1; }
-  .sum-sub   { font-size: 12px; color: var(--text-dim); line-height: 1.9; max-width: 420px; }
-  .sum-rows  { width: 100%; display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); text-align: left; }
-  .sum-row   { background: var(--surface); display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px; padding: 14px 18px; }
-  .sum-title { font-size: 11px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sum-artist-ans { font-size: 10px; color: var(--text-muted); }
-  .sum-pts   { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+  .summary-screen { display: none; position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 60px 48px 80px; flex-direction: column; gap: 32px; align-items: center; text-align: center; }
+  .sum-eye    { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+  .sum-head   { font-family: 'Playfair Display', serif; font-size: clamp(40px, 7vw, 84px); font-weight: 900; color: var(--red); line-height: 0.92; }
+  .sum-streak { font-family: 'Playfair Display', serif; font-size: clamp(72px, 12vw, 140px); font-weight: 900; color: var(--cc); line-height: 1; }
+  .sum-streak-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); margin-top: -8px; }
+  .sum-sub    { font-size: 13px; color: var(--text-dim); line-height: 1.9; max-width: 480px; }
+  .sum-rows   { width: 100%; display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); text-align: left; }
+  .sum-row    { background: var(--surface); display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 16px; padding: 16px 20px; }
+  .sum-num    { font-size: 11px; color: var(--text-muted); min-width: 20px; }
+  .sum-song   { overflow: hidden; }
+  .sum-title  { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sum-artist-ans { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .sum-verdict { font-size: 18px; }
+  .sum-pts    { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; }
   .sum-pts.p1000 { color: var(--green); }
   .sum-pts.p0    { color: var(--red); }
-  .sum-pips  { display: flex; gap: 5px; justify-content: center; }
-  .sum-pip   { width: 12px; height: 12px; }
-  .sum-pip.correct { background: var(--green); }
-  .sum-pip.wrong   { background: var(--red); }
   .sum-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .sum-btn { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 13px 28px; border: none; cursor: pointer; transition: opacity 0.15s; }
+  .sum-btn { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; padding: 14px 32px; border: none; cursor: pointer; transition: opacity 0.15s; }
   .sum-btn.primary   { background: var(--cc); color: #0a0810; }
   .sum-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
   .sum-btn:hover { opacity: 0.8; }
 
-  @media (max-width: 860px) {
+  @media (max-width: 960px) {
     .main-row { grid-template-columns: 1fr; }
   }
   @media (max-width: 700px) {
     .site-nav { padding: 0 16px; }
     .game-header { padding: 12px 16px; }
-    .game-body { padding: 24px 16px 60px; gap: 20px; }
+    .header-stats { gap: 20px; }
+    .stat-val { font-size: 24px; }
+    .game-body { padding: 24px 16px 60px; gap: 24px; }
+    .song-card { padding: 24px 20px; }
     .choices-grid { grid-template-columns: 1fr; }
+    .result-banner { flex-direction: column; gap: 12px; }
+    .result-pts { font-size: 36px; }
     .summary-screen { padding: 40px 16px 60px; }
-    .pips { display: none; }
   }
 </style>
 </head>
@@ -215,20 +205,24 @@
 <!-- GAME HEADER -->
 <div class="game-header">
   <div class="game-title-row">
-    <span class="game-eyebrow">Game 06 · Who Sang It?</span>
+    <span class="game-eyebrow">Game 06</span>
     <span class="game-title-text">Who Sang It?</span>
   </div>
-  <div class="pips" id="pips"></div>
-  <div class="header-right">
-    <div class="score-display">
-      <span class="score-label">Score</span>
-      <span class="score-val" id="score-val">0</span>
+  <div class="header-stats">
+    <div class="stat-block">
+      <span class="stat-label">Streak</span>
+      <span class="stat-val streak" id="streak-val">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Best</span>
+      <span class="stat-val best" id="best-val">0</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-label">Score</span>
+      <span class="stat-val score" id="score-val">0</span>
     </div>
   </div>
 </div>
-
-<!-- PROGRESS BAR -->
-<div class="round-bar"><div class="round-bar-fill" id="bar-fill"></div></div>
 
 <!-- GAME BODY -->
 <div class="game-body" id="game-body">
@@ -239,7 +233,7 @@
     <span class="song-title" id="song-title">Loading…</span>
   </div>
 
-  <!-- 2-col row: embed left, choices right -->
+  <!-- 2-col: embed left, choices right -->
   <div class="main-row">
 
     <!-- LEFT: Spotify embed -->
@@ -247,15 +241,13 @@
       <span class="embed-label">Listen for a clue</span>
       <div class="embed-frame-wrap" id="embed-frame-wrap">
         <!-- iframe injected by JS -->
-        <!-- Permanent text blocker — hides song/artist name, lets controls through -->
         <div class="text-blocker" id="text-blocker"></div>
-        <!-- Full cover play button — removed on click, triggers autoplay -->
         <div class="play-btn-wrap" id="play-btn-wrap" onclick="revealEmbed()">
           <div class="play-circle"><div class="play-triangle"></div></div>
           <span class="play-btn-label">Play Preview</span>
         </div>
       </div>
-      <span class="embed-hint">Hit play for a 30-second preview — the artist name is hidden until you answer.</span>
+      <span class="embed-hint">30-second preview — artist name hidden until you answer.</span>
     </div>
 
     <!-- RIGHT: answer choices -->
@@ -266,14 +258,16 @@
 
   </div>
 
-  <!-- Result banner — full width -->
+  <!-- Result banner -->
   <div class="result-banner" id="result-banner">
-    <span class="result-verdict" id="result-verdict"></span>
-    <span class="result-pts"     id="result-pts"></span>
-    <span class="result-detail"  id="result-detail"></span>
+    <div class="result-left">
+      <span class="result-verdict" id="result-verdict"></span>
+      <span class="result-detail"  id="result-detail"></span>
+    </div>
+    <span class="result-pts" id="result-pts"></span>
   </div>
 
-  <!-- Next button -->
+  <!-- Next / Game Over button -->
   <div class="next-row">
     <button class="next-btn" id="next-btn" onclick="nextRound()"></button>
   </div>
@@ -282,11 +276,11 @@
 
 <!-- SUMMARY SCREEN -->
 <div class="summary-screen" id="summary-screen">
-  <p class="sum-eye">Game Over</p>
-  <h2 class="sum-head">Who<br>Sang It?</h2>
-  <div class="sum-score" id="sum-score"></div>
+  <p class="sum-eye">Game Over — Wrong Answer</p>
+  <h2 class="sum-head">Streak<br>Broken</h2>
+  <div class="sum-streak" id="sum-streak"></div>
+  <p class="sum-streak-label">in a row</p>
   <p class="sum-sub" id="sum-sub"></p>
-  <div class="sum-pips" id="sum-pips"></div>
   <div class="sum-rows" id="sum-rows"></div>
   <div class="sum-actions">
     <button class="sum-btn primary" onclick="restartGame()">Play Again →</button>
@@ -306,15 +300,17 @@ const DJ_YEARS = [
   { num:7, label:'DJ7', color:'#e8e85d', start:'2024-09-24', end:'2025-09-23' },
   { num:8, label:'DJ8', color:'#FF6B6B', start:'2025-09-24', end:'2026-09-23' },
 ];
-const TOTAL_ROUNDS = 10;
-const CHOICES      = 4;
+const CHOICES = 4;
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allSongs   = [];
-let rounds     = [];   // array of round objects
-let roundIdx   = 0;
+let usedSongs  = new Set(); // avoid repeating songs in a session
+let history    = [];        // all rounds played this run
+let streak     = 0;
+let bestStreak = 0;
 let totalScore = 0;
 let answered   = false;
+let currentRound = null;
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 (async function init() {
@@ -324,8 +320,7 @@ let answered   = false;
       .then(txt => { if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1); return JSON.parse(txt); })
   ));
   allSongs = arrays.flat();
-  buildGame();
-  buildPips();
+  buildRound();
   renderRound();
 })();
 
@@ -338,95 +333,56 @@ function shuffle(arr) {
   }
   return a;
 }
-
 function getDJYear(dateStr) {
   return DJ_YEARS.find(y => dateStr >= y.start && dateStr <= y.end) || DJ_YEARS[0];
 }
 
-// Pick N distinct items from arr using a filter to avoid repeats
-function pickRandom(arr, n, exclude = []) {
-  const pool = arr.filter(x => !exclude.includes(x));
-  return shuffle(pool).slice(0, n);
-}
+// ── BUILD ONE ROUND ───────────────────────────────────────────────────────────
+function buildRound() {
+  // Pick a song not yet used this session
+  const pool = allSongs.filter(s => !usedSongs.has(s[1]));
+  const song = shuffle(pool.length ? pool : allSongs)[0]; // if all used, allow repeats
+  usedSongs.add(song[1]);
 
-// ── BUILD GAME ────────────────────────────────────────────────────────────────
-function buildGame() {
-  // Pick 10 distinct songs as the correct answers
-  const correctSongs = shuffle(allSongs).slice(0, TOTAL_ROUNDS);
+  const allArtists = [...new Set(allSongs.map(s => s[3]))];
+  const wrongs     = shuffle(allArtists.filter(a => a !== song[3])).slice(0, CHOICES - 1);
+  const choices    = shuffle([song[3], ...wrongs]);
 
-  rounds = correctSongs.map(correct => {
-    // Collect all unique artists in the catalog
-    const allArtists = [...new Set(allSongs.map(s => s[3]))];
-
-    // Build wrong choices: other artists (not the correct one)
-    const wrongs = shuffle(allArtists.filter(a => a !== correct[3])).slice(0, CHOICES - 1);
-
-    // Combine + shuffle choices; store correct index
-    const choiceArtists = shuffle([correct[3], ...wrongs]);
-    const correctIndex  = choiceArtists.indexOf(correct[3]);
-
-    return { song: correct, choices: choiceArtists, correctIndex, result: null };
-  });
-}
-
-// ── PIPS ──────────────────────────────────────────────────────────────────────
-function buildPips() {
-  const container = document.getElementById('pips');
-  container.innerHTML = '';
-  for (let i = 0; i < TOTAL_ROUNDS; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'pip' + (i === 0 ? ' current' : '');
-    pip.id = `pip-${i}`;
-    container.appendChild(pip);
-  }
-}
-
-function updatePip(idx, state) {
-  const pip = document.getElementById(`pip-${idx}`);
-  if (pip) pip.className = `pip ${state}`;
-  // Mark next as current
-  const next = document.getElementById(`pip-${idx + 1}`);
-  if (next) next.className = 'pip current';
+  currentRound = { song, choices, correctIndex: choices.indexOf(song[3]), result: null };
 }
 
 // ── RENDER ROUND ──────────────────────────────────────────────────────────────
 function renderRound() {
   answered = false;
-  const r = rounds[roundIdx];
-
-  // Progress bar
-  document.getElementById('bar-fill').style.width = (roundIdx / TOTAL_ROUNDS * 100) + '%';
+  const r  = currentRound;
 
   // Song title
   document.getElementById('song-title').textContent = r.song[2];
 
-  // Spotify embed — inject iframe fresh each round (avoids stale audio)
-  // iframe is loaded in background; play button covers it until user clicks
+  // Spotify embed — load silently, play button covers it
   const wrap = document.getElementById('embed-frame-wrap');
-  const old = wrap.querySelector('iframe');
+  const old  = wrap.querySelector('iframe');
   if (old) old.remove();
   const iframe = document.createElement('iframe');
   iframe.src    = `https://open.spotify.com/embed/track/${r.song[1]}?utm_source=generator&theme=0`;
   iframe.width  = '100%';
-  iframe.height = '152';
+  iframe.height = '200';
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
   iframe.setAttribute('loading', 'lazy');
-  // Insert before text-blocker so layering is: iframe → text-blocker → play-btn
   wrap.insertBefore(iframe, document.getElementById('text-blocker'));
-  // Restore both covers for new round
   document.getElementById('text-blocker').classList.remove('hidden');
   document.getElementById('play-btn-wrap').classList.remove('hidden');
 
   // Choices
-  const grid = document.getElementById('choices-grid');
+  const grid    = document.getElementById('choices-grid');
   grid.innerHTML = '';
-  const letters = ['A', 'B', 'C', 'D'];
+  const letters  = ['A', 'B', 'C', 'D'];
   r.choices.forEach((artist, i) => {
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
     btn.innerHTML = `<span class="choice-letter">${letters[i]}</span>${escHtml(artist)}`;
-    btn.onclick = () => selectAnswer(i);
+    btn.onclick   = () => selectAnswer(i);
     grid.appendChild(btn);
   });
 
@@ -437,21 +393,18 @@ function renderRound() {
   document.getElementById('next-btn').style.display = 'none';
 }
 
-// ── REVEAL EMBED ─────────────────────────────────────────────────────────────
-// Triggered by play button click — reloads iframe with autoplay=1, hides full cover.
-// Text blocker stays in place to keep artist name hidden until answer is submitted.
+// ── REVEAL EMBED (play button click) ─────────────────────────────────────────
 function revealEmbed() {
-  const r    = rounds[roundIdx];
+  const r    = currentRound;
   const wrap = document.getElementById('embed-frame-wrap');
   const old  = wrap.querySelector('iframe');
   if (old) old.remove();
   const iframe = document.createElement('iframe');
   iframe.src    = `https://open.spotify.com/embed/track/${r.song[1]}?utm_source=generator&theme=0&autoplay=1`;
   iframe.width  = '100%';
-  iframe.height = '152';
+  iframe.height = '200';
   iframe.setAttribute('frameborder', '0');
   iframe.setAttribute('allow', 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture');
-  // Insert before text-blocker so text-blocker stays above iframe
   wrap.insertBefore(iframe, document.getElementById('text-blocker'));
   document.getElementById('play-btn-wrap').classList.add('hidden');
 }
@@ -461,96 +414,97 @@ function selectAnswer(choiceIdx) {
   if (answered) return;
   answered = true;
 
-  const r       = rounds[roundIdx];
+  const r       = currentRound;
   const correct = choiceIdx === r.correctIndex;
   const pts     = correct ? 1000 : 0;
   r.result      = { choiceIdx, correct, pts };
-  totalScore   += pts;
 
-  // Update score display
-  document.getElementById('score-val').textContent = totalScore;
+  if (correct) {
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    totalScore += pts;
+  } else {
+    // Wrong — streak ends, record this round then show summary
+  }
 
-  // Style all buttons
+  // Update header stats
+  document.getElementById('streak-val').textContent = streak;
+  document.getElementById('best-val').textContent   = bestStreak;
+  document.getElementById('score-val').textContent  = totalScore;
+
+  // Style buttons
   const btns = document.querySelectorAll('.choice-btn');
   btns.forEach((btn, i) => {
     btn.disabled = true;
-    if (i === r.correctIndex) {
-      btn.classList.add(correct && i === choiceIdx ? 'correct' : 'reveal');
-    } else if (i === choiceIdx) {
-      btn.classList.add('wrong');
-    }
+    if (i === r.correctIndex)    btn.classList.add(correct && i === choiceIdx ? 'correct' : 'reveal');
+    else if (i === choiceIdx)    btn.classList.add('wrong');
   });
 
-  // Pip
-  updatePip(roundIdx, correct ? 'correct' : 'wrong');
-
-  // Reveal artist name in embed now that answer is locked in
+  // Reveal artist in embed
   document.getElementById('play-btn-wrap').classList.add('hidden');
   document.getElementById('text-blocker').classList.add('hidden');
 
   // Result banner
-  const yr   = getDJYear(r.song[5]);
-  const rb   = document.getElementById('result-banner');
-  rb.className = `result-banner ${correct ? 'correct' : 'wrong'}`;
+  const yr = getDJYear(r.song[5]);
+  const rb = document.getElementById('result-banner');
+  rb.className     = `result-banner ${correct ? 'correct' : 'wrong'}`;
   rb.style.display = 'flex';
-  document.getElementById('result-verdict').textContent = correct ? '✓ Correct!' : '✗ Wrong';
-  document.getElementById('result-pts').textContent     = correct ? '+1000' : '+0';
+  document.getElementById('result-verdict').textContent = correct ? `✓ Correct! Streak: ${streak}` : '✗ Wrong — streak over!';
+  document.getElementById('result-pts').textContent     = correct ? `+${pts}` : '✗';
   document.getElementById('result-detail').innerHTML    =
     `<strong>${escHtml(r.song[2])}</strong> is by <strong>${escHtml(r.song[3])}</strong>`
-    + ` &mdash; from <span style="color:${yr.color}">${yr.label}</span> (${r.song[5]})`;
+    + ` &mdash; <span style="color:${yr.color}">${yr.label}</span> (${r.song[5]})`;
+
+  // Save to history
+  history.push({ ...r });
 
   // Next button
   const nextBtn = document.getElementById('next-btn');
   nextBtn.style.display = 'block';
-  nextBtn.textContent = roundIdx < TOTAL_ROUNDS - 1 ? 'Next Song →' : 'See Results →';
+  if (correct) {
+    nextBtn.textContent = 'Next Song →';
+    nextBtn.className   = 'next-btn';
+  } else {
+    nextBtn.textContent = 'See Results →';
+    nextBtn.className   = 'next-btn game-over';
+  }
 }
 
 // ── NEXT ROUND ────────────────────────────────────────────────────────────────
 function nextRound() {
-  roundIdx++;
-  if (roundIdx >= TOTAL_ROUNDS) {
+  const lastResult = history[history.length - 1];
+  if (lastResult && !lastResult.result.correct) {
     showSummary();
     return;
   }
-
+  buildRound();
   renderRound();
 }
 
 // ── SUMMARY ───────────────────────────────────────────────────────────────────
 function showSummary() {
-  document.getElementById('game-body').style.display  = 'none';
+  document.getElementById('game-body').style.display     = 'none';
   document.getElementById('summary-screen').style.display = 'flex';
-  document.getElementById('bar-fill').style.width = '100%';
 
-  const correct = rounds.filter(r => r.result && r.result.correct).length;
+  const finalStreak = history.filter(r => r.result.correct).length;
+  document.getElementById('sum-streak').textContent = finalStreak;
+  document.getElementById('sum-sub').textContent    =
+    `${finalStreak} correct in a row — ${totalScore.toLocaleString()} pts total`;
 
-  document.getElementById('sum-score').textContent = totalScore.toLocaleString();
-  document.getElementById('sum-sub').textContent   =
-    `${correct} of ${TOTAL_ROUNDS} correct — ${totalScore.toLocaleString()} / ${(TOTAL_ROUNDS * 1000).toLocaleString()} pts`;
-
-  // Summary pips
-  const spips = document.getElementById('sum-pips');
-  spips.innerHTML = '';
-  rounds.forEach(r => {
-    const p = document.createElement('div');
-    p.className = `sum-pip ${r.result && r.result.correct ? 'correct' : 'wrong'}`;
-    spips.appendChild(p);
-  });
-
-  // Summary rows
   const rows = document.getElementById('sum-rows');
   rows.innerHTML = '';
-  rounds.forEach((r, i) => {
-    const yr    = getDJYear(r.song[5]);
-    const isOk  = r.result && r.result.correct;
-    const row   = document.createElement('div');
+  history.forEach((r, i) => {
+    const yr   = getDJYear(r.song[5]);
+    const isOk = r.result.correct;
+    const row  = document.createElement('div');
     row.className = 'sum-row';
     row.innerHTML = `
-      <div>
+      <div class="sum-num">${i + 1}</div>
+      <div class="sum-song">
         <div class="sum-title">${escHtml(r.song[2])}</div>
         <div class="sum-artist-ans" style="color:${yr.color}">${escHtml(r.song[3])} · ${yr.label}</div>
       </div>
-      <div class="sum-artist-ans">${isOk ? '✓' : `✗ You said: ${escHtml(r.choices[r.result.choiceIdx])}`}</div>
+      <div class="sum-verdict">${isOk ? '✓' : '✗'}</div>
       <div class="sum-pts ${isOk ? 'p1000' : 'p0'}">${isOk ? '+1000' : '0'}</div>
     `;
     rows.appendChild(row);
@@ -559,15 +513,17 @@ function showSummary() {
 
 // ── RESTART ───────────────────────────────────────────────────────────────────
 function restartGame() {
-  roundIdx   = 0;
+  streak     = 0;
   totalScore = 0;
   answered   = false;
-  document.getElementById('score-val').textContent           = '0';
+  history    = [];
+  usedSongs  = new Set();
+  document.getElementById('streak-val').textContent         = '0';
+  document.getElementById('score-val').textContent          = '0';
+  // best persists across restarts this session
   document.getElementById('summary-screen').style.display   = 'none';
   document.getElementById('game-body').style.display        = 'flex';
-  document.getElementById('bar-fill').style.width           = '0%';
-  buildGame();
-  buildPips();
+  buildRound();
   renderRound();
 }
 
