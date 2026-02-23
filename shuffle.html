@@ -658,49 +658,47 @@ const BG = (function() {
   function drawRibbon(r, now) {
     const [rc, gc, bc] = r.color;
 
-    // Current vertical center of ribbon
-    const drift = Math.sin(now * r.driftSpeed + r.driftPhase) * 0.06;
-    const yCenter = (r.yBase + drift) * H;
-
-    // Thickness slightly grows during spin — keep subtle
-    const thick = r.thickness * H * (1 + e * 0.4);
-
-    // Brightness increases during spin
-    const alpha = r.baseAlpha + e * 0.3;
-
-    // Draw the ribbon as a series of vertical slices with a sine-wave center line
+    // Wave position — NEVER multiply by e. Speed and amplitude are constant
+    // so the sine argument advances smoothly with no jumps when e changes.
     const slices = 80;
     const sliceW = W / slices;
 
+    // Pre-compute all cy values once (same formula used for both ribbon + core)
+    const drift = Math.sin(now * r.driftSpeed + r.driftPhase) * 0.06;
+    const yCenter = (r.yBase + drift) * H;
+    const cyArr = new Float32Array(slices + 1);
+    for (let i = 0; i <= slices; i++) {
+      cyArr[i] = yCenter + Math.sin(now * r.waveSpeed + r.wavePhase + i * 0.18) * r.waveAmp * H;
+    }
+
+    // e only affects thickness and brightness — no position math
+    const thick = r.thickness * H * (1 + e * 0.5);
+    const alpha = Math.min(r.baseAlpha + e * 0.35, 1);
+    const peak  = alpha;
+
     ctx.save();
     for (let i = 0; i <= slices; i++) {
-      const x = i * sliceW;
-      const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 2) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.3);
-      const cy = yCenter + waveOffset;
+      const x      = i * sliceW;
+      const cy     = cyArr[i];
       const top    = cy - thick / 2;
       const bottom = cy + thick / 2;
-
-      // Radial gradient for soft edges (bright center, fades out top/bottom)
       const grd = ctx.createLinearGradient(0, top, 0, bottom);
-      const peak = Math.min(alpha, 1);
-      grd.addColorStop(0,    `rgba(${rc},${gc},${bc},0)`);
-      grd.addColorStop(0.2,  `rgba(${rc},${gc},${bc},${peak * 0.4})`);
-      grd.addColorStop(0.5,  `rgba(${rc},${gc},${bc},${peak})`);
-      grd.addColorStop(0.8,  `rgba(${rc},${gc},${bc},${peak * 0.4})`);
-      grd.addColorStop(1,    `rgba(${rc},${gc},${bc},0)`);
-
+      grd.addColorStop(0,   `rgba(${rc},${gc},${bc},0)`);
+      grd.addColorStop(0.2, `rgba(${rc},${gc},${bc},${peak * 0.4})`);
+      grd.addColorStop(0.5, `rgba(${rc},${gc},${bc},${peak})`);
+      grd.addColorStop(0.8, `rgba(${rc},${gc},${bc},${peak * 0.4})`);
+      grd.addColorStop(1,   `rgba(${rc},${gc},${bc},0)`);
       ctx.fillStyle = grd;
       ctx.fillRect(x, top, sliceW + 1, bottom - top);
     }
 
-    // During spin: add a bright white core streak along the ribbon center
-    if (e > 0.1) {
-      const coreAlpha = e * 0.25;
+    // White core appears during spin — position from same cyArr, no speed change
+    if (e > 0.05) {
+      const coreAlpha = e * 0.3;
+      const coreThick = thick * 0.15;
       for (let i = 0; i <= slices; i++) {
-        const x = i * sliceW;
-        const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 2) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.3);
-        const cy = yCenter + waveOffset;
-        const coreThick = thick * 0.12;
+        const x  = i * sliceW;
+        const cy = cyArr[i];
         const grd = ctx.createLinearGradient(0, cy - coreThick, 0, cy + coreThick);
         grd.addColorStop(0,   `rgba(255,255,255,0)`);
         grd.addColorStop(0.5, `rgba(255,255,255,${coreAlpha})`);
@@ -750,6 +748,131 @@ const BG = (function() {
     });
   }
 
+  // ── SPIN-ONLY: Particles ──────────────────────────────────────────────────
+  let particles = [];
+  function spawnParticleBurst(cx, cy, count, colorArr) {
+    const [pr, pg, pb] = colorArr;
+    for (let i = 0; i < count; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = 3 + Math.random() * 10;
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        r: pr, g: pg, b: pb,
+        size: 2 + Math.random() * 5,
+        life: 1.0,
+        decay: 0.018 + Math.random() * 0.025,
+      });
+    }
+  }
+  function updateParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx * dt * 0.06;
+      p.y += p.vy * dt * 0.06;
+      p.vy += 0.08 * dt * 0.06; // gravity
+      p.life -= p.decay;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      ctx.save();
+      ctx.globalAlpha = p.life * e; // fade with e so they vanish when spin ends
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
+      ctx.shadowColor = `rgb(${p.r},${p.g},${p.b})`;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ── SPIN-ONLY: Shockwave rings ────────────────────────────────────────────
+  let rings = [];
+  function spawnRing(cx, cy, colorArr) {
+    rings.push({ cx, cy, radius: 0, maxR: Math.max(W, H) * 0.8,
+      r: colorArr[0], g: colorArr[1], b: colorArr[2],
+      life: 1.0, speed: 4 + Math.random() * 4 });
+  }
+  function updateRings(dt) {
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const rg = rings[i];
+      rg.radius += rg.speed * dt * 0.06;
+      rg.life = Math.max(0, 1 - rg.radius / rg.maxR);
+      if (rg.life <= 0) { rings.splice(i, 1); continue; }
+      const op = rg.life * e * 0.7;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(rg.cx, rg.cy, rg.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${rg.r},${rg.g},${rg.b},${op})`;
+      ctx.lineWidth = 3 * rg.life;
+      ctx.shadowColor = `rgba(${rg.r},${rg.g},${rg.b},${op})`;
+      ctx.shadowBlur = 20;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ── SPIN-ONLY: Lightning bolts ────────────────────────────────────────────
+  let bolts = [];
+  function spawnBolt() {
+    const c = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
+    const x1 = Math.random() * W;
+    const y1 = Math.random() < 0.5 ? 0 : Math.random() * H;
+    const x2 = x1 + (Math.random() - 0.5) * 300;
+    const y2 = y1 + 100 + Math.random() * 300;
+    // Build jagged path
+    const pts = [{x: x1, y: y1}];
+    const steps = 6 + Math.floor(Math.random() * 6);
+    for (let i = 1; i < steps; i++) {
+      const frac = i / steps;
+      pts.push({
+        x: x1 + (x2 - x1) * frac + (Math.random() - 0.5) * 120,
+        y: y1 + (y2 - y1) * frac + (Math.random() - 0.5) * 60,
+      });
+    }
+    pts.push({x: x2, y: y2});
+    bolts.push({ pts, r: c[0], g: c[1], b: c[2], life: 1.0, decay: 0.08 + Math.random() * 0.1 });
+  }
+  function updateBolts() {
+    for (let i = bolts.length - 1; i >= 0; i--) {
+      const b = bolts[i];
+      b.life -= b.decay;
+      if (b.life <= 0) { bolts.splice(i, 1); continue; }
+      const op = b.life * e;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(b.pts[0].x, b.pts[0].y);
+      for (let j = 1; j < b.pts.length; j++) ctx.lineTo(b.pts[j].x, b.pts[j].y);
+      ctx.strokeStyle = `rgba(${b.r},${b.g},${b.b},${op})`;
+      ctx.lineWidth = 2 + b.life * 3;
+      ctx.shadowColor = `rgba(${b.r},${b.g},${b.b},1)`;
+      ctx.shadowBlur = 20 + b.life * 20;
+      ctx.stroke();
+      // bright white core
+      ctx.strokeStyle = `rgba(255,255,255,${op * b.life})`;
+      ctx.lineWidth = 1;
+      ctx.shadowBlur = 0;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ── SPIN-ONLY: Edge vignette pulse ────────────────────────────────────────
+  function drawVignette(t) {
+    if (e < 0.02) return;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 0.008); // slow breathe
+    const op = e * pulse * 0.55;
+    const hue = (t * 0.04) % 360;
+    const grd = ctx.createRadialGradient(W/2, H/2, H * 0.25, W/2, H/2, Math.max(W,H) * 0.85);
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(1, `hsla(${hue},100%,50%,${op})`);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ── Spawn timers ──────────────────────────────────────────────────────────
+  let spawnTimer = 0;
+
   // ── Init / resize ─────────────────────────────────────────────────────────
   function resize() {
     W = canvas.width  = window.innerWidth;
@@ -757,7 +880,6 @@ const BG = (function() {
     initScene();
   }
   function initScene() {
-    // All 8 DJ year colors — evenly spread top to bottom, but large wave amplitude means they cross
     ribbons = [
       mkRibbon(0.06, 0),
       mkRibbon(0.18, 1),
@@ -768,41 +890,84 @@ const BG = (function() {
       mkRibbon(0.81, 6),
       mkRibbon(0.93, 7),
     ];
-    // ~120 stars scattered
     stars = Array.from({length: 120}, mkStar);
   }
 
   // ── Main draw loop ────────────────────────────────────────────────────────
-  // Use a small looping clock (t) instead of raw `now` so sine waves never freeze
-  // t wraps at 2π * 10000 ≈ 62832 — a clean loop point that never causes large numbers
   const TWO_PI_LOOP = Math.PI * 2 * 10000;
-  let t = 0;          // our own looping time, in ms, wraps cleanly
+  let t = 0;
   let lastTime = 0;
   function draw(now) {
     const dt = Math.min(now - lastTime, 50);
     lastTime = now;
-    t = (t + dt) % TWO_PI_LOOP;  // always small, always loops perfectly
+    t = (t + dt) % TWO_PI_LOOP;
 
-    // Smoothly ramp e: fast up, slow back down
     const target = isSpinning ? 1 : 0;
-    e += (target - e) * (isSpinning ? 0.05 : 0.018);
+    e += (target - e) * (isSpinning ? 0.06 : 0.02);
 
     ctx.clearRect(0, 0, W, H);
 
-    // Stars first (behind aurora)
+    // ── Always-on layers ──
     drawStars(t);
-
-    // Aurora ribbons — screen blend so overlaps mix colors instead of just stacking
     ctx.globalCompositeOperation = 'screen';
     ribbons.forEach(r => drawRibbon(r, t));
     ctx.globalCompositeOperation = 'source-over';
+
+    // ── Spin-only chaos layers (scaled by e) ──
+    if (e > 0.02) {
+      // Spawn new effects proportional to e
+      spawnTimer += dt;
+      const spawnRate = 120 - e * 100; // at full e: every ~20ms
+      if (spawnTimer > spawnRate) {
+        spawnTimer = 0;
+        // Particle burst from random edge point
+        const edgePt = Math.random() < 0.5
+          ? { x: Math.random() * W, y: Math.random() < 0.5 ? 0 : H }
+          : { x: Math.random() < 0.5 ? 0 : W, y: Math.random() * H };
+        const c = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
+        spawnParticleBurst(edgePt.x, edgePt.y, Math.floor(8 + e * 20), c);
+
+        // Occasional center burst
+        if (Math.random() < 0.3 * e) {
+          const c2 = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
+          spawnParticleBurst(W/2 + (Math.random()-0.5)*200, H/2 + (Math.random()-0.5)*200,
+            Math.floor(15 + e * 30), c2);
+        }
+
+        // Shockwave ring from center
+        if (Math.random() < 0.25 * e) {
+          const c3 = RIBBON_COLORS[Math.floor(Math.random() * RIBBON_COLORS.length)];
+          spawnRing(W/2, H/2, c3);
+        }
+
+        // Lightning bolt
+        if (Math.random() < 0.4 * e) spawnBolt();
+      }
+
+      // Draw all spin-only effects
+      ctx.globalCompositeOperation = 'screen';
+      updateRings(dt);
+      updateBolts();
+      updateParticles(dt);
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Color vignette pulse around edges
+      drawVignette(t);
+    }
 
     requestAnimationFrame(draw);
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
-  function spinStart() { isSpinning = true;  document.body.classList.add('is-spinning'); }
-  function spinStop()  { isSpinning = false; document.body.classList.remove('is-spinning'); }
+  function spinStart() {
+    particles = []; rings = []; bolts = []; spawnTimer = 0;
+    isSpinning = true;
+    document.body.classList.add('is-spinning');
+  }
+  function spinStop() {
+    isSpinning = false;
+    document.body.classList.remove('is-spinning');
+  }
 
   window.addEventListener('resize', resize);
   resize();
