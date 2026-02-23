@@ -487,14 +487,23 @@ function selectYear(num) {
     if (btn) btn.classList.toggle('selected', yr.num === num);
   });
 
-  // Enable & configure the slider for this year
+  document.getElementById('year-nudge').classList.remove('visible');
+
+  // Check if the selected year is more than ±1 away from the correct DJ year.
+  // If so, it's mathematically impossible to score any points — auto-submit 0 immediately.
+  const { song } = rounds[roundIdx];
+  const correctYearNum = getDJYearNum(song[5]);
+  if (Math.abs(num - correctYearNum) > 1) {
+    autoWrongYear(num, correctYearNum, song);
+    return;
+  }
+
+  // Within ±1 year — enable the slider for this year
   const yr = DJ_YEARS[num - 1];
   const activeColor = yr.color;
 
   // Build date array for the selected DJ year only — one entry per day from start to end.
-  // This keeps the slider manageable (365–366 positions).
-  // Scoring is based purely on days off from the actual date regardless of year chosen,
-  // so picking the wrong year naturally results in 0 pts (>365 days off).
+  // Keeps the slider manageable (365–366 positions).
   const start = new Date(yr.start);
   const end   = new Date(yr.end);
   sliderDates = [];
@@ -510,7 +519,7 @@ function selectYear(num) {
   slider.value = Math.floor(sliderDates.length / 2); // default to middle of year
   currentSliderIdx = parseInt(slider.value);
 
-  // Update colors
+  // Update colors and unlock slider
   const sliderSection = document.getElementById('slider-section');
   sliderSection.style.setProperty('--active-color', activeColor);
   sliderSection.style.opacity = '1';
@@ -521,7 +530,58 @@ function selectYear(num) {
   document.getElementById('date-end').textContent   = formatDateShort(yr.end);
 
   updateSliderDisplay();
-  document.getElementById('year-nudge').classList.remove('visible');
+}
+
+// ── AUTO WRONG YEAR ────────────────────────────────────────────────────────────
+// Called when a player picks a year more than ±1 from the correct one.
+// No slider shown — instantly records 0 pts and shows the result.
+function autoWrongYear(pickedNum, correctNum, song) {
+  submitted = true;
+
+  const actualDate  = song[5];
+  const guessedDate = null; // no date guessed
+  const daysOff     = null; // not applicable
+  const pts         = 0;
+  const tier        = 'off';
+
+  history.push({ song, actualDate, guessedDate: '—', daysOff: null, pts, tier, autoWrong: true });
+
+  // Update score (unchanged — 0 added)
+  document.getElementById('score-display').textContent = totalScore.toLocaleString();
+
+  // Update pip
+  updatePip(roundIdx, 'off');
+
+  // Lock all year buttons
+  DJ_YEARS.forEach(yr => {
+    const btn = document.getElementById(`yr-btn-${yr.num}`);
+    if (btn) btn.disabled = true;
+  });
+
+  // Keep slider locked
+  const sliderSection = document.getElementById('slider-section');
+  sliderSection.style.opacity = '0.15';
+  sliderSection.style.pointerEvents = 'none';
+
+  // Disable submit button
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitted';
+
+  // Show result
+  const ra = document.getElementById('result-area');
+  ra.className = 'result-area visible off';
+  ra.style.display = 'block';
+
+  document.getElementById('result-headline').textContent    = 'Wrong Year ✗';
+  document.getElementById('result-guess-date').textContent  = `DJ${pickedNum}`;
+  document.getElementById('result-guess-date').style.color  = 'var(--red)';
+  document.getElementById('result-actual-date').textContent = formatDateFull(actualDate);
+  document.getElementById('result-distance').textContent    =
+    `Correct year was DJ${correctNum} — too far off to score`;
+  document.getElementById('result-points').textContent      = '+0';
+
+  ra.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ── SLIDER ─────────────────────────────────────────────────────────────────────
@@ -673,6 +733,16 @@ function showSummary() {
     const djYr = getDJYearNum(h.actualDate);
     const yrColor = DJ_YEARS[djYr - 1] ? DJ_YEARS[djYr - 1].color : 'var(--text)';
 
+    const distLabel = h.autoWrong
+      ? 'Wrong year'
+      : h.daysOff === 0
+        ? 'Exact!'
+        : h.daysOff + ' day' + (h.daysOff !== 1 ? 's' : '') + ' off';
+
+    const guessLabel = h.autoWrong
+      ? '<span style="color:var(--red)">Wrong year selected</span>'
+      : formatDateFull(h.guessedDate);
+
     row.innerHTML = `
       <div class="summary-rnum">${i + 1}</div>
       <div class="summary-song">
@@ -681,8 +751,8 @@ function showSummary() {
       </div>
       <div class="summary-dates">
         <strong style="color:${yrColor}">Actual: ${formatDateFull(h.actualDate)}</strong>
-        Guess: ${formatDateFull(h.guessedDate)}<br>
-        ${h.daysOff === 0 ? 'Exact!' : h.daysOff + ' day' + (h.daysOff !== 1 ? 's' : '') + ' off'}
+        Guess: ${guessLabel}<br>
+        ${distLabel}
       </div>
       <div class="summary-pts ${ptsClass}">+${h.pts.toLocaleString()}</div>
     `;
