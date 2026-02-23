@@ -382,18 +382,18 @@ function spinReel(reelIndex, songPool, delay, finalSong) {
       const duration = 3000 + delay * 0.5;
       const startTime = performance.now();
 
-      function easeOut(t) {
-        return 1 - Math.pow(1 - t, 3);
+      function easeOut(p) {
+        return 1 - Math.pow(1 - p, 3);
       }
 
       function frame(now) {
         const elapsed = now - startTime;
-        const t = Math.min(elapsed / duration, 1);
-        const eased = easeOut(t);
+        const p = Math.min(elapsed / duration, 1);
+        const eased = easeOut(p);
         const currentY = -(eased * targetOffset);
         tape.style.transform = `translateY(${currentY}px)`;
 
-        if (t < 1) {
+        if (p < 1) {
           requestAnimationFrame(frame);
         } else {
           // Strip tape to only the winning item — nothing above or below to bleed through
@@ -622,11 +622,11 @@ const BG = (function() {
     const drift = Math.sin(now * r.driftSpeed + r.driftPhase) * 0.06;
     const yCenter = (r.yBase + drift) * H;
 
-    // Thickness grows during spin
-    const thick = r.thickness * H * (1 + e * 1.2);
+    // Thickness slightly grows during spin — keep subtle
+    const thick = r.thickness * H * (1 + e * 0.4);
 
     // Brightness increases during spin
-    const alpha = r.baseAlpha + e * 0.35;
+    const alpha = r.baseAlpha + e * 0.3;
 
     // Draw the ribbon as a series of vertical slices with a sine-wave center line
     const slices = 80;
@@ -635,7 +635,7 @@ const BG = (function() {
     ctx.save();
     for (let i = 0; i <= slices; i++) {
       const x = i * sliceW;
-      const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 3) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.8);
+      const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 2) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.3);
       const cy = yCenter + waveOffset;
       const top    = cy - thick / 2;
       const bottom = cy + thick / 2;
@@ -658,7 +658,7 @@ const BG = (function() {
       const coreAlpha = e * 0.25;
       for (let i = 0; i <= slices; i++) {
         const x = i * sliceW;
-        const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 3) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.8);
+        const waveOffset = Math.sin(now * r.waveSpeed * (1 + e * 2) + r.wavePhase + i * 0.18) * r.waveAmp * H * (1 + e * 0.3);
         const cy = yCenter + waveOffset;
         const coreThick = thick * 0.12;
         const grd = ctx.createLinearGradient(0, cy - coreThick, 0, cy + coreThick);
@@ -717,15 +717,16 @@ const BG = (function() {
     initScene();
   }
   function initScene() {
-    // 5 thinner ribbons spread across vertical space, each a different DJ year color
-    // Shuffle color order so it varies each page load
-    const colorOrder = [0,1,2,3,4,5,6,7].sort(() => Math.random()-0.5);
+    // All 8 DJ year colors, evenly spaced across screen height
     ribbons = [
-      mkRibbon(0.12, colorOrder[0]),
-      mkRibbon(0.30, colorOrder[1]),
-      mkRibbon(0.48, colorOrder[2]),
-      mkRibbon(0.66, colorOrder[3]),
-      mkRibbon(0.84, colorOrder[4]),
+      mkRibbon(0.06, 0),
+      mkRibbon(0.19, 1),
+      mkRibbon(0.32, 2),
+      mkRibbon(0.45, 3),
+      mkRibbon(0.58, 4),
+      mkRibbon(0.71, 5),
+      mkRibbon(0.84, 6),
+      mkRibbon(0.94, 7),
     ];
     // ~120 stars scattered
     stars = Array.from({length: 120}, mkStar);
