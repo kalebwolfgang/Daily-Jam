@@ -170,6 +170,14 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
   .nav-link:hover { color: var(--text); }
   .nav-link.active { color: var(--amber); }
   @media (max-width: 700px) { .site-nav { padding: 0 16px; } .nav-link { padding: 8px 8px; font-size: 10px; } }
+
+/* BUBBLE MAP + SPECTRUM */
+.bubble-container, .spectrum-container { width: 100%; background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+.bubble-svg, .spectrum-svg { display: block; width: 100%; height: auto; }
+.bubble-tooltip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--border); padding: 10px 14px; font-size: 11px; line-height: 1.6; white-space: nowrap; z-index: 200; display: none; }
+.bubble-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; align-items: center; }
+.bl-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+.bl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -280,6 +288,34 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
       </div>
       <div class="genre-list" id="genre-list"></div>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Artist <span>Bubble Map</span></div>
+    <div class="section-sub">Each bubble = one artist · size = total songs · colored by popularity tier · click any bubble to browse catalog</div>
+    <div class="bubble-container">
+      <svg id="bubble-svg" class="bubble-svg"></svg>
+    </div>
+    <div id="bubble-tooltip" class="bubble-tooltip"></div>
+    <div class="bubble-legend">
+      <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px;width:100%;margin-bottom:2px">COLOR = AVG SPOTIFY POPULARITY TIER</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#6b5b95"></div>Underground (0–20)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#5d8fe8"></div>Cult (20–40)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#5dba7f"></div>Rising (40–55)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#e8a45d"></div>Known (55–70)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#e85d8f"></div>Popular (70–82)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#FF6B6B"></div>Mainstream (82+)</div>
+      <div class="bl-item"><div class="bl-dot" style="background:#6a6460"></div>No data</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Underground <span>→ Mainstream</span></div>
+    <div class="section-sub">Avg Spotify track popularity (0–100) · X = how niche vs. mainstream · Y = how many songs you added · hover any dot</div>
+    <div class="spectrum-container">
+      <svg id="spectrum-svg" class="spectrum-svg"></svg>
+    </div>
+    <div id="spectrum-tooltip" class="bubble-tooltip"></div>
   </div>
 
 </div>
@@ -577,6 +613,370 @@ document.querySelectorAll('#genre-year-filter .yf-btn').forEach(btn => {
 });
 
 renderGenreWheel();
+
+// ============================================================
+// ARTIST BUBBLE MAP + UNDERGROUND → MAINSTREAM SPECTRUM
+// ============================================================
+
+const POP_TIERS = [
+  { min: 0,   max: 20,  label: 'Underground', color: '#6b5b95' },
+  { min: 20,  max: 40,  label: 'Cult',        color: '#5d8fe8' },
+  { min: 40,  max: 55,  label: 'Rising',      color: '#5dba7f' },
+  { min: 55,  max: 70,  label: 'Known',       color: '#e8a45d' },
+  { min: 70,  max: 82,  label: 'Popular',     color: '#e85d8f' },
+  { min: 82,  max: 101, label: 'Mainstream',  color: '#FF6B6B' },
+];
+
+function popTierColor(avgPop) {
+  if (avgPop === null || avgPop === undefined) return '#6a6460';
+  for (const t of POP_TIERS) { if (avgPop < t.max) return t.color; }
+  return '#FF6B6B';
+}
+
+function popTierInfo(avgPop) {
+  if (avgPop === null) return null;
+  for (const t of POP_TIERS) { if (avgPop < t.max) return t; }
+  return POP_TIERS[POP_TIERS.length - 1];
+}
+
+async function initNewCharts() {
+  let songs;
+  try {
+    const res = await fetch('songs-list.json');
+    const text = await res.text();
+    songs = JSON.parse(text.replace(/^\uFEFF/, '')); // strip UTF-8 BOM if present
+  } catch(e) {
+    console.error('Failed to load songs-list.json', e);
+    return;
+  }
+
+  // Build per-artist stats from raw song data
+  const map = {};
+  songs.forEach(song => {
+    const artistStr = song[3];
+    const pop = typeof song[8] === 'number' ? song[8] : parseInt(song[8]);
+    if (!artistStr) return;
+    artistStr.split(';').forEach((a, i) => {
+      const name = a.trim();
+      if (!name) return;
+      if (!map[name]) map[name] = { lead: 0, feat: 0, popSum: 0, popCount: 0 };
+      if (i === 0) map[name].lead++;
+      else map[name].feat++;
+      if (pop > 0) { map[name].popSum += pop; map[name].popCount++; }
+    });
+  });
+
+  const allArtists = Object.entries(map)
+    .map(([name, d]) => ({
+      name,
+      lead: d.lead,
+      feat: d.feat,
+      total: d.lead + d.feat,
+      avgPop: d.popCount > 0 ? Math.round(d.popSum / d.popCount) : null
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  const multiArtists = allArtists.filter(a => a.total >= 2);
+
+  buildBubbleChart(multiArtists);
+  buildSpectrumChart(multiArtists);
+}
+
+// --------------------------------------------------
+// BUBBLE CHART
+// --------------------------------------------------
+function buildBubbleChart(artists) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('bubble-svg');
+  const W = 900, H = 700;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  const maxCount = artists[0].total;
+  const MAX_R = 62, MIN_R = 5;
+
+  const nodes = artists.map(a => ({
+    ...a,
+    r: Math.max(MIN_R, Math.sqrt(a.total / maxCount) * MAX_R),
+    x: 0, y: 0
+  }));
+
+  // Force-directed bubble packing
+  const cx = W / 2, cy = H / 2;
+  const bound = Math.min(W, H) * 0.47;
+
+  // Golden-angle spiral initialization
+  nodes.forEach((n, i) => {
+    const angle = i * 2.39996322972865;
+    const radius = 5 * Math.sqrt(i + 1);
+    n.x = cx + Math.cos(angle) * Math.min(radius, bound - n.r);
+    n.y = cy + Math.sin(angle) * Math.min(radius, bound - n.r);
+  });
+
+  const ITERS = 110;
+  for (let iter = 0; iter < ITERS; iter++) {
+    const t = iter / ITERS;
+
+    // Collision resolution
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        const dx = b.x - a.x || 0.01, dy = b.y - a.y || 0.01;
+        const d2 = dx * dx + dy * dy;
+        const gap = a.r + b.r + 2;
+        if (d2 < gap * gap) {
+          const d = Math.sqrt(d2);
+          const f = (gap - d) / d * 0.5;
+          a.x -= dx * f; a.y -= dy * f;
+          b.x += dx * f; b.y += dy * f;
+        }
+      }
+    }
+
+    // Gravity toward center + boundary clamp
+    const g = 0.045 * Math.max(0.05, 1 - t * 1.2);
+    nodes.forEach(n => {
+      n.x += (cx - n.x) * g;
+      n.y += (cy - n.y) * g;
+      const dx = n.x - cx, dy = n.y - cy;
+      const d = Math.hypot(dx, dy);
+      const maxD = bound - n.r;
+      if (d > maxD && d > 0) {
+        n.x = cx + dx / d * maxD;
+        n.y = cy + dy / d * maxD;
+      }
+    });
+  }
+
+  const tooltip = document.getElementById('bubble-tooltip');
+
+  nodes.forEach(n => {
+    const color = popTierColor(n.avgPop);
+    const g = document.createElementNS(svgNS, 'g');
+    g.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
+    g.style.cursor = 'pointer';
+
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('r', n.r.toFixed(1));
+    circle.setAttribute('fill', hexAlpha(color, 0.18));
+    circle.setAttribute('stroke', color);
+    circle.setAttribute('stroke-width', n.total >= 5 ? '1.5' : '1');
+    g.appendChild(circle);
+
+    // Label when bubble is large enough
+    if (n.r >= 16) {
+      const maxChars = Math.floor(n.r / 4.5);
+      const label = n.name.length > maxChars + 1 ? n.name.slice(0, maxChars) + '…' : n.name;
+      const text = document.createElementNS(svgNS, 'text');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'middle');
+      text.setAttribute('fill', color);
+      text.setAttribute('font-size', Math.min(11, n.r * 0.38).toFixed(1));
+      text.setAttribute('font-family', 'Space Mono, monospace');
+      text.setAttribute('pointer-events', 'none');
+      text.textContent = label;
+      g.appendChild(text);
+    }
+
+    g.addEventListener('mouseenter', () => {
+      circle.setAttribute('fill', hexAlpha(color, 0.45));
+      tooltip.style.display = 'block';
+      const tier = popTierInfo(n.avgPop);
+      const tierStr = tier ? `<span style="color:${tier.color}">${tier.label}</span> ` : '';
+      tooltip.innerHTML = `<strong style="color:${color}">${n.name}</strong><br>${n.total} songs · ${n.lead} lead + ${n.feat} feat<br>${tierStr}${n.avgPop !== null ? `<span style="color:var(--text-muted)">avg pop: ${n.avgPop}/100</span>` : '<span style="color:var(--text-muted)">no popularity data</span>'}`;
+    });
+    g.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 38) + 'px';
+    });
+    g.addEventListener('mouseleave', () => {
+      circle.setAttribute('fill', hexAlpha(color, 0.18));
+      tooltip.style.display = 'none';
+    });
+    g.addEventListener('click', () => {
+      window.location.href = 'catalog.html?search=' + encodeURIComponent(n.name);
+    });
+
+    svg.appendChild(g);
+  });
+}
+
+// --------------------------------------------------
+// UNDERGROUND → MAINSTREAM SPECTRUM
+// --------------------------------------------------
+function buildSpectrumChart(artists) {
+  const withPop = artists.filter(a => a.avgPop !== null);
+  if (!withPop.length) return;
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('spectrum-svg');
+
+  const W = 1100;
+  const PAD = { top: 44, right: 24, bottom: 52, left: 54 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = 320;
+  const H = PAD.top + chartH + PAD.bottom;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  const maxSongs = withPop[0].total; // sorted by total desc
+  const xScale = p => PAD.left + (p / 100) * chartW;
+  const yScale = c => PAD.top + chartH - (Math.sqrt(c) / Math.sqrt(maxSongs)) * chartH * 0.9;
+
+  // Zone background bands + dividers + labels
+  POP_TIERS.forEach(tier => {
+    const x1 = xScale(tier.min);
+    const x2 = xScale(Math.min(tier.max, 100));
+
+    const rect = document.createElementNS(svgNS, 'rect');
+    rect.setAttribute('x', x1); rect.setAttribute('y', PAD.top);
+    rect.setAttribute('width', x2 - x1); rect.setAttribute('height', chartH);
+    rect.setAttribute('fill', hexAlpha(tier.color, 0.07));
+    svg.appendChild(rect);
+
+    if (tier.min > 0) {
+      const div = document.createElementNS(svgNS, 'line');
+      div.setAttribute('x1', x1); div.setAttribute('x2', x1);
+      div.setAttribute('y1', PAD.top); div.setAttribute('y2', PAD.top + chartH);
+      div.setAttribute('stroke', hexAlpha(tier.color, 0.28));
+      div.setAttribute('stroke-dasharray', '3 4');
+      svg.appendChild(div);
+    }
+
+    const midX = xScale((tier.min + Math.min(tier.max, 100)) / 2);
+    const lbl = document.createElementNS(svgNS, 'text');
+    lbl.setAttribute('x', midX); lbl.setAttribute('y', PAD.top - 10);
+    lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('fill', tier.color);
+    lbl.setAttribute('font-size', '10');
+    lbl.setAttribute('font-family', 'Space Mono, monospace');
+    lbl.setAttribute('letter-spacing', '1.5');
+    lbl.textContent = tier.label.toUpperCase();
+    svg.appendChild(lbl);
+  });
+
+  // Y-axis gridlines + labels
+  [1, 2, 5, 10, 20, 30, 50].filter(c => c <= maxSongs).forEach(c => {
+    const y = yScale(c);
+    const gl = document.createElementNS(svgNS, 'line');
+    gl.setAttribute('x1', PAD.left); gl.setAttribute('x2', PAD.left + chartW);
+    gl.setAttribute('y1', y); gl.setAttribute('y2', y);
+    gl.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+    svg.appendChild(gl);
+
+    const t = document.createElementNS(svgNS, 'text');
+    t.setAttribute('x', PAD.left - 8); t.setAttribute('y', y + 4);
+    t.setAttribute('text-anchor', 'end');
+    t.setAttribute('fill', '#6a6460');
+    t.setAttribute('font-size', '9');
+    t.setAttribute('font-family', 'Space Mono, monospace');
+    t.textContent = c;
+    svg.appendChild(t);
+  });
+
+  // X axis baseline
+  const xAxis = document.createElementNS(svgNS, 'line');
+  xAxis.setAttribute('x1', PAD.left); xAxis.setAttribute('x2', PAD.left + chartW);
+  xAxis.setAttribute('y1', PAD.top + chartH); xAxis.setAttribute('y2', PAD.top + chartH);
+  xAxis.setAttribute('stroke', 'var(--border)');
+  svg.appendChild(xAxis);
+
+  // X axis tick labels
+  for (let v = 0; v <= 100; v += 10) {
+    const x = xScale(v);
+    const t = document.createElementNS(svgNS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', PAD.top + chartH + 16);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('fill', '#6a6460');
+    t.setAttribute('font-size', '9');
+    t.setAttribute('font-family', 'Space Mono, monospace');
+    t.textContent = v;
+    svg.appendChild(t);
+  }
+
+  // Axis labels
+  const xLbl = document.createElementNS(svgNS, 'text');
+  xLbl.setAttribute('x', PAD.left + chartW / 2);
+  xLbl.setAttribute('y', PAD.top + chartH + 38);
+  xLbl.setAttribute('text-anchor', 'middle');
+  xLbl.setAttribute('fill', '#6a6460');
+  xLbl.setAttribute('font-size', '9');
+  xLbl.setAttribute('font-family', 'Space Mono, monospace');
+  xLbl.setAttribute('letter-spacing', '2');
+  xLbl.textContent = 'AVG SPOTIFY TRACK POPULARITY (0–100)';
+  svg.appendChild(xLbl);
+
+  const yLbl = document.createElementNS(svgNS, 'text');
+  yLbl.setAttribute('transform', `rotate(-90,14,${PAD.top + chartH / 2})`);
+  yLbl.setAttribute('x', 14); yLbl.setAttribute('y', PAD.top + chartH / 2);
+  yLbl.setAttribute('text-anchor', 'middle');
+  yLbl.setAttribute('fill', '#6a6460');
+  yLbl.setAttribute('font-size', '9');
+  yLbl.setAttribute('font-family', 'Space Mono, monospace');
+  yLbl.setAttribute('letter-spacing', '2');
+  yLbl.textContent = 'SONGS ADDED';
+  svg.appendChild(yLbl);
+
+  const tooltip = document.getElementById('spectrum-tooltip');
+
+  // Render dots: smallest first so larger dots appear on top
+  const sorted = [...withPop].sort((a, b) => a.total - b.total);
+
+  sorted.forEach(a => {
+    const color = popTierColor(a.avgPop);
+    const x = xScale(a.avgPop);
+    const y = yScale(a.total);
+    const r = Math.max(3.5, Math.min(12, 2.5 + Math.sqrt(a.total)));
+
+    const circle = document.createElementNS(svgNS, 'circle');
+    circle.setAttribute('cx', x.toFixed(1));
+    circle.setAttribute('cy', y.toFixed(1));
+    circle.setAttribute('r', r.toFixed(1));
+    circle.setAttribute('fill', hexAlpha(color, 0.55));
+    circle.setAttribute('stroke', color);
+    circle.setAttribute('stroke-width', '1');
+    circle.style.cursor = 'pointer';
+
+    circle.addEventListener('mouseenter', () => {
+      circle.setAttribute('fill', hexAlpha(color, 0.9));
+      circle.setAttribute('r', (r + 2.5).toFixed(1));
+      tooltip.style.display = 'block';
+      const tier = popTierInfo(a.avgPop);
+      tooltip.innerHTML = `<strong style="color:${color}">${a.name}</strong><br>${a.total} songs · <span style="color:${tier.color}">${tier.label}</span><br><span style="color:var(--text-muted)">avg popularity: ${a.avgPop}/100</span>`;
+    });
+    circle.addEventListener('mousemove', e => {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 38) + 'px';
+    });
+    circle.addEventListener('mouseleave', () => {
+      circle.setAttribute('fill', hexAlpha(color, 0.55));
+      circle.setAttribute('r', r.toFixed(1));
+      tooltip.style.display = 'none';
+    });
+    circle.addEventListener('click', () => {
+      window.location.href = 'catalog.html?search=' + encodeURIComponent(a.name);
+    });
+
+    svg.appendChild(circle);
+  });
+
+  // Permanent labels for artists with 10+ songs
+  withPop.filter(a => a.total >= 10).forEach(a => {
+    const color = popTierColor(a.avgPop);
+    const text = document.createElementNS(svgNS, 'text');
+    text.setAttribute('x', (xScale(a.avgPop) + 9).toFixed(1));
+    text.setAttribute('y', (yScale(a.total) + 3.5).toFixed(1));
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size', '9');
+    text.setAttribute('font-family', 'Space Mono, monospace');
+    text.setAttribute('pointer-events', 'none');
+    text.textContent = a.name;
+    svg.appendChild(text);
+  });
+}
+
+initNewCharts();
 
 </script>
 </body>
