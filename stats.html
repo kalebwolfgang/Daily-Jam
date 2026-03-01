@@ -178,6 +178,18 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
 .bubble-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; align-items: center; }
 .bl-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
 .bl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+/* BUBBLE FULLSCREEN MODAL */
+.bubble-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; display: flex; flex-direction: column; }
+.bubble-modal-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--surface); }
+.bubble-modal-title { font-size: 13px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; flex: 1; }
+.bubble-modal-title span { color: var(--amber); }
+.bubble-modal-count { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+.bubble-modal-close { background: none; border: 1px solid var(--border); color: var(--text-dim); font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 10px; font-family: inherit; transition: color 0.15s, border-color 0.15s; }
+.bubble-modal-close:hover { color: var(--amber); border-color: var(--amber); }
+.bubble-modal-controls { display: flex; align-items: center; gap: 0; padding: 10px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg); flex-wrap: wrap; gap: 8px; }
+.bubble-modal-body { flex: 1; overflow: auto; padding: 0; }
+.bubble-modal-svg-wrap { width: 100%; min-height: 0; }
+.bubble-modal-svg-wrap svg { display: block; width: 100%; height: auto; }
 </style>
 </head>
 <body>
@@ -306,7 +318,9 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
         <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
       </div>
       <button id="bubble-shuffle-btn" class="yf-btn" style="color:var(--amber);border-left:1px solid var(--border);">↺ Shuffle</button>
+      <button id="bubble-viewall-btn" class="yf-btn" style="color:var(--text-dim);border-left:1px solid var(--border);">⤢ View All Artists</button>
     </div>
+    <div id="bubble-count" style="font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:10px;"></div>
     <div class="bubble-container">
       <svg id="bubble-svg" class="bubble-svg"></svg>
     </div>
@@ -321,6 +335,35 @@ body::after { content: ''; position: fixed; inset: 0; background-image: url("dat
       <div class="bl-item"><div class="bl-dot" style="background:#FF6B6B"></div>Mainstream (82+)</div>
       <div class="bl-item"><div class="bl-dot" style="background:#6a6460"></div>No data</div>
     </div>
+  </div>
+
+  <!-- BUBBLE FULLSCREEN MODAL -->
+  <div id="bubble-modal" class="bubble-modal-overlay" style="display:none;">
+    <div class="bubble-modal-header">
+      <div class="bubble-modal-title">Artist <span>Bubble Map</span> — All Artists</div>
+      <div id="bubble-modal-count" class="bubble-modal-count"></div>
+      <button id="bubble-modal-close" class="bubble-modal-close" title="Close (Esc)">✕</button>
+    </div>
+    <div class="bubble-modal-controls">
+      <div class="year-filter" id="bubble-modal-year-filter" style="margin-bottom:0;">
+        <button class="yf-btn active" data-year="0">All Daily Jams</button>
+        <button class="yf-btn" data-year="1" style="color:var(--y1)">Daily Jam 1</button>
+        <button class="yf-btn" data-year="2" style="color:var(--y2)">Daily Jam 2</button>
+        <button class="yf-btn" data-year="3" style="color:var(--y3)">Daily Jam 3</button>
+        <button class="yf-btn" data-year="4" style="color:var(--y4)">Daily Jam 4</button>
+        <button class="yf-btn" data-year="5" style="color:var(--y5)">Daily Jam 5</button>
+        <button class="yf-btn" data-year="6" style="color:var(--y6)">Daily Jam 6</button>
+        <button class="yf-btn" data-year="7" style="color:var(--y7)">Daily Jam 7</button>
+        <button class="yf-btn" data-year="8" style="color:var(--y8)">Daily Jam 8</button>
+      </div>
+      <button id="bubble-modal-shuffle-btn" class="yf-btn" style="color:var(--amber);">↺ Shuffle</button>
+    </div>
+    <div class="bubble-modal-body">
+      <div class="bubble-modal-svg-wrap">
+        <svg id="bubble-modal-svg"></svg>
+      </div>
+    </div>
+    <div id="bubble-modal-tooltip" class="bubble-tooltip" style="z-index:600;"></div>
   </div>
 
   <div class="section">
@@ -681,7 +724,19 @@ function getArtistsForYear(year, minSongs) {
 }
 
 function renderBubbleChart(year) {
-  buildBubbleChart(getArtistsForYear(year, year === 0 ? 2 : 1));
+  const artists = getArtistsForYear(year, year === 0 ? 5 : 2);
+  buildBubbleChart(artists, 'bubble-svg', 900, 820);
+  const el = document.getElementById('bubble-count');
+  if (el) el.textContent = 'SHOWING ' + artists.length + ' ARTISTS' + (year === 0 ? ' (5+ songs all-time)' : ' (2+ songs this year)');
+}
+
+let bubbleModalYear = 0;
+
+function renderBubbleChartFull(year) {
+  const artists = getArtistsForYear(year, year === 0 ? 2 : 1);
+  buildBubbleChart(artists, 'bubble-modal-svg', 1400, 980);
+  const el = document.getElementById('bubble-modal-count');
+  if (el) el.textContent = 'SHOWING ' + artists.length + ' ARTISTS' + (year === 0 ? ' (2+ songs all-time)' : ' (1+ songs this year)');
 }
 
 function renderSpectrumChart(year) {
@@ -692,6 +747,7 @@ function initNewCharts() {
   renderBubbleChart(0);
   renderSpectrumChart(0);
 
+  // Condensed bubble â€“ year filter
   document.querySelectorAll('#bubble-year-filter .yf-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       document.querySelectorAll('#bubble-year-filter .yf-btn').forEach(b => b.classList.remove('active'));
@@ -701,6 +757,64 @@ function initNewCharts() {
     });
   });
 
+  // Condensed bubble â€“ shuffle
+  document.getElementById('bubble-shuffle-btn').addEventListener('click', () => {
+    renderBubbleChart(bubbleYear);
+  });
+
+  // Open fullscreen modal
+  document.getElementById('bubble-viewall-btn').addEventListener('click', () => {
+    document.getElementById('bubble-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // Sync modal year filter to current condensed year
+    bubbleModalYear = bubbleYear;
+    document.querySelectorAll('#bubble-modal-year-filter .yf-btn').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.year) === bubbleModalYear);
+    });
+    renderBubbleChartFull(bubbleModalYear);
+  });
+
+  // Close modal â€“ button
+  document.getElementById('bubble-modal-close').addEventListener('click', () => {
+    document.getElementById('bubble-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  });
+
+  // Close modal â€“ click outside chart area
+  document.getElementById('bubble-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close modal â€“ Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('bubble-modal');
+      if (modal && modal.style.display !== 'none') {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    }
+  });
+
+  // Modal â€“ year filter
+  document.querySelectorAll('#bubble-modal-year-filter .yf-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#bubble-modal-year-filter .yf-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      bubbleModalYear = parseInt(this.dataset.year);
+      renderBubbleChartFull(bubbleModalYear);
+    });
+  });
+
+  // Modal â€“ shuffle
+  document.getElementById('bubble-modal-shuffle-btn').addEventListener('click', () => {
+    renderBubbleChartFull(bubbleModalYear);
+  });
+
+  // Spectrum â€“ year filter
   document.querySelectorAll('#spectrum-year-filter .yf-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       document.querySelectorAll('#spectrum-year-filter .yf-btn').forEach(b => b.classList.remove('active'));
@@ -709,21 +823,20 @@ function initNewCharts() {
       renderSpectrumChart(spectrumYear);
     });
   });
-
-  document.getElementById('bubble-shuffle-btn').addEventListener('click', () => {
-    renderBubbleChart(bubbleYear);
-  });
 }
 
 // --------------------------------------------------
 // BUBBLE CHART
 // --------------------------------------------------
-function buildBubbleChart(artists) {
+function buildBubbleChart(artists, svgId, W, H) {
+  svgId = svgId || 'bubble-svg';
+  W = W || 900; H = H || 820;
   const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.getElementById('bubble-svg');
-  const W = 900, H = 700;
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = '';
+  const tooltipId = svgId === 'bubble-modal-svg' ? 'bubble-modal-tooltip' : 'bubble-tooltip';
 
   const maxCount = artists[0].total;
   const MAX_R = 62, MIN_R = 5;
@@ -781,7 +894,7 @@ function buildBubbleChart(artists) {
     });
   }
 
-  const tooltip = document.getElementById('bubble-tooltip');
+  const tooltip = document.getElementById(tooltipId);
 
   nodes.forEach(n => {
     const color = popTierColor(n.avgPop);
